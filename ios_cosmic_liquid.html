@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Liquid Glass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ios: {
+                            dark: '#1c1c1e',
+                            card: '#2c2c2e',
+                            separator: '#38383a',
+                            blue: '#0a84ff',
+                            green: '#30d158',
+                            indigo: '#5e5ce6',
+                            orange: '#ff9f0a',
+                            pink: '#ff375f',
+                            purple: '#bf5af2',
+                            red: '#ff453a',
+                            teal: '#64d2ff',
+                            yellow: '#ffd60a',
+                        }
+                    },
+                    fontFamily: {
+                        'sf': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                    },
+                    backdropBlur: {
+                        'liquid': '40px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: all 0.5s ease;
+            overflow-x: hidden;
+        }
+
+        /* Liquid Glass эффект */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .liquid-glass-dark {
+            background: rgba(30, 30, 30, 0.2);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .liquid-glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .liquid-glass-card-dark {
+            background: rgba(40, 40, 40, 0.25);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow:
+                0 10px 25px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Космический фон с анимацией */
+        .space-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background:
+                radial-gradient(ellipse at center, rgba(12, 20, 69, 0.4) 0%, rgba(0, 0, 0, 0.9) 70%),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><radialGradient id="grad"><stop offset="0%" stop-color="%23000B27"/><stop offset="100%" stop-color="%23000"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23grad)"/></svg>');
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+                radial-gradient(1px 1px at 90px 40px, #ddd, transparent),
+                radial-gradient(1px 1px at 130px 80px, #fff, transparent),
+                radial-gradient(2px 2px at 160px 30px, #eee, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: stars-animation 120s linear infinite;
+        }
+
+        @keyframes stars-animation {
+            from { background-position: 0 0; }
+            to { background-position: -1000px 0; }
+        }
+
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 40%);
+            opacity: 0.6;
+            animation: nebula-animation 60s ease-in-out infinite alternate;
+        }
+
+        @keyframes nebula-animation {
+            0% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 0.4; transform: scale(1); }
+        }
+
+        /* Эффект нажатия для iOS элементов */
+        .ios-press {
+            transition: all 0.2s ease;
+        }
+
+        .ios-press:active {
+            transform: scale(0.97);
+            opacity: 0.8;
+        }
+
+        /* Анимации для iOS виджетов */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Скрытие элементов */
+        .hidden-section {
+            display: none;
+        }
+
+        /* Анимация переключения секций */
+        .section-transition {
+            transition: opacity 0.4s ease;
+        }
+
+        /* Стили для переключателя темы */
+        .theme-toggle {
+            position: relative;
+            width: 51px;
+            height: 31px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-toggle.active {
+            background-color: rgba(52, 199, 89, 0.7);
+        }
+
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 27px;
+            height: 27px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+
+        /* Анимация для планет */
+        .planet {
+            position: fixed;
+            border-radius: 50%;
+            z-index: -1;
+            animation: float 30s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        /* Анимация для уведомлений */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-notification {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body class="font-sf min-h-screen pb-20 text-white">
+    <!-- Космический фон -->
+    <div class="space-bg"></div>
+    <div class="stars"></div>
+    <div class="nebula"></div>
+
+    <!-- Планеты -->
+    <div class="planet w-20 h-20 bg-purple-500 opacity-20 top-1/4 left-10"></div>
+    <div class="planet w-12 h-12 bg-blue-400 opacity-30 top-2/3 right-10"></div>
+    <div class="planet w-16 h-16 bg-pink-500 opacity-20 bottom-1/4 left-1/4"></div>
+
+    <!-- Верхний статус бар iOS -->
+    <div class="fixed top-0 left-0 right-0 z-50 pt-1 pb-2 px-4 flex justify-between items-center text-sm liquid-glass-dark">
+        <div class="text-xs" id="current-time">18:41</div>
+        <div class="flex space-x-1">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-three-quarters" id="battery-icon"></i>
+        </div>
+    </div>
+
+    <!-- Секция Главная -->
+    <section id="home-section" class="section-transition">
+        <main class="pt-8 px-4">
+            <!-- Заголовок страницы -->
+            <div class="mb-6 fade-in">
+                <h1 class="text-2xl font-semibold">Космическая станция</h1>
+                <p class="text-white text-opacity-70 text-sm mt-1" id="current-date">Пятница, 15 сентября</p>
+            </div>
+
+            <!-- Виджет погоды -->
+            <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card-dark" id="weather-widget">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="font-medium">Космическая погода</h2>
+                        <p class="text-white text-opacity-70 text-sm">Орбита Земли</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl" id="weather-temp">-270°</div>
+                        <p class="text-white text-opacity-70 text-sm" id="weather-desc">Вакуум</p>
+                    </div>
+                </div>
+                <div class="mt-2 flex justify-between text-xs text-white text-opacity-70">
+                    <span>Солнечный ветер: <span id="solar-wind">450 км/с</span></span>
+                    <span>Радиация: <span id="radiation-level">Низкая</span></span>
+                </div>
+            </div>
+
+            <!-- Виджет календаря -->
+            <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card-dark" id="calendar-widget">
+                <h2 class="font-medium mb-2">Космическое расписание</h2>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-ios-blue bg-opacity-80 w-10 h-10 rounded-full flex items-center justify-center liquid-glass">
+                        <span class="text-xs font-medium" id="calendar-day">15</span>
+                    </div>
+                    <div>
+                        <p class="font-medium" id="calendar-event">Выход в открытый космос</p>
+                        <p class="text-white text-opacity-70 text-sm" id="calendar-time">10:00 - 11:30</p>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center space-x-3">
+                    <div class="bg-ios-purple bg-opacity-80 w-10 h-10 rounded-full flex items-center justify-center liquid-glass">
+                        <span class="text-xs font-medium">16</span>
+                    </div>
+                    <div>
+                        <p class="font-medium">Коррекция орбиты</p>
+                        <p class="text-white text-opacity-70 text-sm">14:20 - 15:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Виджет напоминаний -->
+            <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card-dark" id="reminders-widget">
+                <h2 class="font-medium mb-2">Космические задачи</h2>
+                <div class="flex items-center space-x-3">
+                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="1">
+                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
+                    </div>
+                    <p>Проверить системы жизнеобеспечения</p>
+                </div>
+                <div class="flex items-center space-x-3 mt-2">
+                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="2">
+                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
+                    </div>
+                    <p>Калибровка навигационных приборов</p>
+                </div>
+                <div class="flex items-center space-x-3 mt-2">
+                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="3">
+                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
+                    </div>
+                    <p>Связь с ЦУП</p>
+                </div>
+                <div class="mt-3 flex">
+                    <input type="text" placeholder="Новая задача..." class="flex-1 bg-transparent border border-white border-opacity-20 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-ios-blue" id="new-reminder">
+                    <button class="ml-2 bg-ios-blue bg-opacity-80 text-white rounded-xl px-3 text-sm liquid-glass" id="add-reminder">+</button>
+                </div>
+            </div>
+
+            <!-- Виджет систем станции -->
+            <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card-dark" id="systems-widget">
+                <h2 class="font-medium mb-2">Системы станции</h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
+                        <span class="text-sm">Кислород</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
+                        <span class="text-sm">Энергия</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-ios-orange"></div>
+                        <span class="text-sm">Связь</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
+                        <span class="text-sm">Температура</span>
+                    </div>
+                </div>
+                <div class="mt-3 w-full bg-gray-700 rounded-full h-2">
+                    <div class="bg-ios-blue h-2 rounded-full" style="width: 75%" id="station-power"></div>
+                </div>
+                <div class="flex justify-between text-xs mt-1 text-white text-opacity-70">
+                    <span>Энергия: 75%</span>
+                    <span id="station-time">12 дней до подзарядки</span>
+                </div>
+            </div>
+
+            <!-- Виджет музыки -->
+            <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card-dark" id="music-widget">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-ios-purple to-ios-pink rounded-xl flex items-center justify-center liquid-glass">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-medium">Космическая музыка</h2>
+                            <p class="text-white text-opacity-70 text-sm" id="music-track">Space Oddity - David Bowie</p>
+                        </div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-ios-blue bg-opacity-80 flex items-center justify-center liquid-glass" id="play-button">
+                        <i class="fas fa-play" id="play-icon"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center space-x-2">
+                    <span class="text-xs text-white text-opacity-70" id="music-time">0:00</span>
+                    <div class="flex-1 bg-gray-700 rounded-full h-1">
+                        <div class="bg-ios-blue h-1 rounded-full" style="width: 30%" id="music-progress"></div>
+                    </div>
+                    <span class="text-xs text-white text-opacity-70">3:45</span>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Секция Поиск -->
+    <section id="search-section" class="section-transition hidden-section">
+        <main class="pt-8 px-4">
+            <div class="mb-6 fade-in">
+                <h1 class="text-2xl font-semibold">Космический поиск</h1>
+                <div class="mt-4 relative">
+                    <input type="text" placeholder="Поиск по станции..." class="w-full rounded-2xl py-3 px-4 pl-10 focus:outline-none liquid-glass-card-dark text-white placeholder-white placeholder-opacity-50" id="search-input">
+                    <i class="fas fa-search absolute left-3 top-3.5 text-white text-opacity-50"></i>
+                </div>
+            </div>
+
+            <div class="rounded-3xl p-4 mb-4 fade-in liquid-glass-card-dark">
+                <h2 class="font-medium mb-3">Недавние поиски</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-3 ios-press" data-search="навигация">
+                        <div class="w-8 h-8 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <i class="fas fa-satellite text-xs"></i>
+                        </div>
+                        <p>Системы навигации</p>
+                    </div>
+                    <div class="flex items-center space-x-3 ios-press" data-search="жизнеобеспечение">
+                        <div class="w-8 h-8 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <i class="fas fa-leaf text-xs"></i>
+                        </div>
+                        <p>Системы жизнеобеспечения</p>
+                    </div>
+                    <div class="flex items-center space-x-3 ios-press" data-search="связь">
+                        <div class="w-8 h-8 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <i class="fas fa-broadcast-tower text-xs"></i>
+                        </div>
+                        <p>Связь с Землей</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-3xl p-4 mb-4 fade-in liquid-glass-card-dark">
+                <h2 class="font-medium mb-3">Быстрый доступ</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="home-section">
+                        <div class="w-10 h-10 bg-ios-purple bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <p class="text-xs">Главная</p>
+                    </div>
+                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="notifications-section">
+                        <div class="w-10 h-10 bg-ios-pink bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <p class="text-xs">Уведомления</p>
+                    </div>
+                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="settings-section">
+                        <div class="w-10 h-10 bg-ios-blue bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <p class="text-xs">Настройки</p>
+                    </div>
+                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" id="emergency-btn">
+                        <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <p class="text-xs">Авария</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Секция Уведомления -->
+    <section id="notifications-section" class="section-transition hidden-section">
+        <main class="pt-8 px-4">
+            <div class="mb-6 fade-in">
+                <h1 class="text-2xl font-semibold">Космические уведомления</h1>
+                <div class="flex space-x-2 mt-4">
+                    <button class="bg-ios-blue bg-opacity-80 text-white px-4 py-1 rounded-full text-sm liquid-glass active-filter" data-filter="all">Все</button>
+                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass" data-filter="unread">Непрочитанные</button>
+                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass" data-filter="system">Системные</button>
+                </div>
+            </div>
+
+            <div class="space-y-4" id="notifications-container">
+                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card-dark notification-item" data-type="system">
+                    <div class="flex justify-between items-start">
+                        <div class="flex space-x-3">
+                            <div class="w-10 h-10 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Связь с ЦУП</h3>
+                                <p class="text-white text-opacity-70 text-sm">Установлена устойчивая связь</p>
+                                <p class="text-white text-opacity-50 text-xs mt-1">2 мин назад</p>
+                            </div>
+                        </div>
+                        <div class="w-2 h-2 bg-ios-blue rounded-full pulse-notification"></div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card-dark notification-item" data-type="reminder">
+                    <div class="flex justify-between items-start">
+                        <div class="flex space-x-3">
+                            <div class="w-10 h-10 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Задача выполнена</h3>
+                                <p class="text-white text-opacity-70 text-sm">"Проверить системы" выполнено</p>
+                                <p class="text-white text-opacity-50 text-xs mt-1">10 мин назад</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card-dark notification-item" data-type="system">
+                    <div class="flex justify-between items-start">
+                        <div class="flex space-x-3">
+                            <div class="w-10 h-10 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <i class="fas fa-solar-panel"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Солнечные панели</h3>
+                                <p class="text-white text-opacity-70 text-sm">Эффективность 94%</p>
+                                <p class="text-white text-opacity-50 text-xs mt-1">1 час назад</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card-dark notification-item" data-type="alert">
+                    <div class="flex justify-between items-start">
+                        <div class="flex space-x-3">
+                            <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <i class="fas fa-radiation"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">Радиационный фон</h3>
+                                <p class="text-white text-opacity-70 text-sm">Уровень в норме</p>
+                                <p class="text-white text-opacity-50 text-xs mt-1">2 часа назад</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Секция Настройки -->
+    <section id="settings-section" class="section-transition hidden-section">
+        <main class="pt-8 px-4">
+            <div class="mb-6 fade-in">
+                <h1 class="text-2xl font-semibold">Настройки станции</h1>
+            </div>
+
+            <div class="space-y-4">
+                <div class="rounded-3xl p-4 fade-in liquid-glass-card-dark">
+                    <h2 class="font-medium mb-3">Основные системы</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center ios-press" id="wifi-setting">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                                <p>Связь с Землей</p>
+                            </div>
+                            <p class="text-white text-opacity-70" id="wifi-status">Активна</p>
+                        </div>
+                        <div class="flex justify-between items-center ios-press" id="bluetooth-setting">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-broadcast-tower"></i>
+                                </div>
+                                <p>Внутренняя связь</p>
+                            </div>
+                            <p class="text-white text-opacity-70" id="bluetooth-status">Вкл.</p>
+                        </div>
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-moon"></i>
+                                </div>
+                                <p>Тема интерфейса</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-white text-opacity-70 text-sm" id="theme-status">Космос</span>
+                                <div class="theme-toggle active" id="theme-toggle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl p-4 fade-in liquid-glass-card-dark">
+                    <h2 class="font-medium mb-3">Безопасность</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-purple bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-user-astronaut"></i>
+                                </div>
+                                <p>Экипаж</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
+                        </div>
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-pink bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-key"></i>
+                                </div>
+                                <p>Коды доступа</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl p-4 fade-in liquid-glass-card-dark">
+                    <h2 class="font-medium mb-3">Приложения</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-indigo bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-music"></i>
+                                </div>
+                                <p>Космическая музыка</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
+                        </div>
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-teal bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                </div>
+                                <p>Навигация</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
+                        </div>
+                        <div class="flex justify-between items-center ios-press">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-ios-yellow bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <p>Траектория полета</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Фиксированная нижняя панель навигации -->
+    <div class="fixed bottom-0 left-0 right-0 py-2 px-6 flex justify-between items-center liquid-glass-dark">
+        <a href="#" class="nav-btn flex flex-col items-center text-ios-blue ios-press" data-section="home-section">
+            <i class="fas fa-home text-lg mb-1"></i>
+            <span class="text-xs">Главная</span>
+        </a>
+        <a href="#" class="nav-btn flex flex-col items-center text-white text-opacity-70 ios-press" data-section="search-section">
+            <i class="fas fa-search text-lg mb-1"></i>
+            <span class="text-xs">Поиск</span>
+        </a>
+        <a href="#" class="nav-btn flex flex-col items-center text-white text-opacity-70 ios-press" data-section="notifications-section">
+            <i class="fas fa-bell text-lg mb-1"></i>
+            <span class="text-xs">Уведомления</span>
+        </a>
+        <a href="#" class="nav-btn flex flex-col items-center text-white text-opacity-70 ios-press" data-section="settings-section">
+            <i class="fas fa-cog text-lg mb-1"></i>
+            <span class="text-xs">Настройки</span>
+        </a>
+    </div>
+
+    <script>
+        // Обновление времени и даты
+        function updateDateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+            const dateString = now.toLocaleDateString('ru-RU', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            });
+
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('current-date').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+
+        // Инициализация времени
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+
+        // Функция переключения темы
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeStatus = document.getElementById('theme-status');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeToggle.classList.remove('active');
+                themeStatus.textContent = 'Стандартная';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                themeToggle.classList.add('active');
+                themeStatus.textContent = 'Космос';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Инициализация темы из localStorage
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeStatus = document.getElementById('theme-status');
+
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                themeToggle.classList.remove('active');
+                themeStatus.textContent = 'Стандартная';
+            } else {
+                document.documentElement.classList.add('dark');
+                themeToggle.classList.add('active');
+                themeStatus.textContent = 'Космос';
+            }
+        }
+
+        // Навигация между секциями
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация темы
+            initTheme();
+
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('section');
+
+            // Функция переключения секций
+            function switchSection(sectionId) {
+                // Скрыть все секции
+                sections.forEach(section => {
+                    section.classList.add('hidden-section');
+                    section.style.opacity = '0';
+                });
+
+                // Показать выбранную секцию
+                const activeSection = document.getElementById(sectionId);
+                activeSection.classList.remove('hidden-section');
+                setTimeout(() => {
+                    activeSection.style.opacity = '1';
+                }, 10);
+
+                // Обновить активную кнопку в навигации
+                navButtons.forEach(btn => {
+                    const btnSection = btn.getAttribute('data-section');
+                    if (btnSection === sectionId) {
+                        btn.classList.remove('text-white', 'text-opacity-70');
+                        btn.classList.add('text-ios-blue');
+                    } else {
+                        btn.classList.remove('text-ios-blue');
+                        btn.classList.add('text-white', 'text-opacity-70');
+                    }
+                });
+            }
+
+            // Обработчики для кнопок навигации
+            navButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const sectionId = this.getAttribute('data-section');
+                    switchSection(sectionId);
+                });
+            });
+
+            // Обработчик для переключателя темы
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            // Эффект нажатия для всех элементов с классом ios-press
+            const pressElements = document.querySelectorAll('.ios-press');
+
+            pressElements.forEach(element => {
+                element.addEventListener('touchstart', function() {
+                    this.classList.add('opacity-80', 'scale-95');
+                });
+
+                element.addEventListener('touchend', function() {
+                    this.classList.remove('opacity-80', 'scale-95');
+                });
+
+                element.addEventListener('mousedown', function() {
+                    this.classList.add('opacity-80', 'scale-95');
+                });
+
+                element.addEventListener('mouseup', function() {
+                    this.classList.remove('opacity-80', 'scale-95');
+                });
+
+                element.addEventListener('mouseleave', function() {
+                    this.classList.remove('opacity-80', 'scale-95');
+                });
+            });
+
+            // Функциональность для чекбоксов напоминаний
+            const reminderCheckboxes = document.querySelectorAll('.reminder-checkbox');
+            reminderCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    const checkIcon = this.querySelector('div');
+                    if (checkIcon.classList.contains('hidden')) {
+                        checkIcon.classList.remove('hidden');
+                        this.parentElement.style.opacity = '0.5';
+                        this.parentElement.style.textDecoration = 'line-through';
+                    } else {
+                        checkIcon.classList.add('hidden');
+                        this.parentElement.style.opacity = '1';
+                        this.parentElement.style.textDecoration = 'none';
+                    }
+                });
+            });
+
+            // Функциональность кнопки воспроизведения музыки
+            const playButton = document.getElementById('play-button');
+            let isPlaying = false;
+            let musicProgress = 0;
+            let musicInterval;
+
+            if (playButton) {
+                playButton.addEventListener('click', function() {
+                    const icon = document.getElementById('play-icon');
+                    if (isPlaying) {
+                        icon.classList.remove('fa-pause');
+                        icon.classList.add('fa-play');
+                        clearInterval(musicInterval);
+                    } else {
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-pause');
+                        // Запуск прогресса музыки
+                        musicInterval = setInterval(() => {
+                            musicProgress += 0.5;
+                            if (musicProgress > 100) musicProgress = 0;
+                            document.getElementById('music-progress').style.width = musicProgress + '%';
+
+                            // Обновление времени
+                            const currentTime = Math.floor(musicProgress * 2.25 / 100);
+                            document.getElementById('music-time').textContent = '0:' + (currentTime < 10 ? '0' + currentTime : currentTime);
+                        }, 1000);
+                    }
+                    isPlaying = !isPlaying;
+                });
+            }
+
+            // Добавление новых напоминаний
+            const addReminderBtn = document.getElementById('add-reminder');
+            const newReminderInput = document.getElementById('new-reminder');
+
+            if (addReminderBtn && newReminderInput) {
+                addReminderBtn.addEventListener('click', function() {
+                    const text = newReminderInput.value.trim();
+                    if (text) {
+                        const remindersContainer = document.getElementById('reminders-widget');
+                        const newReminder = document.createElement('div');
+                        newReminder.className = 'flex items-center space-x-3 mt-2';
+                        newReminder.innerHTML = `
+                            <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="new">
+                                <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
+                            </div>
+                            <p>${text}</p>
+                        `;
+                        remindersContainer.insertBefore(newReminder, remindersContainer.lastElementChild);
+                        newReminderInput.value = '';
+
+                        // Добавляем обработчик для нового чекбокса
+                        newReminder.querySelector('.reminder-checkbox').addEventListener('click', function() {
+                            const checkIcon = this.querySelector('div');
+                            if (checkIcon.classList.contains('hidden')) {
+                                checkIcon.classList.remove('hidden');
+                                this.parentElement.style.opacity = '0.5';
+                                this.parentElement.style.textDecoration = 'line-through';
+                            } else {
+                                checkIcon.classList.add('hidden');
+                                this.parentElement.style.opacity = '1';
+                                this.parentElement.style.textDecoration = 'none';
+                            }
+                        });
+                    }
+                });
+
+                newReminderInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addReminderBtn.click();
+                    }
+                });
+            }
+
+            // Фильтрация уведомлений
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+
+                    // Обновляем активную кнопку
+                    filterButtons.forEach(btn => btn.classList.remove('active-filter', 'bg-ios-blue', 'bg-opacity-80'));
+                    this.classList.add('active-filter', 'bg-ios-blue', 'bg-opacity-80');
+
+                    // Фильтруем уведомления
+                    const notifications = document.querySelectorAll('.notification-item');
+                    notifications.forEach(notification => {
+                        if (filter === 'all') {
+                            notification.style.display = 'block';
+                        } else if (filter === 'unread') {
+                            notification.style.display = notification.querySelector('.pulse-notification') ? 'block' : 'none';
+                        } else {
+                            notification.style.display = notification.getAttribute('data-type') === filter ? 'block' : 'none';
+                        }
+                    });
+                });
+            });
+
+            // Быстрый доступ из поиска
+            const quickAccessButtons = document.querySelectorAll('[data-section]');
+            quickAccessButtons.forEach(button => {
+                if (button.id !== 'emergency-btn') {
+                    button.addEventListener('click', function() {
+                        const sectionId = this.getAttribute('data-section');
+                        switchSection(sectionId);
+                    });
+                }
+            });
+
+            // Кнопка аварии
+            const emergencyBtn = document.getElementById('emergency-btn');
+            if (emergencyBtn) {
+                emergencyBtn.addEventListener('click', function() {
+                    alert('АВАРИЙНЫЙ РЕЖИМ АКТИВИРОВАН!\n\nВсе системы переведены в режим повышенной готовности. Связь с ЦУП установлена.');
+
+                    // Добавляем аварийное уведомление
+                    const notificationsContainer = document.getElementById('notifications-container');
+                    const emergencyNotification = document.createElement('div');
+                    emergencyNotification.className = 'rounded-3xl p-4 fade-in ios-press liquid-glass-card-dark notification-item';
+                    emergencyNotification.style.border = '1px solid rgba(255, 69, 58, 0.5)';
+                    emergencyNotification.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex space-x-3">
+                                <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">АВАРИЙНЫЙ РЕЖИМ</h3>
+                                    <p class="text-white text-opacity-70 text-sm">Активирован аварийный протокол</p>
+                                    <p class="text-white text-opacity-50 text-xs mt-1">Только что</p>
+                                </div>
+                            </div>
+                            <div class="w-2 h-2 bg-ios-red rounded-full pulse-notification"></div>
+                        </div>
+                    `;
+                    notificationsContainer.prepend(emergencyNotification);
+
+                    switchSection('notifications-section');
+                });
+            }
+
+            // Поиск
+            const searchInput = document.getElementById('search-input');
+            const searchItems = document.querySelectorAll('[data-search]');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchText = this.value.toLowerCase();
+
+                    searchItems.forEach(item => {
+                        const searchData = item.getAttribute('data-search').toLowerCase();
+                        if (searchData.includes(searchText)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Переключение настроек Wi-Fi и Bluetooth
+            const wifiSetting = document.getElementById('wifi-setting');
+            const bluetoothSetting = document.getElementById('bluetooth-setting');
+
+            if (wifiSetting) {
+                wifiSetting.addEventListener('click', function() {
+                    const status = document.getElementById('wifi-status');
+                    if (status.textContent === 'Активна') {
+                        status.textContent = 'Отключена';
+                    } else {
+                        status.textContent = 'Активна';
+                    }
+                });
+            }
+
+            if (bluetoothSetting) {
+                bluetoothSetting.addEventListener('click', function() {
+                    const status = document.getElementById('bluetooth-status');
+                    if (status.textContent === 'Вкл.') {
+                        status.textContent = 'Выкл.';
+                    } else {
+                        status.textContent = 'Вкл.';
+                    }
+                });
+            }
+
+            // Анимация батареи
+            let batteryLevel = 85;
+            const batteryIcon = document.getElementById('battery-icon');
+
+            function updateBattery() {
+                batteryLevel -= 0.1;
+                if (batteryLevel < 0) batteryLevel = 100;
+
+                if (batteryLevel > 80) {
+                    batteryIcon.className = 'fas fa-battery-full';
+                } else if (batteryLevel > 60) {
+                    batteryIcon.className = 'fas fa-battery-three-quarters';
+                } else if (batteryLevel > 40) {
+                    batteryIcon.className = 'fas fa-battery-half';
+                } else if (batteryLevel > 20) {
+                    batteryIcon.className = 'fas fa-battery-quarter';
+                } else {
+                    batteryIcon.className = 'fas fa-battery-empty';
+                }
+            }
+
+            setInterval(updateBattery, 10000);
+
+            // Анимация уровня энергии станции
+            let powerLevel = 75;
+            const powerBar = document.getElementById('station-power');
+            const stationTime = document.getElementById('station-time');
+
+            function updatePower() {
+                powerLevel -= 0.05;
+                if (powerLevel < 0) powerLevel = 100;
+
+                powerBar.style.width = powerLevel + '%';
+
+                const daysLeft = Math.floor(powerLevel / 0.05);
+                stationTime.textContent = daysLeft + ' дней до подзарядки';
+            }
+
+            setInterval(updatePower, 5000);
+
+            // Изменение космической погоды
+            const weatherTemp = document.getElementById('weather-temp');
+            const weatherDesc = document.getElementById('weather-desc');
+            const solarWind = document.getElementById('solar-wind');
+            const radiationLevel = document.getElementById('radiation-level');
+
+            const weatherConditions = [
+                { temp: '-270°', desc: 'Вакуум', wind: '450 км/с', radiation: 'Низкая' },
+                { temp: '-200°', desc: 'Солнечный свет', wind: '380 км/с', radiation: 'Средняя' },
+                { temp: '-250°', desc: 'Тень Земли', wind: '420 км/с', radiation: 'Низкая' },
+                { temp: '-265°', desc: 'Космический вакуум', wind: '500 км/с', radiation: 'Высокая' }
+            ];
+
+            let currentWeather = 0;
+
+            function changeWeather() {
+                currentWeather = (currentWeather + 1) % weatherConditions.length;
+                const weather = weatherConditions[currentWeather];
+
+                weatherTemp.textContent = weather.temp;
+                weatherDesc.textContent = weather.desc;
+                solarWind.textContent = weather.wind;
+                radiationLevel.textContent = weather.radiation;
+            }
+
+            setInterval(changeWeather, 15000);
+
+            // Смена музыки
+            const musicTrack = document.getElementById('music-track');
+            const musicTracks = [
+                'Space Oddity - David Bowie',
+                'Rocket Man - Elton John',
+                'Across the Universe - The Beatles',
+                'Starman - David Bowie',
+                'Major Tom - Peter Schilling'
+            ];
+
+            let currentTrack = 0;
+
+            function changeTrack() {
+                currentTrack = (currentTrack + 1) % musicTracks.length;
+                musicTrack.textContent = musicTracks[currentTrack];
+                musicProgress = 0;
+                document.getElementById('music-progress').style.width = '0%';
+                document.getElementById('music-time').textContent = '0:00';
+            }
+
+            setInterval(changeTrack, 30000);
+
+            // Имитация загрузки контента
+            setTimeout(() => {
+                const fadeElements = document.querySelectorAll('.fade-in');
+                fadeElements.forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
