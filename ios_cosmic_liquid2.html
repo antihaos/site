@@ -292,6 +292,98 @@
         .light .placeholder-white::placeholder {
             color: rgba(0, 0, 0, 0.5);
         }
+
+        /* Стили для модального окна кодов доступа */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 0;
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .code-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin: 0 5px;
+        }
+
+        .code-input:focus {
+            border-color: #0a84ff;
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .light .code-input {
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            color: black;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .light .code-input:focus {
+            border-color: #0a84ff;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Цветные градиенты для иконок */
+        .icon-gradient-1 {
+            background: linear-gradient(135deg, #ff6b6b, #ffa8a8);
+        }
+
+        .icon-gradient-2 {
+            background: linear-gradient(135deg, #4ecdc4, #88d3ce);
+        }
+
+        .icon-gradient-3 {
+            background: linear-gradient(135deg, #45b7d1, #96cfe3);
+        }
+
+        .icon-gradient-4 {
+            background: linear-gradient(135deg, #f9c74f, #f9e2a8);
+        }
+
+        .icon-gradient-5 {
+            background: linear-gradient(135deg, #9d4edd, #c77dff);
+        }
+
+        .icon-gradient-6 {
+            background: linear-gradient(135deg, #f3722c, #f8965b);
+        }
     </style>
 </head>
 <body class="font-sf min-h-screen pb-20 text-white dark">
@@ -304,6 +396,61 @@
     <div class="planet w-20 h-20 bg-purple-500 top-1/4 left-10"></div>
     <div class="planet w-12 h-12 bg-blue-400 top-2/3 right-10"></div>
     <div class="planet w-16 h-16 bg-pink-500 bottom-1/4 left-1/4"></div>
+
+    <!-- Модальное окно кодов доступа -->
+    <div id="access-codes-modal" class="modal-overlay">
+        <div class="modal-content liquid-glass-card">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Коды доступа</h2>
+                    <button id="close-codes-modal" class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass ios-press">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-white text-opacity-70 mb-4">Введите 6-значный код доступа:</p>
+                    <div class="flex justify-center space-x-2 mb-4">
+                        <input type="text" maxlength="1" class="code-input" data-index="0">
+                        <input type="text" maxlength="1" class="code-input" data-index="1">
+                        <input type="text" maxlength="1" class="code-input" data-index="2">
+                        <input type="text" maxlength="1" class="code-input" data-index="3">
+                        <input type="text" maxlength="1" class="code-input" data-index="4">
+                        <input type="text" maxlength="1" class="code-input" data-index="5">
+                    </div>
+                    <p id="code-error" class="text-red-400 text-sm text-center hidden">Неверный код доступа</p>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="font-medium mb-3">Сохраненные коды:</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center p-3 rounded-xl liquid-glass">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center icon-gradient-1">
+                                    <i class="fas fa-door-open text-xs"></i>
+                                </div>
+                                <span>Шлюз 1-A</span>
+                            </div>
+                            <span class="font-mono">••••••</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 rounded-xl liquid-glass">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center icon-gradient-2">
+                                    <i class="fas fa-server text-xs"></i>
+                                </div>
+                                <span>Центр управления</span>
+                            </div>
+                            <span class="font-mono">••••••</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="submit-code" class="w-full bg-ios-blue bg-opacity-80 py-3 rounded-xl font-medium liquid-glass ios-press">
+                    Проверить код
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Верхний статус бар iOS -->
     <div class="fixed top-0 left-0 right-0 z-50 pt-1 pb-2 px-4 flex justify-between items-center text-sm liquid-glass">
@@ -346,7 +493,7 @@
             <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card" id="calendar-widget">
                 <h2 class="font-medium mb-2">Космическое расписание</h2>
                 <div class="flex items-center space-x-3">
-                    <div class="bg-ios-blue bg-opacity-80 w-10 h-10 rounded-full flex items-center justify-center liquid-glass">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-1">
                         <span class="text-xs font-medium" id="calendar-day">15</span>
                     </div>
                     <div>
@@ -355,7 +502,7 @@
                     </div>
                 </div>
                 <div class="mt-2 flex items-center space-x-3">
-                    <div class="bg-ios-purple bg-opacity-80 w-10 h-10 rounded-full flex items-center justify-center liquid-glass">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
                         <span class="text-xs font-medium">16</span>
                     </div>
                     <div>
@@ -388,7 +535,7 @@
                 </div>
                 <div class="mt-3 flex">
                     <input type="text" placeholder="Новая задача..." class="flex-1 bg-transparent border border-white border-opacity-20 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-ios-blue text-white placeholder-white placeholder-opacity-50" id="new-reminder">
-                    <button class="ml-2 bg-ios-blue bg-opacity-80 text-white rounded-xl px-3 text-sm liquid-glass" id="add-reminder">+</button>
+                    <button class="ml-2 bg-ios-blue bg-opacity-80 text-white rounded-xl px-3 text-sm liquid-glass ios-press" id="add-reminder">+</button>
                 </div>
             </div>
 
@@ -426,7 +573,7 @@
             <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card" id="music-widget">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-ios-purple to-ios-pink rounded-xl flex items-center justify-center liquid-glass">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center liquid-glass icon-gradient-5">
                             <i class="fas fa-music"></i>
                         </div>
                         <div>
@@ -434,7 +581,7 @@
                             <p class="text-white text-opacity-70 text-sm" id="music-track">Space Oddity - David Bowie</p>
                         </div>
                     </div>
-                    <div class="w-10 h-10 rounded-full bg-ios-blue bg-opacity-80 flex items-center justify-center liquid-glass" id="play-button">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-3 ios-press" id="play-button">
                         <i class="fas fa-play" id="play-icon"></i>
                     </div>
                 </div>
@@ -464,19 +611,19 @@
                 <h2 class="font-medium mb-3">Недавние поиски</h2>
                 <div class="space-y-3">
                     <div class="flex items-center space-x-3 ios-press" data-search="навигация">
-                        <div class="w-8 h-8 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
                             <i class="fas fa-satellite text-xs"></i>
                         </div>
                         <p>Системы навигации</p>
                     </div>
                     <div class="flex items-center space-x-3 ios-press" data-search="жизнеобеспечение">
-                        <div class="w-8 h-8 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
                             <i class="fas fa-leaf text-xs"></i>
                         </div>
                         <p>Системы жизнеобеспечения</p>
                     </div>
                     <div class="flex items-center space-x-3 ios-press" data-search="связь">
-                        <div class="w-8 h-8 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
                             <i class="fas fa-broadcast-tower text-xs"></i>
                         </div>
                         <p>Связь с Землей</p>
@@ -488,25 +635,25 @@
                 <h2 class="font-medium mb-3">Быстрый доступ</h2>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="home-section">
-                        <div class="w-10 h-10 bg-ios-purple bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-1">
                             <i class="fas fa-home"></i>
                         </div>
                         <p class="text-xs">Главная</p>
                     </div>
                     <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="notifications-section">
-                        <div class="w-10 h-10 bg-ios-pink bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-4">
                             <i class="fas fa-bell"></i>
                         </div>
                         <p class="text-xs">Уведомления</p>
                     </div>
                     <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="settings-section">
-                        <div class="w-10 h-10 bg-ios-blue bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-3">
                             <i class="fas fa-cog"></i>
                         </div>
                         <p class="text-xs">Настройки</p>
                     </div>
                     <div class="rounded-2xl p-3 text-center ios-press liquid-glass" id="emergency-btn">
-                        <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-6">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                         <p class="text-xs">Авария</p>
@@ -522,9 +669,9 @@
             <div class="mb-6 fade-in">
                 <h1 class="text-2xl font-semibold">Космические уведомления</h1>
                 <div class="flex space-x-2 mt-4">
-                    <button class="bg-ios-blue bg-opacity-80 text-white px-4 py-1 rounded-full text-sm liquid-glass active-filter" data-filter="all">Все</button>
-                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass" data-filter="unread">Непрочитанные</button>
-                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass" data-filter="system">Системные</button>
+                    <button class="bg-ios-blue bg-opacity-80 text-white px-4 py-1 rounded-full text-sm liquid-glass active-filter ios-press" data-filter="all">Все</button>
+                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass ios-press" data-filter="unread">Непрочитанные</button>
+                    <button class="text-white px-4 py-1 rounded-full text-sm liquid-glass ios-press" data-filter="system">Системные</button>
                 </div>
             </div>
 
@@ -532,7 +679,7 @@
                 <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="system">
                     <div class="flex justify-between items-start">
                         <div class="flex space-x-3">
-                            <div class="w-10 h-10 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
                                 <i class="fas fa-satellite-dish"></i>
                             </div>
                             <div>
@@ -548,7 +695,7 @@
                 <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="reminder">
                     <div class="flex justify-between items-start">
                         <div class="flex space-x-3">
-                            <div class="w-10 h-10 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
                                 <i class="fas fa-check-circle"></i>
                             </div>
                             <div>
@@ -563,7 +710,7 @@
                 <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="system">
                     <div class="flex justify-between items-start">
                         <div class="flex space-x-3">
-                            <div class="w-10 h-10 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-4">
                                 <i class="fas fa-solar-panel"></i>
                             </div>
                             <div>
@@ -578,7 +725,7 @@
                 <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="alert">
                     <div class="flex justify-between items-start">
                         <div class="flex space-x-3">
-                            <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
                                 <i class="fas fa-radiation"></i>
                             </div>
                             <div>
@@ -606,7 +753,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between items-center ios-press" id="wifi-setting">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-blue bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
                                     <i class="fas fa-wifi"></i>
                                 </div>
                                 <p>Связь с Землей</p>
@@ -615,7 +762,7 @@
                         </div>
                         <div class="flex justify-between items-center ios-press" id="bluetooth-setting">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-green bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
                                     <i class="fas fa-broadcast-tower"></i>
                                 </div>
                                 <p>Внутренняя связь</p>
@@ -624,14 +771,14 @@
                         </div>
                         <div class="flex justify-between items-center ios-press">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-orange bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-4">
                                     <i class="fas fa-moon"></i>
                                 </div>
                                 <p>Тема интерфейса</p>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-white text-opacity-70 text-sm" id="theme-status">Космос</span>
-                                <div class="theme-toggle active" id="theme-toggle"></div>
+                                <div class="theme-toggle active ios-press" id="theme-toggle"></div>
                             </div>
                         </div>
                     </div>
@@ -642,16 +789,16 @@
                     <div class="space-y-3">
                         <div class="flex justify-between items-center ios-press">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-purple bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-1">
                                     <i class="fas fa-user-astronaut"></i>
                                 </div>
                                 <p>Экипаж</p>
                             </div>
                             <i class="fas fa-chevron-right text-white text-opacity-50"></i>
                         </div>
-                        <div class="flex justify-between items-center ios-press">
+                        <div class="flex justify-between items-center ios-press" id="access-codes-btn">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-pink bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-5">
                                     <i class="fas fa-key"></i>
                                 </div>
                                 <p>Коды доступа</p>
@@ -666,7 +813,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between items-center ios-press">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-indigo bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-5">
                                     <i class="fas fa-music"></i>
                                 </div>
                                 <p>Космическая музыка</p>
@@ -675,7 +822,7 @@
                         </div>
                         <div class="flex justify-between items-center ios-press">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-teal bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
                                     <i class="fas fa-map-marked-alt"></i>
                                 </div>
                                 <p>Навигация</p>
@@ -684,7 +831,7 @@
                         </div>
                         <div class="flex justify-between items-center ios-press">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-ios-yellow bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
                                     <i class="fas fa-rocket"></i>
                                 </div>
                                 <p>Траектория полета</p>
@@ -779,10 +926,129 @@
             }
         }
 
+        // Функционал кодов доступа
+        function initAccessCodes() {
+            const modal = document.getElementById('access-codes-modal');
+            const openBtn = document.getElementById('access-codes-btn');
+            const closeBtn = document.getElementById('close-codes-modal');
+            const submitBtn = document.getElementById('submit-code');
+            const codeInputs = document.querySelectorAll('.code-input');
+            const errorMsg = document.getElementById('code-error');
+
+            // Правильный код доступа
+            const correctCode = '123456';
+
+            // Функция открытия модального окна
+            function openModal() {
+                modal.classList.add('active');
+                codeInputs[0].focus();
+            }
+
+            // Функция закрытия модального окна
+            function closeModal() {
+                modal.classList.remove('active');
+                resetCodeInputs();
+            }
+
+            // Открытие модального окна
+            openBtn.addEventListener('click', openModal);
+
+            // Закрытие модального окна по крестику
+            closeBtn.addEventListener('click', closeModal);
+
+            // Закрытие по клику на overlay
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // Закрытие по Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+
+            // Обработка ввода кода
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    errorMsg.classList.add('hidden');
+
+                    // Автопереход к следующему полю
+                    if (this.value.length === 1 && index < codeInputs.length - 1) {
+                        codeInputs[index + 1].focus();
+                    }
+
+                    // Проверка заполнения всех полей
+                    const allFilled = Array.from(codeInputs).every(input => input.value.length === 1);
+                    if (allFilled) {
+                        submitBtn.focus();
+                    }
+                });
+
+                // Обработка Backspace
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+            });
+
+            // Проверка кода
+            submitBtn.addEventListener('click', function() {
+                const enteredCode = Array.from(codeInputs).map(input => input.value).join('');
+
+                if (enteredCode === correctCode) {
+                    // Успешный ввод
+                    alert('Код доступа принят! Доступ разрешен.');
+                    closeModal();
+
+                    // Добавляем уведомление об успешном доступе
+                    const notificationsContainer = document.getElementById('notifications-container');
+                    const successNotification = document.createElement('div');
+                    successNotification.className = 'rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item';
+                    successNotification.style.border = '1px solid rgba(52, 199, 89, 0.5)';
+                    successNotification.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex space-x-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">Доступ разрешен</h3>
+                                    <p class="text-white text-opacity-70 text-sm">Код доступа подтвержден</p>
+                                    <p class="text-white text-opacity-50 text-xs mt-1">Только что</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    notificationsContainer.prepend(successNotification);
+
+                } else {
+                    // Неверный код
+                    errorMsg.classList.remove('hidden');
+                    resetCodeInputs();
+                    codeInputs[0].focus();
+                }
+            });
+
+            // Сброс полей ввода
+            function resetCodeInputs() {
+                codeInputs.forEach(input => {
+                    input.value = '';
+                });
+                errorMsg.classList.add('hidden');
+            }
+        }
+
         // Навигация между секциями
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализация темы
             initTheme();
+
+            // Инициализация кодов доступа
+            initAccessCodes();
 
             const navButtons = document.querySelectorAll('.nav-btn');
             const sections = document.querySelectorAll('section');
@@ -995,7 +1261,7 @@
                     emergencyNotification.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div class="flex space-x-3">
-                                <div class="w-10 h-10 bg-ios-red bg-opacity-80 rounded-full flex items-center justify-center liquid-glass">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
                                     <i class="fas fa-exclamation-triangle"></i>
                                 </div>
                                 <div>
