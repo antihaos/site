@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Liquid Glass Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-effect {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-effect-dark {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        .active-tab {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        #viewer3d canvas {
+            border-radius: 12px;
+        }
+
+        /* Стили для стековых страниц */
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease-in-out;
+            pointer-events: none;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .page.prev {
+            transform: translateX(-100%);
+        }
+
+        /* Стили для виджетов */
+        .widget {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(20px);
+            margin-bottom: 1rem;
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .widget-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        .widget-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .scrollable {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .scrollable::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Стили для ленты виджетов */
+        .widgets-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .feed-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Стили для галереи изображений */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .gallery-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Формы и элементы управления */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Кнопки */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Информационные карточки */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .info-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Загрузка файлов */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area.drag-over {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        /* Анимации */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-in-out;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Стили для чекбоксов */
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .checkbox:checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="h-full bg-black transition-colors duration-500 overflow-hidden">
+    <!-- Космический фон со звездами -->
+    <div id="stars" class="fixed inset-0 z-0"></div>
+
+    <!-- Основной контейнер приложения -->
+    <div id="app" class="min-h-screen relative z-10 flex flex-col">
+        <!-- Заголовок -->
+        <header class="glass-effect dark:glass-effect-dark p-4 m-4 rounded-2xl shadow-xl">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-white" id="pageTitle">Главная</h1>
+                <button id="themeToggle" class="p-2 rounded-full glass-effect dark:glass-effect-dark text-white hover:bg-white/10 transition-colors">
+                    <svg id="sunIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <svg id="moonIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Стековые страницы -->
+        <main class="flex-1 relative overflow-hidden">
+            <!-- Главная страница -->
+            <div id="page-home" class="page active">
+                <div class="container mx-auto px-4">
+                    <div class="widgets-feed">
+                        <!-- Приветственный виджет -->
+                        <div class="widget fade-in">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Добро пожаловать!</h3>
+                            </div>
+                            <div class="widget-content">
+                                <p class="text-gray-300 mb-4">
+                                    Создавайте потрясающие 3D галереи с вашими изображениями.
+                                    Загружайте фото, настраивайте рамки и наслаждайтесь результатом в 3D пространстве.
+                                </p>
+                                <div class="info-grid">
+                                    <div class="info-card">
+                                        <div class="info-value" id="totalImages">0</div>
+                                        <div class="info-label">Изображений</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value" id="totalFrames">0</div>
+                                        <div class="info-label">В сцене</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value">3D</div>
+                                        <div class="info-label">Режим</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value" id="sceneStatus">Готов</div>
+                                        <div class="info-label">Статус</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Быстрые действия -->
+                        <div class="feed-section">
+                            <h3 class="section-title">Быстрые действия</h3>
+                            <div class="widget slide-in-right">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="app.showPage('gallery')">
+                                        📁 Моя галерея
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="app.showPage('scene')">
+                                        🎨 3D Сцена
+                                    </button>
+                                </div>
+                                <div class="btn-group mt-2">
+                                    <button class="btn btn-success" onclick="app.takeScreenshot()">
+                                        📸 Снимок
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="app.showPage('widgets')">
+                                        📊 Виджеты
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Последние изображения -->
+                        <div class="feed-section">
+                            <h3 class="section-title">Недавние изображения</h3>
+                            <div class="widget">
+                                <div class="widget-content">
+                                    <div id="recentImages" class="gallery-grid">
+                                        <div class="text-center text-gray-400 py-8">
+                                            Пока нет загруженных изображений
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Статистика -->
+                        <div class="feed-section">
+                            <h3 class="section-title">Статистика</h3>
+                            <div class="widget">
+                                <div class="widget-content">
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-300">Загружено файлов</span>
+                                            <span class="text-white font-semibold" id="statsUploaded">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-300">Изображений в сцене</span>
+                                            <span class="text-white font-semibold" id="statsInScene">0</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-300">Размер сцены</span>
+                                            <span class="text-white font-semibold" id="statsSceneSize">Средний</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-300">Авто-вращение</span>
+                                            <span class="text-white font-semibold" id="statsAutoRotate">Вкл</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Страница галереи -->
+            <div id="page-gallery" class="page">
+                <div class="container mx-auto px-4">
+                    <div class="widgets-feed">
+                        <!-- Загрузка изображений -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Загрузка изображений</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div id="uploadArea" class="upload-area cursor-pointer transition-colors hover:border-blue-400">
+                                    <input type="file" id="imageUpload" accept="image/*" class="hidden" multiple>
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <p class="text-gray-300 text-sm mb-1">Перетащите изображения или кликните для выбора</p>
+                                        <p class="text-gray-400 text-xs">PNG, JPG, GIF до 5MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Галерея изображений -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Мои изображения</h3>
+                                <span class="text-xs text-gray-400 bg-black/30 px-2 py-1 rounded">
+                                    <span id="galleryCount">0</span> файлов
+                                </span>
+                            </div>
+                            <div class="widget-content scrollable" style="max-height: 400px;">
+                                <div id="galleryContainer" class="gallery-grid p-1">
+                                    <!-- Изображения будут здесь -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Управление галереей -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Управление галереей</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="app.addSelectedToScene()">
+                                        Добавить в сцену
+                                    </button>
+                                    <button class="btn btn-danger" onclick="app.clearGallery()">
+                                        Очистить галерею
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Страница 3D сцены -->
+            <div id="page-scene" class="page">
+                <div class="container mx-auto px-4">
+                    <div class="widgets-feed">
+                        <!-- 3D просмотр -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">3D Просмотр сцены</h3>
+                                <div class="flex gap-2">
+                                    <button id="rotateToggle" class="btn btn-primary text-xs">
+                                        Вращение: Вкл
+                                    </button>
+                                    <button id="wireframeToggle" class="btn btn-secondary text-xs">
+                                        Каркас: Выкл
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="widget-content">
+                                <div id="viewer3d" class="w-full h-64 rounded-xl overflow-hidden bg-black/20"></div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки рамки -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Настройки рамки</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Тип рамки</label>
+                                        <select id="frameType" class="form-control">
+                                            <option value="flat">Плоская рамка</option>
+                                            <option value="thick">Толстая рамка</option>
+                                            <option value="floating">Парящая рамка</option>
+                                            <option value="circular">Круглая рамка</option>
+                                            <option value="elegant">Элегантная рамка</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Цвет рамки</label>
+                                        <input type="color" id="frameColor" value="#3b82f6" class="form-control h-10">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Размер: <span id="sizeValue">2</span></label>
+                                        <input type="range" id="frameSize" min="1" max="5" value="2" step="0.1" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Управление сценой -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Управление сценой</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="btn-group">
+                                    <button class="btn btn-success" onclick="app.arrangeGallery()">
+                                        Авто-расстановка
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="app.exportScene()">
+                                        Экспорт сцены
+                                    </button>
+                                </div>
+                                <div class="btn-group mt-2">
+                                    <button class="btn btn-primary" onclick="app.takeScreenshot()">
+                                        Сделать снимок
+                                    </button>
+                                    <button class="btn btn-danger" onclick="app.clearScene()">
+                                        Очистить сцену
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Информация о сцене -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Информация о сцене</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="info-grid">
+                                    <div class="info-card">
+                                        <div class="info-value" id="sceneImageCount">0</div>
+                                        <div class="info-label">В сцене</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value" id="sceneFrameType">Плоская</div>
+                                        <div class="info-label">Тип рамки</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value" id="sceneRotation">Вкл</div>
+                                        <div class="info-label">Вращение</div>
+                                    </div>
+                                    <div class="info-card">
+                                        <div class="info-value" id="sceneQuality">Средняя</div>
+                                        <div class="info-label">Качество</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Страница виджетов -->
+            <div id="page-widgets" class="page">
+                <div class="container mx-auto px-4">
+                    <div class="widgets-feed">
+                        <!-- Виджет погоды -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">🌤️ Погода</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="text-2xl font-bold text-white">+23°C</div>
+                                        <div class="text-gray-300 text-sm">Солнечно, Москва</div>
+                                    </div>
+                                    <div class="text-4xl">☀️</div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 mt-3">
+                                    <div class="text-center">
+                                        <div class="text-gray-400 text-xs">Влажность</div>
+                                        <div class="text-white font-semibold">45%</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-gray-400 text-xs">Ветер</div>
+                                        <div class="text-white font-semibold">3 м/с</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-gray-400 text-xs">Давление</div>
+                                        <div class="text-white font-semibold">760 мм</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Виджет системной информации -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">💻 Система</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">Three.js</span>
+                                        <span class="text-white font-semibold">r128</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">WebGL</span>
+                                        <span class="text-green-400 font-semibold">✓ Доступно</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">Память</span>
+                                        <span class="text-white font-semibold">~18MB</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">FPS</span>
+                                        <span class="text-white font-semibold" id="widgetFPS">60</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Виджет активности -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">📈 Активность</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                                            <span class="text-gray-300">Сегодня</span>
+                                        </div>
+                                        <span class="text-white font-semibold" id="todayActivity">0 действий</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                            <span class="text-gray-300">За неделю</span>
+                                        </div>
+                                        <span class="text-white font-semibold" id="weekActivity">0 действий</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-3 h-3 bg-purple-400 rounded-full"></div>
+                                            <span class="text-gray-300">Всего</span>
+                                        </div>
+                                        <span class="text-white font-semibold" id="totalActivity">0 действий</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Виджет советов -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">💡 Советы</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-2">
+                                    <div class="flex items-start space-x-2">
+                                        <div class="text-blue-400 mt-1">•</div>
+                                        <p class="text-gray-300 text-sm">Используйте разные типы рамок для разнообразия</p>
+                                    </div>
+                                    <div class="flex items-start space-x-2">
+                                        <div class="text-blue-400 mt-1">•</div>
+                                        <p class="text-gray-300 text-sm">Авто-расстановка упорядочит вашу галерею</p>
+                                    </div>
+                                    <div class="flex items-start space-x-2">
+                                        <div class="text-blue-400 mt-1">•</div>
+                                        <p class="text-gray-300 text-sm">Экспортируйте сцену для сохранения прогресса</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Виджет быстрых настроек -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">⚙️ Быстрые настройки</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Темная тема</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="darkThemeToggle" checked class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Уведомления</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="notificationsToggle" checked class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Авто-сохранение</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="autosaveToggle" checked class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Страница настроек -->
+            <div id="page-settings" class="page">
+                <div class="container mx-auto px-4">
+                    <div class="widgets-feed">
+                        <!-- Основные настройки -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Основные настройки</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-4">
+                                    <div class="form-group">
+                                        <label class="form-label">Качество графики</label>
+                                        <select id="graphicsQuality" class="form-control">
+                                            <option value="low">Низкое</option>
+                                            <option value="medium" selected>Среднее</option>
+                                            <option value="high">Высокое</option>
+                                            <option value="ultra">Ультра</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Чувствительность мыши: <span id="sensitivityValue">5</span></label>
+                                        <input type="range" id="mouseSensitivity" min="1" max="10" value="5" class="form-control">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Размер сцены</label>
+                                        <select id="sceneSizeSetting" class="form-control">
+                                            <option value="small">Маленький</option>
+                                            <option value="medium" selected>Средний</option>
+                                            <option value="large">Большой</option>
+                                            <option value="huge">Огромный</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Настройки функций -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Функции приложения</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Автоматическое вращение</span>
+                                        <input type="checkbox" id="autoRotation" checked class="checkbox">
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Вспомогательные линии</span>
+                                        <input type="checkbox" id="showHelpers" class="checkbox">
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Тени</span>
+                                        <input type="checkbox" id="enableShadows" checked class="checkbox">
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-300">Уведомления</span>
+                                        <input type="checkbox" id="enableNotifications" checked class="checkbox">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Управление настройками -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">Управление настройками</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" onclick="app.saveSettings()">
+                                        Сохранить настройки
+                                    </button>
+                                    <button class="btn btn-danger" onclick="app.resetSettings()">
+                                        Сбросить настройки
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Информация о приложении -->
+                        <div class="widget">
+                            <div class="widget-header">
+                                <h3 class="widget-title">О приложении</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">Версия</span>
+                                        <span class="text-white">1.0.0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">Three.js</span>
+                                        <span class="text-white">r128</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-300">Разработчик</span>
+                                        <span class="text-white">iOS Liquid Glass Team</span>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-gray-600">
+                                        <p class="text-gray-400 text-sm">
+                                            Приложение для создания 3D фотогалерей с дизайном iOS Liquid Glass
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Bar -->
+        <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+            <div class="glass-effect dark:glass-effect-dark rounded-2xl px-6 py-3 shadow-2xl">
+                <div class="flex justify-between items-center space-x-6">
+                    <button data-page="home" class="p-2 text-white rounded-lg hover:bg-white/10 transition-colors active-tab page-tab">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            <span class="text-xs mt-1">Главная</span>
+                        </div>
+                    </button>
+                    <button data-page="gallery" class="p-2 text-white rounded-lg hover:bg-white/10 transition-colors page-tab">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14l4-4 4 4"></path>
+                            </svg>
+                            <span class="text-xs mt-1">Галерея</span>
+                        </div>
+                    </button>
+                    <button data-page="scene" class="p-2 text-white rounded-lg hover:bg-white/10 transition-colors page-tab">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 22V12h6v10"></path>
+                            </svg>
+                            <span class="text-xs mt-1">3D Сцена</span>
+                        </div>
+                    </button>
+                    <button data-page="widgets" class="p-2 text-white rounded-lg hover:bg-white/10 transition-colors page-tab">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="text-xs mt-1">Виджеты</span>
+                        </div>
+                    </button>
+                    <button data-page="settings" class="p-2 text-white rounded-lg hover:bg-white/10 transition-colors page-tab">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="text-xs mt-1">Настройки</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // Основной объект приложения
+        const app = {
+            // Переменные состояния
+            currentPage: 'home',
+            uploadedImages: [],
+            imageFrames: [],
+            settings: {
+                graphicsQuality: 'medium',
+                mouseSensitivity: 5,
+                sceneSize: 'medium',
+                autoRotation: true,
+                showHelpers: false,
+                enableShadows: true,
+                enableNotifications: true
+            },
+            scene: null,
+            camera: null,
+            renderer: null,
+            autoRotate: true,
+            wireframeMode: false,
+
+            // Инициализация приложения
+            init() {
+                console.log('Инициализация приложения...');
+
+                this.initTheme();
+                this.createStars();
+                this.setupEventListeners();
+                this.loadSettings();
+                this.init3DScene();
+                this.updateStats();
+
+                // Показываем главную страницу
+                this.showPage('home');
+            },
+
+            // Инициализация темы
+            initTheme() {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                    document.getElementById('sunIcon').classList.add('hidden');
+                    document.getElementById('moonIcon').classList.remove('hidden');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.getElementById('sunIcon').classList.remove('hidden');
+                    document.getElementById('moonIcon').classList.add('hidden');
+                }
+            },
+
+            // Создание звездного фона
+            createStars() {
+                const starsContainer = document.getElementById('stars');
+                const starCount = 150;
+
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    star.classList.add('star');
+
+                    const size = Math.random() * 3;
+                    star.style.width = `${size}px`;
+                    star.style.height = `${size}px`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 5}s`;
+
+                    starsContainer.appendChild(star);
+                }
+            },
+
+            // Настройка обработчиков событий
+            setupEventListeners() {
+                // Переключение темы
+                document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+
+                // Навигация по страницам
+                document.querySelectorAll('.page-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        const page = e.currentTarget.getAttribute('data-page');
+                        this.showPage(page);
+                    });
+                });
+
+                // Загрузка файлов
+                const uploadInput = document.getElementById('imageUpload');
+                const uploadArea = document.getElementById('uploadArea');
+
+                uploadArea.addEventListener('click', () => uploadInput.click());
+                uploadInput.addEventListener('change', (e) => this.handleImageUpload(e));
+
+                // Drag and drop
+                this.setupDragAndDrop(uploadArea, uploadInput);
+
+                // Настройки
+                document.getElementById('mouseSensitivity').addEventListener('input', (e) => this.updateSensitivityValue(e));
+                document.getElementById('frameSize').addEventListener('input', (e) => this.updateSizeValue(e));
+
+                // Управление 3D сценой
+                document.getElementById('rotateToggle').addEventListener('click', () => this.toggleRotation());
+                document.getElementById('wireframeToggle').addEventListener('click', () => this.toggleWireframe());
+            },
+
+            // Настройка drag and drop
+            setupDragAndDrop(uploadArea, uploadInput) {
+                // Предотвращаем стандартное поведение браузера
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                // Подсветка области при перетаскивании
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, () => {
+                        uploadArea.classList.add('drag-over');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    uploadArea.addEventListener(eventName, () => {
+                        uploadArea.classList.remove('drag-over');
+                    }, false);
+                });
+
+                // Обработка dropped файлов
+                uploadArea.addEventListener('drop', (e) => {
+                    const files = e.dataTransfer.files;
+                    this.handleImageFiles(files);
+                }, false);
+            },
+
+            // Обновление значения чувствительности
+            updateSensitivityValue(e) {
+                document.getElementById('sensitivityValue').textContent = e.target.value;
+            },
+
+            // Обновление значения размера
+            updateSizeValue(e) {
+                document.getElementById('sizeValue').textContent = e.target.value;
+            },
+
+            // Переключение вращения
+            toggleRotation() {
+                this.autoRotate = !this.autoRotate;
+                const button = document.getElementById('rotateToggle');
+                button.textContent = `Вращение: ${this.autoRotate ? 'Вкл' : 'Выкл'}`;
+                button.className = this.autoRotate ? 'btn btn-primary text-xs' : 'btn btn-secondary text-xs';
+            },
+
+            // Переключение режима каркаса
+            toggleWireframe() {
+                this.wireframeMode = !this.wireframeMode;
+                const button = document.getElementById('wireframeToggle');
+                button.textContent = `Каркас: ${this.wireframeMode ? 'Вкл' : 'Выкл'}`;
+
+                // Обновляем материалы в сцене
+                this.imageFrames.forEach(frame => {
+                    if (frame.material) {
+                        frame.material.wireframe = this.wireframeMode;
+                    }
+                });
+            },
+
+            // Переключение темы
+            toggleTheme() {
+                const html = document.documentElement;
+                const sunIcon = document.getElementById('sunIcon');
+                const moonIcon = document.getElementById('moonIcon');
+
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    localStorage.theme = 'light';
+                    sunIcon.classList.remove('hidden');
+                    moonIcon.classList.add('hidden');
+                } else {
+                    html.classList.add('dark');
+                    localStorage.theme = 'dark';
+                    sunIcon.classList.add('hidden');
+                    moonIcon.classList.remove('hidden');
+                }
+            },
+
+            // Показать страницу
+            showPage(pageName) {
+                // Скрыть все страницы
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active', 'prev');
+                });
+
+                // Показать выбранную страницу
+                const targetPage = document.getElementById(`page-${pageName}`);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                    this.currentPage = pageName;
+
+                    // Обновить заголовок
+                    const titles = {
+                        'home': 'Главная',
+                        'gallery': 'Моя галерея',
+                        'scene': '3D Сцена',
+                        'widgets': 'Виджеты',
+                        'settings': 'Настройки'
+                    };
+                    document.getElementById('pageTitle').textContent = titles[pageName] || 'Приложение';
+
+                    // Обновить активную вкладку
+                    document.querySelectorAll('.page-tab').forEach(tab => {
+                        tab.classList.remove('active-tab');
+                    });
+                    document.querySelector(`[data-page="${pageName}"]`).classList.add('active-tab');
+
+                    // Обновить статистику если нужно
+                    if (pageName === 'home') {
+                        this.updateStats();
+                    }
+                }
+            },
+
+            // Обработка загрузки изображений
+            handleImageUpload(e) {
+                const files = e.target.files;
+                this.handleImageFiles(files);
+            },
+
+            handleImageFiles(files) {
+                for (let file of files) {
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const imageData = {
+                                id: Date.now() + Math.random(),
+                                src: e.target.result,
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                uploadedAt: new Date().toLocaleString()
+                            };
+                            this.uploadedImages.push(imageData);
+                            this.updateImageGallery();
+                            this.updateStats();
+
+                            if (this.settings.enableNotifications) {
+                                this.showNotification(`Изображение "${file.name}" загружено`);
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            },
+
+            // Обновление галереи
+            updateImageGallery() {
+                const galleryContainer = document.getElementById('galleryContainer');
+                const galleryCount = document.getElementById('galleryCount');
+
+                galleryContainer.innerHTML = '';
+
+                this.uploadedImages.forEach((image, index) => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = image.src;
+                    imgElement.className = 'w-full h-20 object-cover rounded cursor-pointer border-2 border-transparent hover:border-blue-400 transition-colors';
+                    imgElement.title = `${image.name}\n${(image.size / 1024).toFixed(1)}KB`;
+                    imgElement.addEventListener('click', () => {
+                        document.querySelectorAll('#galleryContainer img').forEach(img => {
+                            img.classList.remove('border-blue-400', 'border-2');
+                        });
+                        imgElement.classList.add('border-blue-400', 'border-2');
+                    });
+
+                    galleryContainer.appendChild(imgElement);
+                });
+
+                galleryCount.textContent = this.uploadedImages.length;
+            },
+
+            // Обновление статистики
+            updateStats() {
+                document.getElementById('totalImages').textContent = this.uploadedImages.length;
+                document.getElementById('totalFrames').textContent = this.imageFrames.length;
+                document.getElementById('statsUploaded').textContent = this.uploadedImages.length;
+                document.getElementById('statsInScene').textContent = this.imageFrames.length;
+                document.getElementById('sceneImageCount').textContent = this.imageFrames.length;
+            },
+
+            // Показать уведомление
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 glass-effect dark:glass-effect-dark text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            },
+
+            // Инициализация 3D сцены
+            init3DScene() {
+                const container = document.getElementById('viewer3d');
+
+                // Создаем сцену
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x000000);
+
+                // Создаем камеру
+                this.camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+                this.camera.position.z = 5;
+
+                // Создаем рендерер
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                container.appendChild(this.renderer.domElement);
+
+                // Добавляем освещение
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                this.scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 1, 1);
+                this.scene.add(directionalLight);
+
+                // Запускаем анимацию
+                this.animate();
+
+                // Обработка изменения размера окна
+                window.addEventListener('resize', () => this.onWindowResize());
+            },
+
+            // Анимация сцены
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                if (this.autoRotate && this.scene) {
+                    this.scene.rotation.y += 0.005;
+                }
+
+                if (this.renderer && this.scene && this.camera) {
+                    this.renderer.render(this.scene, this.camera);
+                }
+            },
+
+            // Обработка изменения размера окна
+            onWindowResize() {
+                const container = document.getElementById('viewer3d');
+                if (!container || !this.camera || !this.renderer) return;
+
+                this.camera.aspect = container.clientWidth / container.clientHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+            },
+
+            // Добавление изображения в 3D сцену
+            addImageToScene(imageData) {
+                const textureLoader = new THREE.TextureLoader();
+
+                textureLoader.load(imageData.src, (texture) => {
+                    // Создаем геометрию для изображения
+                    const geometry = new THREE.PlaneGeometry(1, 1);
+                    const material = new THREE.MeshPhongMaterial({
+                        map: texture,
+                        side: THREE.DoubleSide,
+                        wireframe: this.wireframeMode
+                    });
+
+                    const mesh = new THREE.Mesh(geometry, material);
+
+                    // Позиционируем случайным образом
+                    mesh.position.x = (Math.random() - 0.5) * 4;
+                    mesh.position.y = (Math.random() - 0.5) * 4;
+                    mesh.position.z = (Math.random() - 0.5) * 2;
+
+                    // Добавляем в сцену
+                    this.scene.add(mesh);
+                    this.imageFrames.push(mesh);
+
+                    // Обновляем статистику
+                    this.updateStats();
+
+                    if (this.settings.enableNotifications) {
+                        this.showNotification(`Изображение добавлено в сцену`);
+                    }
+                });
+            },
+
+            // Добавление выбранных изображений в сцену
+            addSelectedToScene() {
+                // В реальном приложении здесь была бы логика выбора изображений
+                // Для демонстрации добавим первое изображение если есть
+                if (this.uploadedImages.length > 0) {
+                    this.addImageToScene(this.uploadedImages[0]);
+                } else {
+                    this.showNotification('Сначала загрузите изображения');
+                }
+            },
+
+            // Автоматическая расстановка изображений
+            arrangeGallery() {
+                // Очищаем текущую сцену
+                this.clearScene(true);
+
+                // Создаем круглую расстановку
+                const radius = 3;
+                const count = Math.min(this.uploadedImages.length, 8); // Максимум 8 для демо
+
+                this.uploadedImages.slice(0, count).forEach((image, index) => {
+                    setTimeout(() => {
+                        this.addImageToSceneAtPosition(image, index, count, radius);
+                    }, index * 200);
+                });
+            },
+
+            addImageToSceneAtPosition(imageData, index, total, radius) {
+                const textureLoader = new THREE.TextureLoader();
+
+                textureLoader.load(imageData.src, (texture) => {
+                    const geometry = new THREE.PlaneGeometry(1, 1);
+                    const material = new THREE.MeshPhongMaterial({
+                        map: texture,
+                        side: THREE.DoubleSide,
+                        wireframe: this.wireframeMode
+                    });
+
+                    const mesh = new THREE.Mesh(geometry, material);
+
+                    // Располагаем по кругу
+                    const angle = (index / total) * Math.PI * 2;
+                    mesh.position.x = Math.cos(angle) * radius;
+                    mesh.position.z = Math.sin(angle) * radius;
+                    mesh.position.y = 0;
+
+                    // Поворачиваем к центру
+                    mesh.lookAt(0, 0, 0);
+
+                    this.scene.add(mesh);
+                    this.imageFrames.push(mesh);
+                    this.updateStats();
+                });
+            },
+
+            // Очистка галереи
+            clearGallery() {
+                if (confirm('Вы уверены, что хотите удалить все изображения из галереи?')) {
+                    this.uploadedImages = [];
+                    this.updateImageGallery();
+                    this.updateStats();
+                    this.showNotification('Галерея очищена');
+                }
+            },
+
+            // Очистка сцены
+            clearScene(silent = false) {
+                this.imageFrames.forEach(frame => {
+                    this.scene.remove(frame);
+                    // Очищаем геометрию и материалы
+                    if (frame.geometry) frame.geometry.dispose();
+                    if (frame.material) {
+                        if (frame.material.map) frame.material.map.dispose();
+                        frame.material.dispose();
+                    }
+                });
+
+                this.imageFrames = [];
+                this.updateStats();
+
+                if (!silent) {
+                    this.showNotification('Сцена очищена');
+                }
+            },
+
+            // Снимок экрана
+            takeScreenshot() {
+                if (!this.renderer) return;
+
+                this.renderer.render(this.scene, this.camera);
+                const screenshot = this.renderer.domElement.toDataURL('image/png');
+
+                // Создаем временную ссылку для скачивания
+                const link = document.createElement('a');
+                link.download = `3d-gallery-${new Date().getTime()}.png`;
+                link.href = screenshot;
+                link.click();
+
+                this.showNotification('Снимок сохранен');
+            },
+
+            // Экспорт сцены
+            exportScene() {
+                const sceneData = {
+                    images: this.uploadedImages,
+                    frameCount: this.imageFrames.length,
+                    settings: this.settings,
+                    exportDate: new Date().toISOString()
+                };
+
+                const dataStr = JSON.stringify(sceneData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+                const link = document.createElement('a');
+                link.download = `gallery-scene-${new Date().getTime()}.json`;
+                link.href = URL.createObjectURL(dataBlob);
+                link.click();
+
+                this.showNotification('Сцена экспортирована');
+            },
+
+            // Загрузка настроек
+            loadSettings() {
+                const saved = localStorage.getItem('gallerySettings');
+                if (saved) {
+                    this.settings = { ...this.settings, ...JSON.parse(saved) };
+                    this.applySettings();
+                }
+            },
+
+            // Сохранение настроек
+            saveSettings() {
+                // Собираем текущие настройки из UI
+                this.settings.graphicsQuality = document.getElementById('graphicsQuality').value;
+                this.settings.mouseSensitivity = document.getElementById('mouseSensitivity').value;
+                this.settings.sceneSize = document.getElementById('sceneSizeSetting').value;
+                this.settings.autoRotation = document.getElementById('autoRotation').checked;
+                this.settings.showHelpers = document.getElementById('showHelpers').checked;
+                this.settings.enableShadows = document.getElementById('enableShadows').checked;
+                this.settings.enableNotifications = document.getElementById('enableNotifications').checked;
+
+                localStorage.setItem('gallerySettings', JSON.stringify(this.settings));
+                this.applySettings();
+                this.showNotification('Настройки сохранены');
+            },
+
+            // Применение настроек
+            applySettings() {
+                // Применяем настройки к UI
+                document.getElementById('graphicsQuality').value = this.settings.graphicsQuality;
+                document.getElementById('mouseSensitivity').value = this.settings.mouseSensitivity;
+                document.getElementById('sceneSizeSetting').value = this.settings.sceneSize;
+                document.getElementById('autoRotation').checked = this.settings.autoRotation;
+                document.getElementById('showHelpers').checked = this.settings.showHelpers;
+                document.getElementById('enableShadows').checked = this.settings.enableShadows;
+                document.getElementById('enableNotifications').checked = this.settings.enableNotifications;
+
+                // Обновляем значения
+                document.getElementById('sensitivityValue').textContent = this.settings.mouseSensitivity;
+
+                // Применяем к 3D сцене
+                this.autoRotate = this.settings.autoRotation;
+            },
+
+            // Сброс настроек
+            resetSettings() {
+                if (confirm('Сбросить все настройки к значениям по умолчанию?')) {
+                    this.settings = {
+                        graphicsQuality: 'medium',
+                        mouseSensitivity: 5,
+                        sceneSize: 'medium',
+                        autoRotation: true,
+                        showHelpers: false,
+                        enableShadows: true,
+                        enableNotifications: true
+                    };
+                    localStorage.removeItem('gallerySettings');
+                    this.applySettings();
+                    this.showNotification('Настройки сброшены');
+                }
+            }
+        };
+
+        // Инициализация приложения после загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => app.init());
+    </script>
+</body>
+</html>
