@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Liquid Glass - Космическая тема</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-space {
+                background: linear-gradient(125deg, #0f172a 0%, #1e1b4b 50%, #0c4a6e 100%);
+            }
+            .bg-stars::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image:
+                    radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                    radial-gradient(2px 2px at 40px 70px, #fff, transparent),
+                    radial-gradient(1px 1px at 90px 40px, #ddd, transparent),
+                    radial-gradient(1px 1px at 130px 80px, #fff, transparent),
+                    radial-gradient(2px 2px at 160px 30px, #eee, transparent);
+                background-repeat: repeat;
+                background-size: 200px 100px;
+                z-index: -1;
+            }
+
+            /* Анимация переходов между страницами */
+            .page-enter {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            .page-enter-active {
+                transform: translateX(0);
+                opacity: 1;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+
+            .page-exit {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .page-exit-active {
+                transform: translateX(-100%);
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+
+            .page-back-enter {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+
+            .page-back-enter-active {
+                transform: translateX(0);
+                opacity: 1;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+
+            .page-back-exit {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            .page-back-exit-active {
+                transform: translateX(100%);
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+            }
+
+            /* Анимация для активной иконки в панели навигации */
+            .bounce {
+                animation: bounce 0.5s;
+            }
+
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-5px); }
+            }
+
+            /* Скрыть scrollbar для Chrome, Safari и Opera */
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+
+            /* Скрыть scrollbar для IE, Edge и Firefox */
+            .no-scrollbar {
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+        }
+    </style>
+</head>
+<body class="bg-space bg-stars min-h-full text-white flex flex-col pb-20 transition-colors duration-300">
+    <!-- Контейнер для страниц с навигацией -->
+    <div id="app" class="flex flex-col h-full">
+        <!-- Header с кнопкой назад -->
+        <header class="bg-white/10 backdrop-blur-xl border-b border-white/20 p-4">
+            <div class="flex items-center">
+                <button id="backButton" class="back-button hidden mr-3 bg-white/10 backdrop-blur-lg rounded-full w-10 h-10 flex items-center justify-center border border-white/20 hover:bg-white/20 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div class="flex items-center space-x-2 flex-grow">
+                    <span class="text-2xl">🚀</span>
+                    <h1 id="pageTitle" class="text-xl font-bold">Космический iOS</h1>
+                </div>
+                <button id="themeToggle" class="bg-white/10 backdrop-blur-lg rounded-full px-4 py-2 border border-white/20 flex items-center space-x-2 hover:bg-white/20 transition-colors">
+                    <span id="themeIcon">🌙</span>
+                    <span id="themeText">Темная</span>
+                </button>
+            </div>
+            <div id="breadcrumbs" class="text-sm text-white/60 mt-2 flex space-x-1 overflow-x-auto no-scrollbar">
+                <!-- Хлебные крошки будут добавляться динамически -->
+            </div>
+        </header>
+
+        <!-- Основной контейнер для страниц -->
+        <main id="pageContainer" class="container mx-auto px-4 py-6 flex-grow overflow-hidden">
+            <!-- Страницы будут добавляться динамически -->
+        </main>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="fixed bottom-0 left-0 z-50 w-full h-16 bg-white/10 backdrop-blur-xl border-t border-white/20">
+        <div class="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
+            <button type="button" id="nav-home" class="nav-button inline-flex flex-col items-center justify-center px-5 group transition-colors active">
+                <div class="icon-container">
+                    <svg class="w-5 h-5 mb-1 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-blue-400">Главная</span>
+            </button>
+            <button type="button" id="nav-wallet" class="nav-button inline-flex flex-col items-center justify-center px-5 group transition-colors">
+                <div class="icon-container">
+                    <svg class="w-5 h-5 mb-1 text-gray-300 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M11.074 4 8.442.408A.95.95 0 0 0 7.014.254L2.926 4h8.148ZM9 13v-1a4 4 0 0 1 4-4h6V6a1 1 0 0 0-1-1H1a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h17a1 1 0 0 0 1-1v-2h-6a4 4 0 0 1-4-4Z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300 group-hover:text-blue-400">Кошелек</span>
+            </button>
+            <button type="button" id="nav-settings" class="nav-button inline-flex flex-col items-center justify-center px-5 group transition-colors">
+                <div class="icon-container">
+                    <svg class="w-5 h-5 mb-1 text-gray-300 group-hover:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300 group-hover:text-blue-400">Настройки</span>
+            </button>
+            <button type="button" id="nav-profile" class="nav-button inline-flex flex-col items-center justify-center px-5 group transition-colors">
+                <div class="icon-container">
+                    <svg class="w-5 h-5 mb-1 text-gray-300 group-hover:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"/>
+                    </svg>
+                </div>
+                <span class="text-xs text-gray-300 group-hover:text-blue-400">Профиль</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Шаблоны страниц -->
+    <template id="home-page">
+        <div class="page home-page">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card 1: Controls -->
+                <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl transition-transform hover:-translate-y-1">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="text-xl mr-2">⚙️</span>
+                        Элементы управления
+                    </h2>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button class="control-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-3 flex flex-col items-center justify-center border border-blue-400/30 hover:bg-blue-500 transition-colors">
+                            <span class="text-lg">➕</span>
+                            <span class="text-sm mt-1">Добавить</span>
+                        </button>
+                        <button class="control-btn bg-purple-500/80 backdrop-blur-lg rounded-xl p-3 flex flex-col items-center justify-center border border-purple-400/30 hover:bg-purple-500 transition-colors">
+                            <span class="text-lg">✏️</span>
+                            <span class="text-sm mt-1">Редактировать</span>
+                        </button>
+                        <button class="control-btn bg-green-500/80 backdrop-blur-lg rounded-xl p-3 flex flex-col items-center justify-center border border-green-400/30 hover:bg-green-500 transition-colors">
+                            <span class="text-lg">✅</span>
+                            <span class="text-sm mt-1">Сохранить</span>
+                        </button>
+                        <button class="control-btn bg-yellow-500/80 backdrop-blur-lg rounded-xl p-3 flex flex-col items-center justify-center border border-yellow-400/30 hover:bg-yellow-500 transition-colors">
+                            <span class="text-lg">⚠️</span>
+                            <span class="text-sm mt-1">Предупреждение</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Текстовое поле</label>
+                            <input type="text" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Выпадающий список</label>
+                            <select class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                                <option>Планета Земля</option>
+                                <option>Луна</option>
+                                <option>Марс</option>
+                                <option>Венера</option>
+                                <option>Юпитер</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Forms and Switches -->
+                <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl transition-transform hover:-translate-y-1">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="text-xl mr-2">📊</span>
+                        Формы и переключатели
+                    </h2>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Чекбоксы</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" checked class="rounded bg-white/10 border-white/20 focus:ring-blue-500">
+                                    <span>Уведомления включены</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="rounded bg-white/10 border-white/20 focus:ring-blue-500">
+                                    <span>Автозапуск приложений</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Радиокнопки</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center space-x-3">
+                                    <input type="radio" name="theme" checked class="text-blue-500 focus:ring-blue-500">
+                                    <span>Светлая тема</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="radio" name="theme" class="text-blue-500 focus:ring-blue-500">
+                                    <span>Темная тема</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Переключатели</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" checked class="rounded-full w-11 h-6 bg-white/10 border-white/20 focus:ring-blue-500">
+                                    <span>Wi-Fi</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="rounded-full w-11 h-6 bg-white/10 border-white/20 focus:ring-blue-500">
+                                    <span>Bluetooth</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Ползунок</label>
+                            <input type="range" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Data Storage -->
+                <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl transition-transform hover:-translate-y-1 md:col-span-2">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="text-xl mr-2">💾</span>
+                        Хранение данных
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Имя пользователя</label>
+                            <input type="text" id="username" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Электронная почта</label>
+                            <input type="email" id="email" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Уровень опыта</label>
+                        <select id="experience" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                            <option value="beginner">Новичок</option>
+                            <option value="intermediate">Средний</option>
+                            <option value="advanced">Продвинутый</option>
+                        </select>
+                    </div>
+
+                    <button id="saveData" class="w-full bg-blue-500/80 backdrop-blur-lg rounded-xl p-3 border border-blue-400/30 hover:bg-blue-500 transition-colors flex items-center justify-center space-x-2 mb-4">
+                        <span class="text-lg">💾</span>
+                        <span>Сохранить данные</span>
+                    </button>
+
+                    <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 max-h-40 overflow-y-auto">
+                        <pre id="jsonData" class="text-xs font-mono whitespace-pre-wrap">Данные будут отображены здесь в формате JSON</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки для перехода на другие страницы -->
+            <div class="mt-6 grid grid-cols-2 gap-4">
+                <button class="navigate-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-4 border border-blue-400/30 hover:bg-blue-500 transition-colors flex items-center justify-center" data-page="controls-detail">
+                    <span class="text-lg mr-2">🔧</span>
+                    <span>Детали управления</span>
+                </button>
+                <button class="navigate-btn bg-purple-500/80 backdrop-blur-lg rounded-xl p-4 border border-purple-400/30 hover:bg-purple-500 transition-colors flex items-center justify-center" data-page="forms-detail">
+                    <span class="text-lg mr-2">📝</span>
+                    <span>Детали форм</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="controls-detail-page">
+        <div class="page controls-detail-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">🔧</span>
+                    Детали управления
+                </h2>
+
+                <div class="space-y-4">
+                    <p class="text-white/80">На этой странице представлены расширенные настройки элементов управления.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                            <h3 class="font-medium mb-2">Настройки кнопок</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span>Анимация кнопок</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Тактильная отдача</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                            <h3 class="font-medium mb-2">Настройки полей ввода</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span>Автозаполнение</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Проверка ввода</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <button class="navigate-btn bg-green-500/80 backdrop-blur-lg rounded-xl p-4 border border-green-400/30 hover:bg-green-500 transition-colors flex items-center justify-center" data-page="advanced-controls">
+                    <span class="text-lg mr-2">⚡</span>
+                    <span>Расширенные настройки</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="advanced-controls-page">
+        <div class="page advanced-controls-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">⚡</span>
+                    Расширенные настройки управления
+                </h2>
+
+                <div class="space-y-6">
+                    <p class="text-white/80">На этой странице представлены расширенные настройки для продвинутых пользователей.</p>
+
+                    <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                        <h3 class="font-medium mb-3">Настройки производительности</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Уровень графики</label>
+                                <select class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                                    <option>Низкий</option>
+                                    <option selected>Средний</option>
+                                    <option>Высокий</option>
+                                    <option>Ультра</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Частота обновления</label>
+                                <input type="range" class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                        <h3 class="font-medium mb-3">Настройки анимации</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span>Плавные переходы</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Эффекты частиц</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                </label>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Динамическое освещение</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="navigate-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-4 border border-blue-400/30 hover:bg-blue-500 transition-colors flex items-center justify-center" data-page="controls-detail">
+                    <span class="text-lg mr-2">↩️</span>
+                    <span>Назад к деталям</span>
+                </button>
+                <button class="navigate-btn bg-purple-500/80 backdrop-blur-lg rounded-xl p-4 border border-purple-400/30 hover:bg-purple-500 transition-colors flex items-center justify-center" data-page="home">
+                    <span class="text-lg mr-2">🏠</span>
+                    <span>На главную</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="forms-detail-page">
+        <div class="page forms-detail-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">📝</span>
+                    Детали форм
+                </h2>
+
+                <div class="space-y-6">
+                    <p class="text-white/80">На этой странице представлены расширенные настройки форм и элементов ввода.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                            <h3 class="font-medium mb-3">Настройки валидации</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span>Проверка email</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Проверка пароля</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Проверка телефона</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                            <h3 class="font-medium mb-3">Настройки внешнего вида</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span>Скругленные углы</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Тени элементов</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Анимация фокуса</span>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="navigate-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-4 border border-blue-400/30 hover:bg-blue-500 transition-colors flex items-center justify-center" data-page="home">
+                    <span class="text-lg mr-2">↩️</span>
+                    <span>На главную</span>
+                </button>
+                <button class="navigate-btn bg-green-500/80 backdrop-blur-lg rounded-xl p-4 border border-green-400/30 hover:bg-green-500 transition-colors flex items-center justify-center" data-page="advanced-forms">
+                    <span class="text-lg mr-2">⚡</span>
+                    <span>Расширенные формы</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="wallet-page">
+        <div class="page wallet-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">💰</span>
+                    Мой Кошелек
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gradient-to-r from-blue-500/30 to-purple-500/30 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                        <p class="text-sm text-white/70">Общий баланс</p>
+                        <p class="text-2xl font-bold mt-2">1,250.50 ₽</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-green-500/30 to-teal-500/30 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                        <p class="text-sm text-white/70">Доходы</p>
+                        <p class="text-2xl font-bold mt-2">2,500.00 ₽</p>
+                    </div>
+                    <div class="bg-gradient-to-r from-red-500/30 to-pink-500/30 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+                        <p class="text-sm text-white/70">Расходы</p>
+                        <p class="text-2xl font-bold mt-2">1,249.50 ₽</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-medium">Последние транзакции</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                                    <span class="text-red-400">🛒</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Продукты</p>
+                                    <p class="text-sm text-white/60">Сегодня, 14:30</p>
+                                </div>
+                            </div>
+                            <p class="font-medium text-red-400">-850.00 ₽</p>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <span class="text-green-400">💼</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Зарплата</p>
+                                    <p class="text-sm text-white/60">Вчера, 10:00</p>
+                                </div>
+                            </div>
+                            <p class="font-medium text-green-400">+2,500.00 ₽</p>
+                        </div>
+
+                        <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                    <span class="text-blue-400">🎬</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Кино</p>
+                                    <p class="text-sm text-white/60">2 дня назад</p>
+                                </div>
+                            </div>
+                            <p class="font-medium text-red-400">-399.50 ₽</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="navigate-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-4 border border-blue-400/30 hover:bg-blue-500 transition-colors flex flex-col items-center justify-center" data-page="add-income">
+                    <span class="text-xl mb-2">➕</span>
+                    <span>Добавить доход</span>
+                </button>
+                <button class="navigate-btn bg-purple-500/80 backdrop-blur-lg rounded-xl p-4 border border-purple-400/30 hover:bg-purple-500 transition-colors flex flex-col items-center justify-center" data-page="add-expense">
+                    <span class="text-xl mb-2">➖</span>
+                    <span>Добавить расход</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="settings-page">
+        <div class="page settings-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">⚙️</span>
+                    Настройки приложения
+                </h2>
+
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                        <div>
+                            <p class="font-medium">Уведомления</p>
+                            <p class="text-sm text-white/60">Получать уведомления</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                        <div>
+                            <p class="font-medium">Темная тема</p>
+                            <p class="text-sm text-white/60">Использовать темную тему</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                        <div>
+                            <p class="font-medium">Биометрия</p>
+                            <p class="text-sm text-white/60">Вход по отпечатку</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="p-3 bg-white/5 rounded-xl">
+                        <p class="font-medium mb-2">Язык приложения</p>
+                        <select class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                            <option>Русский</option>
+                            <option>English</option>
+                            <option>Español</option>
+                            <option>Deutsch</option>
+                        </select>
+                    </div>
+
+                    <div class="p-3 bg-white/5 rounded-xl">
+                        <p class="font-medium mb-2">Валюта</p>
+                        <select class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                            <option>Российский рубль (₽)</option>
+                            <option>Доллар США ($)</option>
+                            <option>Евро (€)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <button class="navigate-btn bg-yellow-500/80 backdrop-blur-lg rounded-xl p-4 border border-yellow-400/30 hover:bg-yellow-500 transition-colors flex items-center justify-center" data-page="reset-settings">
+                    <span class="text-xl mr-2">🔄</span>
+                    <span>Сбросить настройки</span>
+                </button>
+                <button class="navigate-btn bg-red-500/80 backdrop-blur-lg rounded-xl p-4 border border-red-400/30 hover:bg-red-500 transition-colors flex items-center justify-center" data-page="delete-data">
+                    <span class="text-xl mr-2">🗑️</span>
+                    <span>Удалить данные</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="profile-page">
+        <div class="page profile-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <div class="flex flex-col items-center mb-6">
+                    <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-4">
+                        <span class="text-3xl">👨‍🚀</span>
+                    </div>
+                    <h2 class="text-xl font-bold">Космический Путешественник</h2>
+                    <p class="text-white/60">@space_explorer</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-bold">42</p>
+                        <p class="text-sm text-white/60">Планеты</p>
+                    </div>
+                    <div class="bg-white/5 rounded-xl p-4 text-center">
+                        <p class="text-2xl font-bold">127</p>
+                        <p class="text-sm text-white/60">Звезды</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <h3 class="font-medium">Информация о профиле</h3>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between p-3 bg-white/5 rounded-xl">
+                            <p class="text-white/60">Имя пользователя</p>
+                            <p class="font-medium">Космический Путешественник</p>
+                        </div>
+
+                        <div class="flex justify-between p-3 bg-white/5 rounded-xl">
+                            <p class="text-white/60">Электронная почта</p>
+                            <p class="font-medium">explorer@galaxy.com</p>
+                        </div>
+
+                        <div class="flex justify-between p-3 bg-white/5 rounded-xl">
+                            <p class="text-white/60">Дата регистрации</p>
+                            <p class="font-medium">12.04.2023</p>
+                        </div>
+
+                        <div class="flex justify-between p-3 bg-white/5 rounded-xl">
+                            <p class="text-white/60">Уровень</p>
+                            <p class="font-medium">Продвинутый</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <button class="navigate-btn bg-blue-500/80 backdrop-blur-lg rounded-xl p-4 border border-blue-400/30 hover:bg-blue-500 transition-colors flex items-center justify-center" data-page="edit-profile">
+                    <span class="text-xl mr-2">✏️</span>
+                    <span>Редактировать профиль</span>
+                </button>
+                <button class="navigate-btn bg-purple-500/80 backdrop-blur-lg rounded-xl p-4 border border-purple-400/30 hover:bg-purple-500 transition-colors flex items-center justify-center" data-page="achievements">
+                    <span class="text-xl mr-2">🚀</span>
+                    <span>Мои достижения</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Дополнительные страницы для демонстрации многоуровневой навигации -->
+    <template id="add-income-page">
+        <div class="page add-income-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">➕</span>
+                    Добавить доход
+                </h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Сумма дохода</label>
+                        <input type="number" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50" placeholder="0.00">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Категория</label>
+                        <select class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                            <option>Зарплата</option>
+                            <option>Фриланс</option>
+                            <option>Инвестиции</option>
+                            <option>Подарок</option>
+                            <option>Прочее</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Дата</label>
+                        <input type="date" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Описание</label>
+                        <textarea class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50" rows="3" placeholder="Дополнительная информация"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="back-btn bg-gray-500/80 backdrop-blur-lg rounded-xl p-4 border border-gray-400/30 hover:bg-gray-500 transition-colors flex items-center justify-center">
+                    <span class="text-lg mr-2">↩️</span>
+                    <span>Отмена</span>
+                </button>
+                <button class="bg-green-500/80 backdrop-blur-lg rounded-xl p-4 border border-green-400/30 hover:bg-green-500 transition-colors flex items-center justify-center">
+                    <span class="text-lg mr-2">💾</span>
+                    <span>Сохранить</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="edit-profile-page">
+        <div class="page edit-profile-page">
+            <div class="bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-xl mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">✏️</span>
+                    Редактировать профиль
+                </h2>
+
+                <div class="space-y-4">
+                    <div class="flex flex-col items-center mb-4">
+                        <div class="w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-4 relative">
+                            <span class="text-3xl">👨‍🚀</span>
+                            <button class="absolute bottom-0 right-0 bg-blue-500 rounded-full w-8 h-8 flex items-center justify-center border border-white/20">
+                                <span class="text-sm">✏️</span>
+                            </button>
+                        </div>
+                        <p class="text-sm text-white/60">Нажмите на иконку, чтобы изменить аватар</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Имя пользователя</label>
+                        <input type="text" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50" value="Космический Путешественник">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Электронная почта</label>
+                        <input type="email" class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50" value="explorer@galaxy.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">О себе</label>
+                        <textarea class="w-full bg-white/10 backdrop-blur-lg rounded-xl p-3 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50" rows="3">Исследую космос и создаю приложения с космическим дизайном</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button class="back-btn bg-gray-500/80 backdrop-blur-lg rounded-xl p-4 border border-gray-400/30 hover:bg-gray-500 transition-colors flex items-center justify-center">
+                    <span class="text-lg mr-2">↩️</span>
+                    <span>Отмена</span>
+                </button>
+                <button class="bg-green-500/80 backdrop-blur-lg rounded-xl p-4 border border-green-400/30 hover:bg-green-500 transition-colors flex items-center justify-center">
+                    <span class="text-lg mr-2">💾</span>
+                    <span>Сохранить</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // Система навигации с поддержкой стековых страниц
+        class NavigationManager {
+            constructor() {
+                this.pageStack = [];
+                this.currentAnimation = null;
+                this.init();
+            }
+
+            init() {
+                // Инициализация начальной страницы
+                this.navigateTo('home', false);
+
+                // Обработчики для кнопок навигации
+                document.querySelectorAll('.nav-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const pageId = button.id.replace('nav-', '');
+                        this.resetToPage(pageId);
+                    });
+                });
+
+                // Обработчики для кнопок перехода между страницами
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.navigate-btn')) {
+                        const pageId = e.target.closest('.navigate-btn').dataset.page;
+                        this.navigateTo(pageId);
+                    }
+
+                    if (e.target.closest('.back-btn')) {
+                        this.goBack();
+                    }
+                });
+
+                // Обработчик для кнопки "Назад" в заголовке
+                document.getElementById('backButton').addEventListener('click', () => {
+                    this.goBack();
+                });
+            }
+
+            // Переход на новую страницу
+            navigateTo(pageId, animate = true) {
+                if (this.currentAnimation) return;
+
+                const template = document.getElementById(`${pageId}-page`);
+                if (!template) {
+                    console.error(`Шаблон для страницы ${pageId} не найден`);
+                    return;
+                }
+
+                const newPage = template.content.cloneNode(true);
+                const pageElement = newPage.querySelector('.page');
+                pageElement.id = `${pageId}-page-content`;
+
+                const currentPage = this.getCurrentPage();
+
+                // Добавляем новую страницу в стек
+                this.pageStack.push({
+                    id: pageId,
+                    title: this.getPageTitle(pageId),
+                    element: pageElement
+                });
+
+                // Обновляем интерфейс
+                this.updateUI(animate ? 'forward' : null);
+            }
+
+            // Возврат на предыдущую страницу
+            goBack() {
+                if (this.pageStack.length <= 1) return;
+                if (this.currentAnimation) return;
+
+                this.pageStack.pop();
+                this.updateUI('back');
+            }
+
+            // Сброс к корневой странице раздела
+            resetToPage(pageId) {
+                if (this.pageStack.length > 0 && this.pageStack[0].id === pageId) {
+                    // Если уже на корневой странице этого раздела, просто возвращаемся к ней
+                    while (this.pageStack.length > 1) {
+                        this.pageStack.pop();
+                    }
+                } else {
+                    // Иначе заменяем весь стек на новую корневую страницу
+                    this.pageStack = [];
+                    this.navigateTo(pageId, false);
+                    return;
+                }
+
+                this.updateUI('reset');
+            }
+
+            // Обновление интерфейса
+            updateUI(direction) {
+                const pageContainer = document.getElementById('pageContainer');
+                const backButton = document.getElementById('backButton');
+                const pageTitle = document.getElementById('pageTitle');
+                const breadcrumbs = document.getElementById('breadcrumbs');
+
+                // Показываем или скрываем кнопку "Назад"
+                if (this.pageStack.length > 1) {
+                    backButton.classList.remove('hidden');
+                } else {
+                    backButton.classList.add('hidden');
+                }
+
+                // Обновляем заголовок
+                const currentPage = this.getCurrentPage();
+                pageTitle.textContent = currentPage.title;
+
+                // Обновляем хлебные крошки
+                this.updateBreadcrumbs(breadcrumbs);
+
+                // Обновляем навигационную панель
+                this.updateNavButtons(currentPage.id);
+
+                // Анимируем переход между страницами
+                this.animatePageTransition(pageContainer, direction);
+            }
+
+            // Анимация перехода между страницами
+            animatePageTransition(container, direction) {
+                if (!direction) {
+                    // Без анимации (для начальной загрузки)
+                    container.innerHTML = '';
+                    container.appendChild(this.getCurrentPage().element);
+                    return;
+                }
+
+                const currentPageElement = container.querySelector('.page');
+                const newPageElement = this.getCurrentPage().element;
+
+                if (direction === 'forward') {
+                    // Анимация перехода вперед
+                    container.appendChild(newPageElement);
+                    newPageElement.classList.add('page-enter');
+
+                    setTimeout(() => {
+                        newPageElement.classList.add('page-enter-active');
+                        this.currentAnimation = true;
+                    }, 10);
+
+                    setTimeout(() => {
+                        if (currentPageElement) {
+                            currentPageElement.remove();
+                        }
+                        newPageElement.classList.remove('page-enter', 'page-enter-active');
+                        this.currentAnimation = false;
+                    }, 300);
+                } else if (direction === 'back') {
+                    // Анимация перехода назад
+                    newPageElement.classList.add('page-back-enter');
+                    container.appendChild(newPageElement);
+
+                    setTimeout(() => {
+                        newPageElement.classList.add('page-back-enter-active');
+                        this.currentAnimation = true;
+                    }, 10);
+
+                    setTimeout(() => {
+                        if (currentPageElement) {
+                            currentPageElement.remove();
+                        }
+                        newPageElement.classList.remove('page-back-enter', 'page-back-enter-active');
+                        this.currentAnimation = false;
+                    }, 300);
+                } else if (direction === 'reset') {
+                    // Сброс без анимации
+                    container.innerHTML = '';
+                    container.appendChild(newPageElement);
+                }
+            }
+
+            // Обновление хлебных крошек
+            updateBreadcrumbs(breadcrumbsContainer) {
+                breadcrumbsContainer.innerHTML = '';
+
+                this.pageStack.forEach((page, index) => {
+                    const crumb = document.createElement('span');
+
+                    if (index > 0) {
+                        const separator = document.createElement('span');
+                        separator.textContent = '›';
+                        separator.className = 'mx-1';
+                        breadcrumbsContainer.appendChild(separator);
+                    }
+
+                    if (index === this.pageStack.length - 1) {
+                        // Текущая страница
+                        crumb.textContent = page.title;
+                        crumb.className = 'text-white font-medium';
+                    } else {
+                        // Страница, на которую можно перейти
+                        crumb.textContent = page.title;
+                        crumb.className = 'text-white/60 hover:text-white cursor-pointer';
+                        crumb.addEventListener('click', () => {
+                            // Переходим к выбранной странице в стеке
+                            while (this.pageStack.length > index + 1) {
+                                this.pageStack.pop();
+                            }
+                            this.updateUI('back');
+                        });
+                    }
+
+                    breadcrumbsContainer.appendChild(crumb);
+                });
+            }
+
+            // Обновление кнопок навигации
+            updateNavButtons(activePageId) {
+                document.querySelectorAll('.nav-button').forEach(button => {
+                    const buttonId = button.id.replace('nav-', '');
+                    const icon = button.querySelector('svg');
+                    const text = button.querySelector('span');
+
+                    if (buttonId === activePageId && this.pageStack.length === 1) {
+                        // Активная корневая страница
+                        button.classList.add('active');
+                        icon.classList.remove('text-gray-300');
+                        icon.classList.add('text-blue-400');
+                        text.classList.remove('text-gray-300');
+                        text.classList.add('text-blue-400');
+
+                        // Анимация иконки
+                        const iconContainer = button.querySelector('.icon-container');
+                        iconContainer.classList.add('bounce');
+                        setTimeout(() => {
+                            iconContainer.classList.remove('bounce');
+                        }, 500);
+                    } else {
+                        // Неактивная страница
+                        button.classList.remove('active');
+                        icon.classList.remove('text-blue-400');
+                        icon.classList.add('text-gray-300');
+                        text.classList.remove('text-blue-400');
+                        text.classList.add('text-gray-300');
+                    }
+                });
+            }
+
+            // Получение текущей страницы
+            getCurrentPage() {
+                return this.pageStack[this.pageStack.length - 1];
+            }
+
+            // Получение заголовка страницы
+            getPageTitle(pageId) {
+                const titles = {
+                    'home': 'Главная',
+                    'controls-detail': 'Детали управления',
+                    'advanced-controls': 'Расширенные настройки',
+                    'forms-detail': 'Детали форм',
+                    'wallet': 'Кошелек',
+                    'add-income': 'Добавить доход',
+                    'add-expense': 'Добавить расход',
+                    'settings': 'Настройки',
+                    'reset-settings': 'Сброс настроек',
+                    'delete-data': 'Удаление данных',
+                    'profile': 'Профиль',
+                    'edit-profile': 'Редактирование профиля',
+                    'achievements': 'Достижения'
+                };
+
+                return titles[pageId] || 'Страница';
+            }
+        }
+
+        // Инициализация навигации после загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            window.navigationManager = new NavigationManager();
+
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+
+            themeToggle.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+
+                if (document.documentElement.classList.contains('dark')) {
+                    themeIcon.textContent = '☀️';
+                    themeText.textContent = 'Светлая';
+                    document.body.classList.add('bg-gray-900');
+                    document.body.classList.remove('bg-space');
+                } else {
+                    themeIcon.textContent = '🌙';
+                    themeText.textContent = 'Темная';
+                    document.body.classList.remove('bg-gray-900');
+                    document.body.classList.add('bg-space');
+                }
+
+                // Save theme preference to localStorage
+                localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+            });
+
+            // Check for saved theme preference or prefer-color-scheme on page load
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Светлая';
+                document.body.classList.add('bg-gray-900');
+                document.body.classList.remove('bg-space');
+            }
+
+            // JSON data functionality
+            const saveButton = document.getElementById('saveData');
+            const jsonDataElement = document.getElementById('jsonData');
+
+            function updateJSONData() {
+                const usernameInput = document.getElementById('username');
+                const emailInput = document.getElementById('email');
+                const experienceSelect = document.getElementById('experience');
+
+                if (usernameInput && emailInput && experienceSelect) {
+                    const userData = {
+                        username: usernameInput.value || 'Не указано',
+                        email: emailInput.value || 'Не указано',
+                        experience: experienceSelect.value,
+                        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                        timestamp: new Date().toISOString()
+                    };
+
+                    jsonDataElement.textContent = JSON.stringify(userData, null, 2);
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                }
+            }
+
+            if (saveButton) {
+                saveButton.addEventListener('click', updateJSONData);
+            }
+
+            // Auto-update JSON when form fields change
+            document.addEventListener('input', (e) => {
+                if (e.target.id === 'username' || e.target.id === 'email') {
+                    updateJSONData();
+                }
+            });
+
+            document.addEventListener('change', (e) => {
+                if (e.target.id === 'experience') {
+                    updateJSONData();
+                }
+            });
+
+            // Load saved user data on page load
+            const savedUserData = localStorage.getItem('userData');
+            if (savedUserData) {
+                const userData = JSON.parse(savedUserData);
+                const usernameInput = document.getElementById('username');
+                const emailInput = document.getElementById('email');
+                const experienceSelect = document.getElementById('experience');
+
+                if (usernameInput && emailInput && experienceSelect) {
+                    usernameInput.value = userData.username !== 'Не указано' ? userData.username : '';
+                    emailInput.value = userData.email !== 'Не указано' ? userData.email : '';
+                    experienceSelect.value = userData.experience;
+                    updateJSONData();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
