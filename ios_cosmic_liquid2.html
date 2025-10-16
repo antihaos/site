@@ -97,15 +97,13 @@
         /* Космический фон для темной темы */
         .dark .space-bg {
             background:
-                radial-gradient(ellipse at center, rgba(12, 20, 69, 0.4) 0%, rgba(0, 0, 0, 0.9) 70%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><radialGradient id="grad"><stop offset="0%" stop-color="%23000B27"/><stop offset="100%" stop-color="%23000"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23grad)"/></svg>');
+                radial-gradient(ellipse at center, rgba(12, 20, 69, 0.4) 0%, rgba(0, 0, 0, 0.9) 70%);
         }
 
         /* Светлый фон для светлой темы */
         .light .space-bg {
             background:
-                radial-gradient(ellipse at center, rgba(173, 216, 230, 0.6) 0%, rgba(240, 248, 255, 0.9) 70%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><radialGradient id="grad"><stop offset="0%" stop-color="%23e0f7fa"/><stop offset="100%" stop-color="%23b3e5fc"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23grad)"/></svg>');
+                radial-gradient(ellipse at center, rgba(173, 216, 230, 0.6) 0%, rgba(240, 248, 255, 0.9) 70%);
         }
 
         .stars {
@@ -384,6 +382,17 @@
         .icon-gradient-6 {
             background: linear-gradient(135deg, #f3722c, #f8965b);
         }
+
+        /* Анимация обновления данных */
+        @keyframes dataUpdate {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .data-updating {
+            animation: dataUpdate 1s ease-in-out;
+        }
     </style>
 </head>
 <body class="font-sf min-h-screen pb-20 text-white dark">
@@ -476,7 +485,7 @@
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="font-medium">Космическая погода</h2>
-                        <p class="text-white text-opacity-70 text-sm">Орбита Земли</p>
+                        <p class="text-white text-opacity-70 text-sm" id="weather-location">Орбита Земли</p>
                     </div>
                     <div class="text-right">
                         <div class="text-3xl" id="weather-temp">-270°</div>
@@ -492,46 +501,16 @@
             <!-- Виджет календаря -->
             <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card" id="calendar-widget">
                 <h2 class="font-medium mb-2">Космическое расписание</h2>
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-1">
-                        <span class="text-xs font-medium" id="calendar-day">15</span>
-                    </div>
-                    <div>
-                        <p class="font-medium" id="calendar-event">Выход в открытый космос</p>
-                        <p class="text-white text-opacity-70 text-sm" id="calendar-time">10:00 - 11:30</p>
-                    </div>
-                </div>
-                <div class="mt-2 flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
-                        <span class="text-xs font-medium">16</span>
-                    </div>
-                    <div>
-                        <p class="font-medium">Коррекция орбиты</p>
-                        <p class="text-white text-opacity-70 text-sm">14:20 - 15:00</p>
-                    </div>
+                <div id="calendar-events">
+                    <!-- Данные будут загружены из JSON -->
                 </div>
             </div>
 
             <!-- Виджет напоминаний -->
             <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card" id="reminders-widget">
                 <h2 class="font-medium mb-2">Космические задачи</h2>
-                <div class="flex items-center space-x-3">
-                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="1">
-                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
-                    </div>
-                    <p>Проверить системы жизнеобеспечения</p>
-                </div>
-                <div class="flex items-center space-x-3 mt-2">
-                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="2">
-                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
-                    </div>
-                    <p>Калибровка навигационных приборов</p>
-                </div>
-                <div class="flex items-center space-x-3 mt-2">
-                    <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="3">
-                        <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
-                    </div>
-                    <p>Связь с ЦУП</p>
+                <div id="reminders-list">
+                    <!-- Данные будут загружены из JSON -->
                 </div>
                 <div class="mt-3 flex">
                     <input type="text" placeholder="Новая задача..." class="flex-1 bg-transparent border border-white border-opacity-20 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-ios-blue text-white placeholder-white placeholder-opacity-50" id="new-reminder">
@@ -542,29 +521,14 @@
             <!-- Виджет систем станции -->
             <div class="rounded-3xl p-4 mb-4 fade-in ios-press liquid-glass-card" id="systems-widget">
                 <h2 class="font-medium mb-2">Системы станции</h2>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
-                        <span class="text-sm">Кислород</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
-                        <span class="text-sm">Энергия</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-ios-orange"></div>
-                        <span class="text-sm">Связь</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 rounded-full bg-ios-green"></div>
-                        <span class="text-sm">Температура</span>
-                    </div>
+                <div class="grid grid-cols-2 gap-2" id="systems-status">
+                    <!-- Данные будут загружены из JSON -->
                 </div>
                 <div class="mt-3 w-full bg-gray-700 rounded-full h-2">
                     <div class="bg-ios-blue h-2 rounded-full" style="width: 75%" id="station-power"></div>
                 </div>
                 <div class="flex justify-between text-xs mt-1 text-white text-opacity-70">
-                    <span>Энергия: 75%</span>
+                    <span>Энергия: <span id="power-level">75%</span></span>
                     <span id="station-time">12 дней до подзарядки</span>
                 </div>
             </div>
@@ -609,55 +573,15 @@
 
             <div class="rounded-3xl p-4 mb-4 fade-in liquid-glass-card">
                 <h2 class="font-medium mb-3">Недавние поиски</h2>
-                <div class="space-y-3">
-                    <div class="flex items-center space-x-3 ios-press" data-search="навигация">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
-                            <i class="fas fa-satellite text-xs"></i>
-                        </div>
-                        <p>Системы навигации</p>
-                    </div>
-                    <div class="flex items-center space-x-3 ios-press" data-search="жизнеобеспечение">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
-                            <i class="fas fa-leaf text-xs"></i>
-                        </div>
-                        <p>Системы жизнеобеспечения</p>
-                    </div>
-                    <div class="flex items-center space-x-3 ios-press" data-search="связь">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
-                            <i class="fas fa-broadcast-tower text-xs"></i>
-                        </div>
-                        <p>Связь с Землей</p>
-                    </div>
+                <div class="space-y-3" id="recent-searches">
+                    <!-- Данные будут загружены из JSON -->
                 </div>
             </div>
 
             <div class="rounded-3xl p-4 mb-4 fade-in liquid-glass-card">
                 <h2 class="font-medium mb-3">Быстрый доступ</h2>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="home-section">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-1">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <p class="text-xs">Главная</p>
-                    </div>
-                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="notifications-section">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-4">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <p class="text-xs">Уведомления</p>
-                    </div>
-                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" data-section="settings-section">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-3">
-                            <i class="fas fa-cog"></i>
-                        </div>
-                        <p class="text-xs">Настройки</p>
-                    </div>
-                    <div class="rounded-2xl p-3 text-center ios-press liquid-glass" id="emergency-btn">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass icon-gradient-6">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <p class="text-xs">Авария</p>
-                    </div>
+                <div class="grid grid-cols-2 gap-3" id="quick-access">
+                    <!-- Данные будут загружены из JSON -->
                 </div>
             </div>
         </main>
@@ -676,66 +600,7 @@
             </div>
 
             <div class="space-y-4" id="notifications-container">
-                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="system">
-                    <div class="flex justify-between items-start">
-                        <div class="flex space-x-3">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
-                                <i class="fas fa-satellite-dish"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-medium">Связь с ЦУП</h3>
-                                <p class="text-white text-opacity-70 text-sm">Установлена устойчивая связь</p>
-                                <p class="text-white text-opacity-50 text-xs mt-1">2 мин назад</p>
-                            </div>
-                        </div>
-                        <div class="w-2 h-2 bg-ios-blue rounded-full pulse-notification"></div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="reminder">
-                    <div class="flex justify-between items-start">
-                        <div class="flex space-x-3">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-medium">Задача выполнена</h3>
-                                <p class="text-white text-opacity-70 text-sm">"Проверить системы" выполнено</p>
-                                <p class="text-white text-opacity-50 text-xs mt-1">10 мин назад</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="system">
-                    <div class="flex justify-between items-start">
-                        <div class="flex space-x-3">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-4">
-                                <i class="fas fa-solar-panel"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-medium">Солнечные панели</h3>
-                                <p class="text-white text-opacity-70 text-sm">Эффективность 94%</p>
-                                <p class="text-white text-opacity-50 text-xs mt-1">1 час назад</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item" data-type="alert">
-                    <div class="flex justify-between items-start">
-                        <div class="flex space-x-3">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
-                                <i class="fas fa-radiation"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-medium">Радиационный фон</h3>
-                                <p class="text-white text-opacity-70 text-sm">Уровень в норме</p>
-                                <p class="text-white text-opacity-50 text-xs mt-1">2 часа назад</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Данные будут загружены из JSON -->
             </div>
         </main>
     </section>
@@ -747,99 +612,8 @@
                 <h1 class="text-2xl font-semibold">Настройки станции</h1>
             </div>
 
-            <div class="space-y-4">
-                <div class="rounded-3xl p-4 fade-in liquid-glass-card">
-                    <h2 class="font-medium mb-3">Основные системы</h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center ios-press" id="wifi-setting">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
-                                    <i class="fas fa-wifi"></i>
-                                </div>
-                                <p>Связь с Землей</p>
-                            </div>
-                            <p class="text-white text-opacity-70" id="wifi-status">Активна</p>
-                        </div>
-                        <div class="flex justify-between items-center ios-press" id="bluetooth-setting">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
-                                    <i class="fas fa-broadcast-tower"></i>
-                                </div>
-                                <p>Внутренняя связь</p>
-                            </div>
-                            <p class="text-white text-opacity-70" id="bluetooth-status">Вкл.</p>
-                        </div>
-                        <div class="flex justify-between items-center ios-press">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-4">
-                                    <i class="fas fa-moon"></i>
-                                </div>
-                                <p>Тема интерфейса</p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-white text-opacity-70 text-sm" id="theme-status">Космос</span>
-                                <div class="theme-toggle active ios-press" id="theme-toggle"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl p-4 fade-in liquid-glass-card">
-                    <h2 class="font-medium mb-3">Безопасность</h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center ios-press">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-1">
-                                    <i class="fas fa-user-astronaut"></i>
-                                </div>
-                                <p>Экипаж</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
-                        </div>
-                        <div class="flex justify-between items-center ios-press" id="access-codes-btn">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-5">
-                                    <i class="fas fa-key"></i>
-                                </div>
-                                <p>Коды доступа</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounded-3xl p-4 fade-in liquid-glass-card">
-                    <h2 class="font-medium mb-3">Приложения</h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center ios-press">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-5">
-                                    <i class="fas fa-music"></i>
-                                </div>
-                                <p>Космическая музыка</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
-                        </div>
-                        <div class="flex justify-between items-center ios-press">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-3">
-                                    <i class="fas fa-map-marked-alt"></i>
-                                </div>
-                                <p>Навигация</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
-                        </div>
-                        <div class="flex justify-between items-center ios-press">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
-                                    <i class="fas fa-rocket"></i>
-                                </div>
-                                <p>Траектория полета</p>
-                            </div>
-                            <i class="fas fa-chevron-right text-white text-opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="space-y-4" id="settings-container">
+                <!-- Данные будут загружены из JSON -->
             </div>
         </main>
     </section>
@@ -865,6 +639,385 @@
     </div>
 
     <script>
+        // JSON структуры данных для виджетов
+        const appData = {
+            weather: {
+                location: "Орбита Земли",
+                temperature: "-270°",
+                description: "Вакуум",
+                solarWind: "450 км/с",
+                radiation: "Низкая",
+                updateTime: "2 мин назад"
+            },
+            calendar: {
+                events: [
+                    {
+                        id: 1,
+                        title: "Выход в открытый космос",
+                        date: "15",
+                        time: "10:00 - 11:30",
+                        icon: "icon-gradient-1"
+                    },
+                    {
+                        id: 2,
+                        title: "Коррекция орбиты",
+                        date: "16",
+                        time: "14:20 - 15:00",
+                        icon: "icon-gradient-2"
+                    }
+                ]
+            },
+            reminders: {
+                tasks: [
+                    {
+                        id: 1,
+                        text: "Проверить системы жизнеобеспечения",
+                        completed: false
+                    },
+                    {
+                        id: 2,
+                        text: "Калибровка навигационных приборов",
+                        completed: false
+                    },
+                    {
+                        id: 3,
+                        text: "Связь с ЦУП",
+                        completed: false
+                    }
+                ]
+            },
+            systems: {
+                status: [
+                    { name: "Кислород", status: "normal" },
+                    { name: "Энергия", status: "normal" },
+                    { name: "Связь", status: "warning" },
+                    { name: "Температура", status: "normal" }
+                ],
+                power: {
+                    level: 75,
+                    timeToRecharge: "12 дней"
+                }
+            },
+            music: {
+                currentTrack: "Space Oddity - David Bowie",
+                isPlaying: false,
+                progress: 30,
+                duration: "3:45"
+            },
+            search: {
+                recent: [
+                    { id: 1, text: "Системы навигации", icon: "icon-gradient-3" },
+                    { id: 2, text: "Системы жизнеобеспечения", icon: "icon-gradient-2" },
+                    { id: 3, text: "Связь с Землей", icon: "icon-gradient-6" }
+                ],
+                quickAccess: [
+                    { id: 1, name: "Главная", icon: "icon-gradient-1", section: "home-section" },
+                    { id: 2, name: "Уведомления", icon: "icon-gradient-4", section: "notifications-section" },
+                    { id: 3, name: "Настройки", icon: "icon-gradient-3", section: "settings-section" },
+                    { id: 4, name: "Авария", icon: "icon-gradient-6", section: "emergency" }
+                ]
+            },
+            notifications: {
+                items: [
+                    {
+                        id: 1,
+                        type: "system",
+                        title: "Связь с ЦУП",
+                        message: "Установлена устойчивая связь",
+                        time: "2 мин назад",
+                        icon: "icon-gradient-3",
+                        unread: true
+                    },
+                    {
+                        id: 2,
+                        type: "reminder",
+                        title: "Задача выполнена",
+                        message: "Проверить системы выполнено",
+                        time: "10 мин назад",
+                        icon: "icon-gradient-2",
+                        unread: false
+                    }
+                ]
+            },
+            settings: {
+                sections: [
+                    {
+                        title: "Основные системы",
+                        items: [
+                            {
+                                id: 1,
+                                name: "Связь с Землей",
+                                value: "Активна",
+                                icon: "icon-gradient-3",
+                                type: "toggle"
+                            },
+                            {
+                                id: 2,
+                                name: "Внутренняя связь",
+                                value: "Вкл.",
+                                icon: "icon-gradient-2",
+                                type: "toggle"
+                            },
+                            {
+                                id: 3,
+                                name: "Тема интерфейса",
+                                value: "Космос",
+                                icon: "icon-gradient-4",
+                                type: "theme"
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // Функции для работы с JSON данными
+        const DataManager = {
+            // Обновление данных виджета с анимацией
+            updateWidget(widgetId, data) {
+                const widget = document.getElementById(widgetId);
+                if (widget) {
+                    widget.classList.add('data-updating');
+                    setTimeout(() => {
+                        widget.classList.remove('data-updating');
+                    }, 1000);
+                }
+                return data;
+            },
+
+            // Загрузка данных погоды
+            loadWeatherData() {
+                const weather = this.updateWidget('weather-widget', appData.weather);
+                document.getElementById('weather-location').textContent = weather.location;
+                document.getElementById('weather-temp').textContent = weather.temperature;
+                document.getElementById('weather-desc').textContent = weather.description;
+                document.getElementById('solar-wind').textContent = weather.solarWind;
+                document.getElementById('radiation-level').textContent = weather.radiation;
+            },
+
+            // Загрузка данных календаря
+            loadCalendarData() {
+                const calendar = this.updateWidget('calendar-widget', appData.calendar);
+                const container = document.getElementById('calendar-events');
+                container.innerHTML = '';
+
+                calendar.events.forEach(event => {
+                    const eventElement = document.createElement('div');
+                    eventElement.className = 'flex items-center space-x-3 mt-2';
+                    eventElement.innerHTML = `
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass ${event.icon}">
+                            <span class="text-xs font-medium">${event.date}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium">${event.title}</p>
+                            <p class="text-white text-opacity-70 text-sm">${event.time}</p>
+                        </div>
+                    `;
+                    container.appendChild(eventElement);
+                });
+            },
+
+            // Загрузка данных напоминаний
+            loadRemindersData() {
+                const reminders = this.updateWidget('reminders-widget', appData.reminders);
+                const container = document.getElementById('reminders-list');
+                container.innerHTML = '';
+
+                reminders.tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'flex items-center space-x-3 mt-2';
+                    taskElement.innerHTML = `
+                        <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="${task.id}">
+                            <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 ${task.completed ? '' : 'hidden'}"></div>
+                        </div>
+                        <p class="${task.completed ? 'opacity-50 line-through' : ''}">${task.text}</p>
+                    `;
+                    container.appendChild(taskElement);
+                });
+
+                // Добавляем обработчики для чекбоксов
+                this.initReminderCheckboxes();
+            },
+
+            // Загрузка данных систем
+            loadSystemsData() {
+                const systems = this.updateWidget('systems-widget', appData.systems);
+                const container = document.getElementById('systems-status');
+                container.innerHTML = '';
+
+                systems.status.forEach(system => {
+                    const statusColor = system.status === 'normal' ? 'bg-ios-green' :
+                                      system.status === 'warning' ? 'bg-ios-orange' : 'bg-ios-red';
+
+                    const systemElement = document.createElement('div');
+                    systemElement.className = 'flex items-center space-x-2';
+                    systemElement.innerHTML = `
+                        <div class="w-3 h-3 rounded-full ${statusColor}"></div>
+                        <span class="text-sm">${system.name}</span>
+                    `;
+                    container.appendChild(systemElement);
+                });
+
+                document.getElementById('power-level').textContent = systems.power.level + '%';
+                document.getElementById('station-power').style.width = systems.power.level + '%';
+                document.getElementById('station-time').textContent = systems.power.timeToRecharge + ' до подзарядки';
+            },
+
+            // Загрузка данных музыки
+            loadMusicData() {
+                const music = this.updateWidget('music-widget', appData.music);
+                document.getElementById('music-track').textContent = music.currentTrack;
+                document.getElementById('music-progress').style.width = music.progress + '%';
+
+                const currentTime = Math.floor(music.progress * 3.45 / 100);
+                document.getElementById('music-time').textContent = '0:' + (currentTime < 10 ? '0' + currentTime : currentTime);
+            },
+
+            // Загрузка данных поиска
+            loadSearchData() {
+                const search = appData.search;
+
+                // Недавние поиски
+                const recentContainer = document.getElementById('recent-searches');
+                recentContainer.innerHTML = '';
+                search.recent.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'flex items-center space-x-3 ios-press';
+                    itemElement.setAttribute('data-search', item.text.toLowerCase());
+                    itemElement.innerHTML = `
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass ${item.icon}">
+                            <i class="fas fa-clock text-xs"></i>
+                        </div>
+                        <p>${item.text}</p>
+                    `;
+                    recentContainer.appendChild(itemElement);
+                });
+
+                // Быстрый доступ
+                const quickAccessContainer = document.getElementById('quick-access');
+                quickAccessContainer.innerHTML = '';
+                search.quickAccess.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'rounded-2xl p-3 text-center ios-press liquid-glass';
+                    if (item.section !== 'emergency') {
+                        itemElement.setAttribute('data-section', item.section);
+                    } else {
+                        itemElement.id = 'emergency-btn';
+                    }
+                    itemElement.innerHTML = `
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2 liquid-glass ${item.icon}">
+                            <i class="fas ${item.section === 'emergency' ? 'fa-exclamation-triangle' :
+                                          item.section === 'home-section' ? 'fa-home' :
+                                          item.section === 'notifications-section' ? 'fa-bell' : 'fa-cog'}"></i>
+                        </div>
+                        <p class="text-xs">${item.name}</p>
+                    `;
+                    quickAccessContainer.appendChild(itemElement);
+                });
+            },
+
+            // Загрузка данных уведомлений
+            loadNotificationsData() {
+                const notifications = this.updateWidget('notifications-container', appData.notifications);
+                const container = document.getElementById('notifications-container');
+                container.innerHTML = '';
+
+                notifications.items.forEach(notification => {
+                    const notificationElement = document.createElement('div');
+                    notificationElement.className = `rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item`;
+                    notificationElement.setAttribute('data-type', notification.type);
+                    notificationElement.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex space-x-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass ${notification.icon}">
+                                    <i class="fas ${notification.type === 'system' ? 'fa-satellite-dish' :
+                                                  notification.type === 'reminder' ? 'fa-check-circle' :
+                                                  notification.type === 'alert' ? 'fa-radiation' : 'fa-solar-panel'}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">${notification.title}</h3>
+                                    <p class="text-white text-opacity-70 text-sm">${notification.message}</p>
+                                    <p class="text-white text-opacity-50 text-xs mt-1">${notification.time}</p>
+                                </div>
+                            </div>
+                            ${notification.unread ? '<div class="w-2 h-2 bg-ios-blue rounded-full pulse-notification"></div>' : ''}
+                        </div>
+                    `;
+                    container.appendChild(notificationElement);
+                });
+            },
+
+            // Загрузка данных настроек
+            loadSettingsData() {
+                const settings = appData.settings;
+                const container = document.getElementById('settings-container');
+                container.innerHTML = '';
+
+                settings.sections.forEach(section => {
+                    const sectionElement = document.createElement('div');
+                    sectionElement.className = 'rounded-3xl p-4 fade-in liquid-glass-card';
+                    sectionElement.innerHTML = `
+                        <h2 class="font-medium mb-3">${section.title}</h2>
+                        <div class="space-y-3">
+                            ${section.items.map(item => `
+                                <div class="flex justify-between items-center ios-press ${item.type === 'toggle' ? 'toggle-setting' : ''}"
+                                     data-id="${item.id}" data-type="${item.type}">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center liquid-glass ${item.icon}">
+                                            <i class="fas ${item.name.includes('Связь') ? 'fa-wifi' :
+                                                          item.name.includes('Экипаж') ? 'fa-user-astronaut' :
+                                                          item.name.includes('Коды') ? 'fa-key' :
+                                                          item.name.includes('Музыка') ? 'fa-music' :
+                                                          item.name.includes('Навигация') ? 'fa-map-marked-alt' :
+                                                          item.name.includes('Траектория') ? 'fa-rocket' : 'fa-moon'}"></i>
+                                        </div>
+                                        <p>${item.name}</p>
+                                    </div>
+                                    ${item.type === 'theme' ?
+                                        `<div class="flex items-center space-x-2">
+                                            <span class="text-white text-opacity-70 text-sm" id="theme-status">${item.value}</span>
+                                            <div class="theme-toggle active" id="theme-toggle"></div>
+                                        </div>` :
+                                        item.type === 'toggle' ?
+                                        `<p class="text-white text-opacity-70" id="setting-${item.id}">${item.value}</p>` :
+                                        `<i class="fas fa-chevron-right text-white text-opacity-50"></i>`
+                                    }
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    container.appendChild(sectionElement);
+                });
+            },
+
+            // Инициализация чекбоксов напоминаний
+            initReminderCheckboxes() {
+                const checkboxes = document.querySelectorAll('.reminder-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('click', function() {
+                        const taskId = parseInt(this.getAttribute('data-id'));
+                        const task = appData.reminders.tasks.find(t => t.id === taskId);
+                        if (task) {
+                            task.completed = !task.completed;
+                            this.loadRemindersData();
+                        }
+                    }.bind(this));
+                });
+            },
+
+            // Инициализация всех данных
+            initAllData() {
+                this.loadWeatherData();
+                this.loadCalendarData();
+                this.loadRemindersData();
+                this.loadSystemsData();
+                this.loadMusicData();
+                this.loadSearchData();
+                this.loadNotificationsData();
+                this.loadSettingsData();
+            }
+        };
+
         // Обновление времени и даты
         function updateDateTime() {
             const now = new Date();
@@ -879,10 +1032,6 @@
             document.getElementById('current-date').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
         }
 
-        // Инициализация времени
-        updateDateTime();
-        setInterval(updateDateTime, 60000);
-
         // Функция переключения темы
         function toggleTheme() {
             const html = document.documentElement;
@@ -890,18 +1039,16 @@
             const themeStatus = document.getElementById('theme-status');
 
             if (html.classList.contains('dark')) {
-                // Переключаем на светлую тему
                 html.classList.remove('dark');
                 html.classList.add('light');
-                themeToggle.classList.remove('active');
-                themeStatus.textContent = 'Светлая';
+                if (themeToggle) themeToggle.classList.remove('active');
+                if (themeStatus) themeStatus.textContent = 'Светлая';
                 localStorage.setItem('theme', 'light');
             } else {
-                // Переключаем на темную тему
                 html.classList.remove('light');
                 html.classList.add('dark');
-                themeToggle.classList.add('active');
-                themeStatus.textContent = 'Космос';
+                if (themeToggle) themeToggle.classList.add('active');
+                if (themeStatus) themeStatus.textContent = 'Космос';
                 localStorage.setItem('theme', 'dark');
             }
         }
@@ -916,13 +1063,13 @@
             if (savedTheme === 'light') {
                 html.classList.remove('dark');
                 html.classList.add('light');
-                themeToggle.classList.remove('active');
-                themeStatus.textContent = 'Светлая';
+                if (themeToggle) themeToggle.classList.remove('active');
+                if (themeStatus) themeStatus.textContent = 'Светлая';
             } else {
                 html.classList.remove('light');
                 html.classList.add('dark');
-                themeToggle.classList.add('active');
-                themeStatus.textContent = 'Космос';
+                if (themeToggle) themeToggle.classList.add('active');
+                if (themeStatus) themeStatus.textContent = 'Космос';
             }
         }
 
@@ -941,7 +1088,7 @@
             // Функция открытия модального окна
             function openModal() {
                 modal.classList.add('active');
-                codeInputs[0].focus();
+                if (codeInputs[0]) codeInputs[0].focus();
             }
 
             // Функция закрытия модального окна
@@ -951,21 +1098,27 @@
             }
 
             // Открытие модального окна
-            openBtn.addEventListener('click', openModal);
+            if (openBtn) {
+                openBtn.addEventListener('click', openModal);
+            }
 
             // Закрытие модального окна по крестику
-            closeBtn.addEventListener('click', closeModal);
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeModal);
+            }
 
             // Закрытие по клику на overlay
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
 
             // Закрытие по Escape
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modal.classList.contains('active')) {
+                if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
                     closeModal();
                 }
             });
@@ -973,17 +1126,11 @@
             // Обработка ввода кода
             codeInputs.forEach((input, index) => {
                 input.addEventListener('input', function() {
-                    errorMsg.classList.add('hidden');
+                    if (errorMsg) errorMsg.classList.add('hidden');
 
                     // Автопереход к следующему полю
                     if (this.value.length === 1 && index < codeInputs.length - 1) {
                         codeInputs[index + 1].focus();
-                    }
-
-                    // Проверка заполнения всех полей
-                    const allFilled = Array.from(codeInputs).every(input => input.value.length === 1);
-                    if (allFilled) {
-                        submitBtn.focus();
                     }
                 });
 
@@ -996,49 +1143,27 @@
             });
 
             // Проверка кода
-            submitBtn.addEventListener('click', function() {
-                const enteredCode = Array.from(codeInputs).map(input => input.value).join('');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function() {
+                    const enteredCode = Array.from(codeInputs).map(input => input.value).join('');
 
-                if (enteredCode === correctCode) {
-                    // Успешный ввод
-                    alert('Код доступа принят! Доступ разрешен.');
-                    closeModal();
-
-                    // Добавляем уведомление об успешном доступе
-                    const notificationsContainer = document.getElementById('notifications-container');
-                    const successNotification = document.createElement('div');
-                    successNotification.className = 'rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item';
-                    successNotification.style.border = '1px solid rgba(52, 199, 89, 0.5)';
-                    successNotification.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div class="flex space-x-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-2">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium">Доступ разрешен</h3>
-                                    <p class="text-white text-opacity-70 text-sm">Код доступа подтвержден</p>
-                                    <p class="text-white text-opacity-50 text-xs mt-1">Только что</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    notificationsContainer.prepend(successNotification);
-
-                } else {
-                    // Неверный код
-                    errorMsg.classList.remove('hidden');
-                    resetCodeInputs();
-                    codeInputs[0].focus();
-                }
-            });
+                    if (enteredCode === correctCode) {
+                        alert('Код доступа принят! Доступ разрешен.');
+                        closeModal();
+                    } else {
+                        if (errorMsg) errorMsg.classList.remove('hidden');
+                        resetCodeInputs();
+                        if (codeInputs[0]) codeInputs[0].focus();
+                    }
+                });
+            }
 
             // Сброс полей ввода
             function resetCodeInputs() {
                 codeInputs.forEach(input => {
                     input.value = '';
                 });
-                errorMsg.classList.add('hidden');
+                if (errorMsg) errorMsg.classList.add('hidden');
             }
         }
 
@@ -1046,6 +1171,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализация темы
             initTheme();
+
+            // Инициализация данных
+            DataManager.initAllData();
 
             // Инициализация кодов доступа
             initAccessCodes();
@@ -1063,10 +1191,12 @@
 
                 // Показать выбранную секцию
                 const activeSection = document.getElementById(sectionId);
-                activeSection.classList.remove('hidden-section');
-                setTimeout(() => {
-                    activeSection.style.opacity = '1';
-                }, 10);
+                if (activeSection) {
+                    activeSection.classList.remove('hidden-section');
+                    setTimeout(() => {
+                        activeSection.style.opacity = '1';
+                    }, 10);
+                }
 
                 // Обновить активную кнопку в навигации
                 navButtons.forEach(btn => {
@@ -1091,10 +1221,11 @@
             });
 
             // Обработчик для переключателя темы
-            const themeToggle = document.getElementById('theme-toggle');
-            if (themeToggle) {
-                themeToggle.addEventListener('click', toggleTheme);
-            }
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#theme-toggle')) {
+                    toggleTheme();
+                }
+            });
 
             // Эффект нажатия для всех элементов с классом ios-press
             const pressElements = document.querySelectorAll('.ios-press');
@@ -1121,23 +1252,6 @@
                 });
             });
 
-            // Функциональность для чекбоксов напоминаний
-            const reminderCheckboxes = document.querySelectorAll('.reminder-checkbox');
-            reminderCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('click', function() {
-                    const checkIcon = this.querySelector('div');
-                    if (checkIcon.classList.contains('hidden')) {
-                        checkIcon.classList.remove('hidden');
-                        this.parentElement.style.opacity = '0.5';
-                        this.parentElement.style.textDecoration = 'line-through';
-                    } else {
-                        checkIcon.classList.add('hidden');
-                        this.parentElement.style.opacity = '1';
-                        this.parentElement.style.textDecoration = 'none';
-                    }
-                });
-            });
-
             // Функциональность кнопки воспроизведения музыки
             const playButton = document.getElementById('play-button');
             let isPlaying = false;
@@ -1151,14 +1265,17 @@
                         icon.classList.remove('fa-pause');
                         icon.classList.add('fa-play');
                         clearInterval(musicInterval);
+                        appData.music.isPlaying = false;
                     } else {
                         icon.classList.remove('fa-play');
                         icon.classList.add('fa-pause');
+                        appData.music.isPlaying = true;
                         // Запуск прогресса музыки
                         musicInterval = setInterval(() => {
                             musicProgress += 0.5;
                             if (musicProgress > 100) musicProgress = 0;
                             document.getElementById('music-progress').style.width = musicProgress + '%';
+                            appData.music.progress = musicProgress;
 
                             // Обновление времени
                             const currentTime = Math.floor(musicProgress * 2.25 / 100);
@@ -1177,31 +1294,14 @@
                 addReminderBtn.addEventListener('click', function() {
                     const text = newReminderInput.value.trim();
                     if (text) {
-                        const remindersContainer = document.getElementById('reminders-widget');
-                        const newReminder = document.createElement('div');
-                        newReminder.className = 'flex items-center space-x-3 mt-2';
-                        newReminder.innerHTML = `
-                            <div class="w-5 h-5 rounded-full border border-white border-opacity-30 flex items-center justify-center reminder-checkbox liquid-glass" data-id="new">
-                                <div class="w-3 h-3 rounded-full bg-ios-blue bg-opacity-80 hidden"></div>
-                            </div>
-                            <p>${text}</p>
-                        `;
-                        remindersContainer.insertBefore(newReminder, remindersContainer.lastElementChild);
+                        const newReminder = {
+                            id: Date.now(),
+                            text: text,
+                            completed: false
+                        };
+                        appData.reminders.tasks.push(newReminder);
+                        DataManager.loadRemindersData();
                         newReminderInput.value = '';
-
-                        // Добавляем обработчик для нового чекбокса
-                        newReminder.querySelector('.reminder-checkbox').addEventListener('click', function() {
-                            const checkIcon = this.querySelector('div');
-                            if (checkIcon.classList.contains('hidden')) {
-                                checkIcon.classList.remove('hidden');
-                                this.parentElement.style.opacity = '0.5';
-                                this.parentElement.style.textDecoration = 'line-through';
-                            } else {
-                                checkIcon.classList.add('hidden');
-                                this.parentElement.style.opacity = '1';
-                                this.parentElement.style.textDecoration = 'none';
-                            }
-                        });
                     }
                 });
 
@@ -1237,47 +1337,38 @@
             });
 
             // Быстрый доступ из поиска
-            const quickAccessButtons = document.querySelectorAll('[data-section]');
-            quickAccessButtons.forEach(button => {
-                if (button.id !== 'emergency-btn') {
-                    button.addEventListener('click', function() {
-                        const sectionId = this.getAttribute('data-section');
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('[data-section]')) {
+                    const element = e.target.closest('[data-section]');
+                    const sectionId = element.getAttribute('data-section');
+                    if (sectionId && sectionId !== 'emergency') {
                         switchSection(sectionId);
-                    });
+                    }
                 }
             });
 
             // Кнопка аварии
-            const emergencyBtn = document.getElementById('emergency-btn');
-            if (emergencyBtn) {
-                emergencyBtn.addEventListener('click', function() {
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('#emergency-btn')) {
                     alert('АВАРИЙНЫЙ РЕЖИМ АКТИВИРОВАН!\n\nВсе системы переведены в режим повышенной готовности. Связь с ЦУП установлена.');
 
                     // Добавляем аварийное уведомление
-                    const notificationsContainer = document.getElementById('notifications-container');
-                    const emergencyNotification = document.createElement('div');
-                    emergencyNotification.className = 'rounded-3xl p-4 fade-in ios-press liquid-glass-card notification-item';
-                    emergencyNotification.style.border = '1px solid rgba(255, 69, 58, 0.5)';
-                    emergencyNotification.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div class="flex space-x-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center liquid-glass icon-gradient-6">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-medium">АВАРИЙНЫЙ РЕЖИМ</h3>
-                                    <p class="text-white text-opacity-70 text-sm">Активирован аварийный протокол</p>
-                                    <p class="text-white text-opacity-50 text-xs mt-1">Только что</p>
-                                </div>
-                            </div>
-                            <div class="w-2 h-2 bg-ios-red rounded-full pulse-notification"></div>
-                        </div>
-                    `;
-                    notificationsContainer.prepend(emergencyNotification);
+                    const emergencyNotification = {
+                        id: Date.now(),
+                        type: "alert",
+                        title: "АВАРИЙНЫЙ РЕЖИМ",
+                        message: "Активирован аварийный протокол",
+                        time: "Только что",
+                        icon: "icon-gradient-6",
+                        unread: true
+                    };
+
+                    appData.notifications.items.unshift(emergencyNotification);
+                    DataManager.loadNotificationsData();
 
                     switchSection('notifications-section');
-                });
-            }
+                }
+            });
 
             // Поиск
             const searchInput = document.getElementById('search-input');
@@ -1298,120 +1389,22 @@
                 });
             }
 
-            // Переключение настроек Wi-Fi и Bluetooth
-            const wifiSetting = document.getElementById('wifi-setting');
-            const bluetoothSetting = document.getElementById('bluetooth-setting');
+            // Переключение настроек
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.toggle-setting')) {
+                    const element = e.target.closest('.toggle-setting');
+                    const settingId = element.getAttribute('data-id');
+                    const statusElement = document.getElementById(`setting-${settingId}`);
 
-            if (wifiSetting) {
-                wifiSetting.addEventListener('click', function() {
-                    const status = document.getElementById('wifi-status');
-                    if (status.textContent === 'Активна') {
-                        status.textContent = 'Отключена';
-                    } else {
-                        status.textContent = 'Активна';
+                    if (statusElement) {
+                        if (statusElement.textContent === 'Активна' || statusElement.textContent === 'Вкл.') {
+                            statusElement.textContent = statusElement.textContent === 'Активна' ? 'Отключена' : 'Выкл.';
+                        } else {
+                            statusElement.textContent = statusElement.textContent === 'Отключена' ? 'Активна' : 'Вкл.';
+                        }
                     }
-                });
-            }
-
-            if (bluetoothSetting) {
-                bluetoothSetting.addEventListener('click', function() {
-                    const status = document.getElementById('bluetooth-status');
-                    if (status.textContent === 'Вкл.') {
-                        status.textContent = 'Выкл.';
-                    } else {
-                        status.textContent = 'Вкл.';
-                    }
-                });
-            }
-
-            // Анимация батареи
-            let batteryLevel = 85;
-            const batteryIcon = document.getElementById('battery-icon');
-
-            function updateBattery() {
-                batteryLevel -= 0.1;
-                if (batteryLevel < 0) batteryLevel = 100;
-
-                if (batteryLevel > 80) {
-                    batteryIcon.className = 'fas fa-battery-full';
-                } else if (batteryLevel > 60) {
-                    batteryIcon.className = 'fas fa-battery-three-quarters';
-                } else if (batteryLevel > 40) {
-                    batteryIcon.className = 'fas fa-battery-half';
-                } else if (batteryLevel > 20) {
-                    batteryIcon.className = 'fas fa-battery-quarter';
-                } else {
-                    batteryIcon.className = 'fas fa-battery-empty';
                 }
-            }
-
-            setInterval(updateBattery, 10000);
-
-            // Анимация уровня энергии станции
-            let powerLevel = 75;
-            const powerBar = document.getElementById('station-power');
-            const stationTime = document.getElementById('station-time');
-
-            function updatePower() {
-                powerLevel -= 0.05;
-                if (powerLevel < 0) powerLevel = 100;
-
-                powerBar.style.width = powerLevel + '%';
-
-                const daysLeft = Math.floor(powerLevel / 0.05);
-                stationTime.textContent = daysLeft + ' дней до подзарядки';
-            }
-
-            setInterval(updatePower, 5000);
-
-            // Изменение космической погоды
-            const weatherTemp = document.getElementById('weather-temp');
-            const weatherDesc = document.getElementById('weather-desc');
-            const solarWind = document.getElementById('solar-wind');
-            const radiationLevel = document.getElementById('radiation-level');
-
-            const weatherConditions = [
-                { temp: '-270°', desc: 'Вакуум', wind: '450 км/с', radiation: 'Низкая' },
-                { temp: '-200°', desc: 'Солнечный свет', wind: '380 км/с', radiation: 'Средняя' },
-                { temp: '-250°', desc: 'Тень Земли', wind: '420 км/с', radiation: 'Низкая' },
-                { temp: '-265°', desc: 'Космический вакуум', wind: '500 км/с', radiation: 'Высокая' }
-            ];
-
-            let currentWeather = 0;
-
-            function changeWeather() {
-                currentWeather = (currentWeather + 1) % weatherConditions.length;
-                const weather = weatherConditions[currentWeather];
-
-                weatherTemp.textContent = weather.temp;
-                weatherDesc.textContent = weather.desc;
-                solarWind.textContent = weather.wind;
-                radiationLevel.textContent = weather.radiation;
-            }
-
-            setInterval(changeWeather, 15000);
-
-            // Смена музыки
-            const musicTrack = document.getElementById('music-track');
-            const musicTracks = [
-                'Space Oddity - David Bowie',
-                'Rocket Man - Elton John',
-                'Across the Universe - The Beatles',
-                'Starman - David Bowie',
-                'Major Tom - Peter Schilling'
-            ];
-
-            let currentTrack = 0;
-
-            function changeTrack() {
-                currentTrack = (currentTrack + 1) % musicTracks.length;
-                musicTrack.textContent = musicTracks[currentTrack];
-                musicProgress = 0;
-                document.getElementById('music-progress').style.width = '0%';
-                document.getElementById('music-time').textContent = '0:00';
-            }
-
-            setInterval(changeTrack, 30000);
+            });
 
             // Имитация загрузки контента
             setTimeout(() => {
@@ -1421,6 +1414,9 @@
                     el.style.transform = 'translateY(0)';
                 });
             }, 100);
+
+            // Обновление времени
+            setInterval(updateDateTime, 60000);
         });
     </script>
 </body>
