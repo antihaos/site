@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iOS Liquid Glass GLTF Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/controls/OrbitControls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/exporters/GLTFExporter.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -16,16 +13,6 @@
                 extend: {
                     backdropBlur: {
                         xs: '2px',
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
                     }
                 }
             }
@@ -57,6 +44,9 @@
         }
         .active-tab {
             background-color: rgba(255, 255, 255, 0.2);
+        }
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -207,9 +197,71 @@
         </div>
     </div>
 
+    <!-- Three.js и дополнительные модули -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Инициализация темы
+        // Загружаем дополнительные модули Three.js после загрузки основного скрипта
         document.addEventListener('DOMContentLoaded', function() {
+            // Динамически загружаем необходимые модули Three.js
+            const scripts = [
+                'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/controls/OrbitControls.min.js',
+                'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/exporters/GLTFExporter.min.js'
+            ];
+
+            let loadedCount = 0;
+
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    loadedCount++;
+                    if (loadedCount === scripts.length) {
+                        // Все скрипты загружены, инициализируем приложение
+                        initApp();
+                    }
+                };
+                script.onerror = () => {
+                    console.error('Failed to load script: ' + src);
+                    loadedCount++;
+                    if (loadedCount === scripts.length) {
+                        initApp();
+                    }
+                };
+                document.head.appendChild(script);
+            });
+
+            // Если скрипты уже загружены (кешированы), сразу инициализируем приложение
+            if (scripts.length === 0) {
+                initApp();
+            }
+        });
+
+        function initApp() {
+            console.log('Инициализация приложения...');
+
+            // Инициализация темы
+            initTheme();
+
+            // Создание звездного фона
+            createStars();
+
+            // Инициализация 3D сцены
+            init3DScene();
+
+            // Назначение обработчиков событий
+            setupEventListeners();
+
+            // Обновление значения размера
+            updateSizeValue();
+
+            // Генерация начальной модели
+            setTimeout(() => {
+                generateModel();
+            }, 500);
+        }
+
+        // Инициализация темы
+        function initTheme() {
             // Проверка сохраненной темы или системных предпочтений
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
@@ -220,39 +272,7 @@
                 document.getElementById('sunIcon').classList.remove('hidden');
                 document.getElementById('moonIcon').classList.add('hidden');
             }
-
-            // Создание звездного фона
-            createStars();
-
-            // Инициализация 3D сцены
-            init3DScene();
-
-            // Назначение обработчиков событий
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-            document.getElementById('generateBtn').addEventListener('click', generateModel);
-            document.getElementById('downloadBtn').addEventListener('click', downloadGLTF);
-            document.getElementById('randomizeBtn').addEventListener('click', randomizeModel);
-            document.getElementById('resetCameraBtn').addEventListener('click', resetCamera);
-            document.getElementById('rotateToggle').addEventListener('click', toggleRotation);
-            document.getElementById('wireframeToggle').addEventListener('click', toggleWireframe);
-            document.getElementById('modelSize').addEventListener('input', updateSizeValue);
-            document.getElementById('modelType').addEventListener('change', toggleComplexOptions);
-            document.getElementById('addShapeBtn').addEventListener('click', addRandomShape);
-            document.getElementById('clearAllBtn').addEventListener('click', clearAllShapes);
-
-            // Обработчики для bottom bar
-            document.getElementById('homeBtn').addEventListener('click', () => switchTab('home'));
-            document.getElementById('modelsBtn').addEventListener('click', () => switchTab('models'));
-            document.getElementById('settingsBtn').addEventListener('click', () => switchTab('settings'));
-            document.getElementById('infoBtn').addEventListener('click', showInfoModal);
-            document.getElementById('closeModalBtn').addEventListener('click', hideInfoModal);
-
-            // Обновление значения размера
-            updateSizeValue();
-
-            // Генерация начальной модели
-            generateModel();
-        });
+        }
 
         // Создание звездного фона
         function createStars() {
@@ -275,6 +295,28 @@
 
                 starsContainer.appendChild(star);
             }
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('generateBtn').addEventListener('click', generateModel);
+            document.getElementById('downloadBtn').addEventListener('click', downloadGLTF);
+            document.getElementById('randomizeBtn').addEventListener('click', randomizeModel);
+            document.getElementById('resetCameraBtn').addEventListener('click', resetCamera);
+            document.getElementById('rotateToggle').addEventListener('click', toggleRotation);
+            document.getElementById('wireframeToggle').addEventListener('click', toggleWireframe);
+            document.getElementById('modelSize').addEventListener('input', updateSizeValue);
+            document.getElementById('modelType').addEventListener('change', toggleComplexOptions);
+            document.getElementById('addShapeBtn').addEventListener('click', addRandomShape);
+            document.getElementById('clearAllBtn').addEventListener('click', clearAllShapes);
+
+            // Обработчики для bottom bar
+            document.getElementById('homeBtn').addEventListener('click', () => switchTab('home'));
+            document.getElementById('modelsBtn').addEventListener('click', () => switchTab('models'));
+            document.getElementById('settingsBtn').addEventListener('click', () => switchTab('settings'));
+            document.getElementById('infoBtn').addEventListener('click', showInfoModal);
+            document.getElementById('closeModalBtn').addEventListener('click', hideInfoModal);
         }
 
         // Переключение темы
@@ -311,111 +353,163 @@
 
         // Инициализация 3D сцены
         function init3DScene() {
-            // Создание сцены
-            scene = new THREE.Scene();
-            scene.background = null; // Прозрачный фон
+            try {
+                console.log('Инициализация 3D сцены...');
 
-            // Создание камеры
-            const container = document.getElementById('viewer3d');
-            camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
-            camera.position.z = 5;
+                // Проверяем, что Three.js загружен
+                if (typeof THREE === 'undefined') {
+                    console.error('Three.js не загружен');
+                    return;
+                }
 
-            // Создание рендерера
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
+                // Создание сцены
+                scene = new THREE.Scene();
+                scene.background = null; // Прозрачный фон
 
-            // Инициализация экспортера
-            exporter = new THREE.GLTFExporter();
+                // Создание камеры
+                const container = document.getElementById('viewer3d');
+                if (!container) {
+                    console.error('Контейнер viewer3d не найден');
+                    return;
+                }
 
-            // Добавление освещения
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+                camera = new THREE.PerspectiveCamera(75, container.offsetWidth / container.offsetHeight, 0.1, 1000);
+                camera.position.z = 5;
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 10, 5);
-            scene.add(directionalLight);
+                // Создание рендерера
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: true,
+                    preserveDrawingBuffer: true // Для экспорта
+                });
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
 
-            // Добавление контролов для вращения камеры
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
-            controls.autoRotate = autoRotate;
+                // Инициализация экспортера
+                if (typeof THREE.GLTFExporter !== 'undefined') {
+                    exporter = new THREE.GLTFExporter();
+                } else {
+                    console.error('GLTFExporter не доступен');
+                }
 
-            // Обработка изменения размера окна
-            window.addEventListener('resize', onWindowResize);
+                // Добавление освещения
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
 
-            // Запуск анимации
-            animate();
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                scene.add(directionalLight);
+
+                // Добавление контролов для вращения камеры
+                if (typeof THREE.OrbitControls !== 'undefined') {
+                    controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = true;
+                    controls.dampingFactor = 0.05;
+                    controls.autoRotate = autoRotate;
+                } else {
+                    console.error('OrbitControls не доступен');
+                }
+
+                // Обработка изменения размера окна
+                window.addEventListener('resize', onWindowResize);
+
+                // Запуск анимации
+                animate();
+
+                console.log('3D сцена успешно инициализирована');
+            } catch (error) {
+                console.error('Ошибка инициализации 3D сцены:', error);
+            }
         }
 
         // Обработка изменения размера окна
         function onWindowResize() {
             const container = document.getElementById('viewer3d');
-            camera.aspect = container.offsetWidth / container.offsetHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.offsetWidth, container.offsetHeight);
+            if (container && camera && renderer) {
+                camera.aspect = container.offsetWidth / container.offsetHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.offsetWidth, container.offsetHeight);
+            }
         }
 
         // Анимация
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
+            if (controls) {
+                controls.update();
+            }
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
         }
 
         // Генерация 3D модели
         function generateModel() {
-            // Удаление предыдущей модели
-            if (currentModel) {
-                scene.remove(currentModel);
-            }
+            try {
+                console.log('Генерация модели...');
 
-            // Очистка пользовательских фигур
-            clearAllShapes();
-
-            // Получение параметров из UI
-            const modelType = document.getElementById('modelType').value;
-            const color = document.getElementById('modelColor').value;
-            const size = parseFloat(document.getElementById('modelSize').value);
-
-            // Создание материала
-            const material = new THREE.MeshPhongMaterial({
-                color: color,
-                shininess: 100,
-                transparent: true,
-                opacity: 0.9,
-                wireframe: wireframeMode
-            });
-
-            // Создание геометрии в зависимости от выбранного типа
-            let geometry;
-            switch(modelType) {
-                case 'cube':
-                    geometry = new THREE.BoxGeometry(size, size, size);
-                    break;
-                case 'sphere':
-                    geometry = new THREE.SphereGeometry(size/2, 32, 32);
-                    break;
-                case 'pyramid':
-                    geometry = new THREE.ConeGeometry(size/2, size, 4);
-                    break;
-                case 'torus':
-                    geometry = new THREE.TorusGeometry(size/2, size/4, 16, 100);
-                    break;
-                case 'custom':
-                    // Создание сложной модели из нескольких фигур
-                    createComplexModel(size, color);
+                // Проверяем, что сцена инициализирована
+                if (!scene) {
+                    console.error('Сцена не инициализирована');
                     return;
+                }
+
+                // Удаление предыдущей модели
+                if (currentModel) {
+                    scene.remove(currentModel);
+                }
+
+                // Очистка пользовательских фигур
+                clearAllShapes();
+
+                // Получение параметров из UI
+                const modelType = document.getElementById('modelType').value;
+                const color = document.getElementById('modelColor').value;
+                const size = parseFloat(document.getElementById('modelSize').value);
+
+                // Создание материала
+                const material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    shininess: 100,
+                    transparent: true,
+                    opacity: 0.9,
+                    wireframe: wireframeMode
+                });
+
+                // Создание геометрии в зависимости от выбранного типа
+                let geometry;
+                switch(modelType) {
+                    case 'cube':
+                        geometry = new THREE.BoxGeometry(size, size, size);
+                        break;
+                    case 'sphere':
+                        geometry = new THREE.SphereGeometry(size/2, 32, 32);
+                        break;
+                    case 'pyramid':
+                        geometry = new THREE.ConeGeometry(size/2, size, 4);
+                        break;
+                    case 'torus':
+                        geometry = new THREE.TorusGeometry(size/2, size/4, 16, 100);
+                        break;
+                    case 'custom':
+                        // Создание сложной модели из нескольких фигур
+                        createComplexModel(size, color);
+                        return;
+                }
+
+                // Создание меша и добавление в сцену
+                currentModel = new THREE.Mesh(geometry, material);
+                scene.add(currentModel);
+
+                // Генерация и отображение JSON структуры GLTF
+                generateGLTFJSON();
+
+                console.log('Модель успешно сгенерирована');
+            } catch (error) {
+                console.error('Ошибка генерации модели:', error);
+                document.getElementById('jsonOutput').textContent = 'Ошибка генерации модели: ' + error.message;
             }
-
-            // Создание меша и добавление в сцену
-            currentModel = new THREE.Mesh(geometry, material);
-            scene.add(currentModel);
-
-            // Генерация и отображение JSON структуры GLTF
-            generateGLTFJSON();
         }
 
         // Создание сложной модели
@@ -494,55 +588,65 @@
 
         // Генерация JSON структуры GLTF
         function generateGLTFJSON() {
-            if (!currentModel) return;
+            if (!currentModel || !exporter) return;
 
-            // Создание временной сцены для экспорта
-            const tempScene = new THREE.Scene();
-            tempScene.add(currentModel.clone());
+            try {
+                // Создание временной сцены для экспорта
+                const tempScene = new THREE.Scene();
+                tempScene.add(currentModel.clone());
 
-            // Добавление пользовательских фигур
-            customShapes.forEach(shape => {
-                tempScene.add(shape.clone());
-            });
+                // Добавление пользовательских фигур
+                customShapes.forEach(shape => {
+                    tempScene.add(shape.clone());
+                });
 
-            // Экспорт в GLTF
-            exporter.parse(tempScene, function(gltf) {
-                // Отображение JSON в читаемом формате
-                document.getElementById('jsonOutput').textContent = JSON.stringify(gltf, null, 2);
-            }, { binary: false });
+                // Экспорт в GLTF
+                exporter.parse(tempScene, function(gltf) {
+                    // Отображение JSON в читаемом формате
+                    document.getElementById('jsonOutput').textContent = JSON.stringify(gltf, null, 2);
+                }, { binary: false, trs: false });
+            } catch (error) {
+                console.error('Ошибка генерации JSON:', error);
+                document.getElementById('jsonOutput').textContent = 'Ошибка генерации JSON: ' + error.message;
+            }
         }
 
         // Скачивание GLTF файла
         function downloadGLTF() {
-            if (!currentModel) {
+            if (!currentModel || !exporter) {
                 alert('Сначала создайте модель!');
                 return;
             }
 
-            // Создание временной сцены для экспорта
-            const tempScene = new THREE.Scene();
-            tempScene.add(currentModel.clone());
+            try {
+                // Создание временной сцены для экспорта
+                const tempScene = new THREE.Scene();
+                tempScene.add(currentModel.clone());
 
-            // Добавление пользовательских фигур
-            customShapes.forEach(shape => {
-                tempScene.add(shape.clone());
-            });
+                // Добавление пользовательских фигур
+                customShapes.forEach(shape => {
+                    tempScene.add(shape.clone());
+                });
 
-            // Экспорт в бинарный GLTF
-            exporter.parse(tempScene, function(result) {
-                // Создание Blob и ссылки для скачивания
-                const blob = new Blob([result], { type: 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
+                // Экспорт в бинарный GLTF
+                exporter.parse(tempScene, function(result) {
+                    // Создание Blob и ссылки для скачивания
+                    const blob = new Blob([result], { type: 'model/gltf-binary' });
+                    const url = URL.createObjectURL(blob);
 
-                // Создание временной ссылки для скачивания
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'model.glb';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, { binary: true });
+                    // Создание временной ссылки для скачивания
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'model.glb';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, { binary: true, trs: false });
+            } catch (error) {
+                console.error('Ошибка скачивания GLTF:', error);
+                alert('Ошибка при скачивании файла: ' + error.message);
+            }
         }
 
         // Случайная модель
@@ -561,15 +665,19 @@
 
         // Сброс камеры
         function resetCamera() {
-            controls.reset();
-            camera.position.set(0, 0, 5);
-            controls.update();
+            if (controls && camera) {
+                controls.reset();
+                camera.position.set(0, 0, 5);
+                controls.update();
+            }
         }
 
         // Переключение автоматического вращения
         function toggleRotation() {
             autoRotate = !autoRotate;
-            controls.autoRotate = autoRotate;
+            if (controls) {
+                controls.autoRotate = autoRotate;
+            }
             document.getElementById('rotateToggle').textContent = `Вращение: ${autoRotate ? 'Вкл' : 'Выкл'}`;
         }
 
@@ -579,11 +687,13 @@
             document.getElementById('wireframeToggle').textContent = `Каркас: ${wireframeMode ? 'Вкл' : 'Выкл'}`;
 
             // Обновление материалов всех объектов
-            scene.traverse(function(child) {
-                if (child.isMesh) {
-                    child.material.wireframe = wireframeMode;
-                }
-            });
+            if (scene) {
+                scene.traverse(function(child) {
+                    if (child.isMesh) {
+                        child.material.wireframe = wireframeMode;
+                    }
+                });
+            }
         }
 
         // Переключение вкладок
