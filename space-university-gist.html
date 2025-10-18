@@ -47,6 +47,15 @@
                 0%, 100% { opacity: 0.2; }
                 50% { opacity: 1; }
             }
+            .page {
+                transition: opacity 0.3s ease;
+            }
+            .course-card, .lecture-card, .task-card, .lesson-card, .subject-card {
+                transition: all 0.3s ease;
+            }
+            .widget-btn {
+                transition: all 0.2s ease;
+            }
         }
     </style>
 </head>
@@ -416,6 +425,69 @@
                                 "room": "301",
                                 "instructor": "Проф. Иванов",
                                 "color": "blue"
+                            },
+                            {
+                                "time": "11:00-12:30",
+                                "subject": "Космическая инженерия",
+                                "type": "Практика",
+                                "room": "415",
+                                "instructor": "Проф. Петрова",
+                                "color": "green"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "tue",
+                        "label": "ВТ",
+                        "date": "21",
+                        "active": false,
+                        "lessons": [
+                            {
+                                "time": "10:00-11:30",
+                                "subject": "Планетология",
+                                "type": "Лекция",
+                                "room": "302",
+                                "instructor": "Проф. Сидоров",
+                                "color": "purple"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "wed",
+                        "label": "СР",
+                        "date": "22",
+                        "active": false,
+                        "lessons": []
+                    },
+                    {
+                        "id": "thu",
+                        "label": "ЧТ",
+                        "date": "23",
+                        "active": false,
+                        "lessons": [
+                            {
+                                "time": "14:00-15:30",
+                                "subject": "Астрофизика",
+                                "type": "Лабораторная",
+                                "room": "105",
+                                "instructor": "Проф. Иванов",
+                                "color": "blue"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "fri",
+                        "label": "ПТ",
+                        "date": "24",
+                        "active": false,
+                        "lessons": [
+                            {
+                                "time": "09:00-10:30",
+                                "subject": "Космическая инженерия",
+                                "type": "Лекция",
+                                "room": "301",
+                                "instructor": "Проф. Петрова",
+                                "color": "green"
                             }
                         ]
                     }
@@ -431,6 +503,18 @@
                         "instructor": "Проф. Иванов",
                         "progress": 92,
                         "color": "green"
+                    },
+                    {
+                        "name": "Космическая инженерия",
+                        "instructor": "Проф. Петрова",
+                        "progress": 78,
+                        "color": "blue"
+                    },
+                    {
+                        "name": "Планетология",
+                        "instructor": "Проф. Сидоров",
+                        "progress": 65,
+                        "color": "purple"
                     }
                 ]
             },
@@ -445,6 +529,25 @@
                                 "id": "notifications",
                                 "title": "Уведомления",
                                 "subtitle": "Push-уведомления о новых материалах",
+                                "type": "toggle",
+                                "value": true
+                            },
+                            {
+                                "id": "email-notifications",
+                                "title": "Email-уведомления",
+                                "subtitle": "Уведомления на электронную почту",
+                                "type": "toggle",
+                                "value": false
+                            }
+                        ]
+                    },
+                    {
+                        "title": "Конфиденциальность",
+                        "items": [
+                            {
+                                "id": "analytics",
+                                "title": "Сбор аналитики",
+                                "subtitle": "Помогите улучшить приложение",
                                 "type": "toggle",
                                 "value": true
                             }
@@ -915,6 +1018,321 @@
             `;
         }
 
+        // Функция рендеринга страницы заданий
+        function renderTasksPage() {
+            const data = appData.tasks;
+            
+            return `
+                <div id="tasks-page" class="page hidden">
+                    <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-tasks mr-2 text-green-500"></i>
+                            ${data.title}
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mb-6">
+                        ${data.stats.map(stat => `
+                            <div class="glass-effect rounded-2xl p-3 text-center">
+                                <p class="text-2xl font-bold text-${stat.color}-500">${stat.count}</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">${stat.label}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${data.urgent.length > 0 ? `
+                        <div class="glass-effect rounded-3xl p-5 mb-4 border-l-4 border-red-500">
+                            <h3 class="font-semibold mb-3 flex items-center">
+                                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                                Срочные задания
+                            </h3>
+                            <div class="space-y-3">
+                                ${data.urgent.map(task => `
+                                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
+                                        <div class="flex items-center">
+                                            <div class="bg-red-100 dark:bg-red-800 p-2 rounded-full mr-3">
+                                                <i class="${task.icon} text-red-500 dark:text-red-300"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">${task.title}</p>
+                                                <p class="text-sm text-red-600 dark:text-red-400">Дедлайн: ${task.deadline}</p>
+                                            </div>
+                                        </div>
+                                        <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                            Сдать
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="glass-effect rounded-3xl p-5 mb-4">
+                        <h3 class="font-semibold mb-3">Активные задания</h3>
+                        <div class="space-y-3">
+                            ${data.active.map(task => `
+                                <div class="task-card flex items-center justify-between p-3 rounded-xl bg-${task.color}-50 dark:bg-${task.color}-900/20" data-task="${task.id}">
+                                    <div class="flex items-center">
+                                        <div class="bg-${task.color}-100 dark:bg-${task.color}-800 p-2 rounded-full mr-3">
+                                            <i class="${task.icon} text-${task.color}-500 dark:text-${task.color}-300"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">${task.title}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Дедлайн: ${task.deadline}</p>
+                                        </div>
+                                    </div>
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                        Выполнить
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-3xl p-5">
+                        <h3 class="font-semibold mb-3">Завершенные задания</h3>
+                        <div class="space-y-3">
+                            ${data.completed.map(task => `
+                                <div class="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20">
+                                    <div class="flex items-center">
+                                        <div class="bg-green-100 dark:bg-green-800 p-2 rounded-full mr-3">
+                                            <i class="${task.icon} text-green-500 dark:text-green-300"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium">${task.title}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">${task.details}</p>
+                                        </div>
+                                    </div>
+                                    <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Функция рендеринга страницы расписания
+        function renderSchedulePage() {
+            const data = appData.schedule;
+            
+            return `
+                <div id="schedule-page" class="page hidden">
+                    <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-calendar mr-2 text-purple-500"></i>
+                            ${data.title}
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
+                        <div class="mt-2 flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">${data.currentWeek}</span>
+                            <div class="flex space-x-2 schedule-nav">
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-3xl p-4 mb-4">
+                        <div class="flex justify-between">
+                            ${data.days.map(day => `
+                                <button class="day-btn flex flex-col items-center p-2 rounded-xl ${day.active ? 'bg-blue-500 text-white' : 'text-gray-600 dark:text-gray-400'}" data-day="${day.id}">
+                                    <span class="text-sm font-medium">${day.label}</span>
+                                    <span class="text-lg font-bold">${day.date}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        ${data.days.find(day => day.active)?.lessons.map(lesson => `
+                            <div class="lesson-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <span class="bg-${lesson.color}-100 dark:bg-${lesson.color}-900 text-${lesson.color}-800 dark:text-${lesson.color}-200 text-xs px-2 py-1 rounded-full">
+                                            ${lesson.type}
+                                        </span>
+                                        <h3 class="font-semibold mt-2">${lesson.subject}</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">${lesson.instructor}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium">${lesson.time}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">Ауд. ${lesson.room}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                                        <i class="fas fa-video mr-1"></i> Присоединиться
+                                    </button>
+                                    <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                        <i class="fas fa-info-circle mr-1"></i> Подробнее
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('') || '<p class="text-center text-gray-600 dark:text-gray-400 py-8">На выбранный день занятий нет</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Функция рендеринга страницы успеваемости
+        function renderProgressPage() {
+            const data = appData.progress;
+            
+            return `
+                <div id="progress-page" class="page hidden">
+                    <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-line mr-2 text-yellow-500"></i>
+                            ${data.title}
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
+                    </div>
+
+                    <div class="glass-effect rounded-3xl p-6 mb-4 text-center">
+                        <div class="relative inline-block">
+                            <svg class="w-32 h-32 transform -rotate-90">
+                                <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="none" 
+                                        class="text-gray-200 dark:text-gray-700"/>
+                                <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="none" 
+                                        stroke-dasharray="352" stroke-dashoffset="${352 - (352 * data.overallProgress / 100)}"
+                                        class="text-green-500" stroke-linecap="round"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-2xl font-bold">${data.overallProgress}%</span>
+                            </div>
+                        </div>
+                        <p class="mt-4 font-medium">Общий прогресс обучения</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        ${data.subjects.map(subject => `
+                            <div class="subject-card glass-effect rounded-2xl p-5">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div>
+                                        <h3 class="font-semibold">${subject.name}</h3>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">${subject.instructor}</p>
+                                    </div>
+                                    <span class="bg-${subject.color}-100 dark:bg-${subject.color}-900 text-${subject.color}-800 dark:text-${subject.color}-200 text-sm px-3 py-1 rounded-full">
+                                        ${subject.progress}%
+                                    </span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div class="bg-${subject.color}-500 h-2 rounded-full" style="width: ${subject.progress}%"></div>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                    <span>Прогресс</span>
+                                    <span>${subject.progress}% завершено</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="glass-effect rounded-3xl p-6 mt-6">
+                        <h3 class="font-semibold mb-4">Статистика за месяц</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                                <p class="text-2xl font-bold text-blue-500">24</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Просмотрено лекций</p>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-green-50 dark:bg-green-900/20">
+                                <p class="text-2xl font-bold text-green-500">18</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Выполнено заданий</p>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/20">
+                                <p class="text-2xl font-bold text-yellow-500">92%</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Средняя оценка</p>
+                            </div>
+                            <div class="text-center p-4 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+                                <p class="text-2xl font-bold text-purple-500">36</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Часов обучения</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Функция рендеринга страницы настроек
+        function renderSettingsPage() {
+            const data = appData.settings;
+            
+            return `
+                <div id="settings-page" class="page hidden">
+                    <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                        <h2 class="text-xl font-semibold mb-4 flex items-center">
+                            <i class="fas fa-cog mr-2 text-gray-500"></i>
+                            ${data.title}
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
+                    </div>
+
+                    ${data.sections.map(section => `
+                        <div class="glass-effect rounded-3xl p-5 mb-4">
+                            <h3 class="font-semibold mb-4">${section.title}</h3>
+                            <div class="space-y-4">
+                                ${section.items.map(item => `
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="font-medium">${item.title}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">${item.subtitle}</p>
+                                        </div>
+                                        ${item.type === 'toggle' ? `
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" ${item.value ? 'checked' : ''} 
+                                                       class="sr-only peer" id="${item.id}-toggle">
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-500"></div>
+                                            </label>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+
+                    <div class="glass-effect rounded-3xl p-5 mb-4">
+                        <h3 class="font-semibold mb-4">Внешний вид</h3>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="font-medium">Темная тема</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Включить темный режим</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dark-mode-toggle" 
+                                       class="sr-only peer" ${localStorage.theme === 'dark' ? 'checked' : ''}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-500"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-3xl p-5">
+                        <h3 class="font-semibold mb-4">О приложении</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Версия</span>
+                                <span>${appData.meta.version}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Последнее обновление</span>
+                                <span>${new Date(appData.meta.lastUpdated).toLocaleDateString('ru-RU')}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">Создано</span>
+                                <span>${new Date(appData.meta.created).toLocaleDateString('ru-RU')}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         // Функция рендеринга всех страниц
         function renderAllPages() {
             const mainContent = document.getElementById('main-content');
@@ -1037,6 +1455,31 @@
                     this.classList.add('bg-blue-500', 'text-white');
                     
                     showNotification(`Применен фильтр: ${filter}`);
+                });
+            });
+
+            // Переключение дней в расписании
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.day-btn')) {
+                    const button = e.target.closest('.day-btn');
+                    const dayId = button.getAttribute('data-day');
+                    
+                    document.querySelectorAll('.day-btn').forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('text-gray-600', 'dark:text-gray-400');
+                    });
+                    button.classList.remove('text-gray-600', 'dark:text-gray-400');
+                    button.classList.add('bg-blue-500', 'text-white');
+                    
+                    showNotification(`Показано расписание на ${button.querySelector('span:last-child').textContent} число`);
+                }
+            });
+
+            // Навигация по неделям в расписании
+            document.querySelectorAll('.schedule-nav button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const direction = this.querySelector('i').classList.contains('fa-chevron-left') ? 'предыдущую' : 'следующую';
+                    showNotification(`Загружена ${direction} неделя`);
                 });
             });
 
@@ -1195,24 +1638,6 @@
                 console.log('Gist настроен:', GIST_CONFIG.GIST_ID);
             }
         });
-
-        // ========== ЗАГЛУШКИ ДЛЯ НЕРЕАЛИЗОВАННЫХ СТРАНИЦ ==========
-
-        function renderTasksPage() {
-            return `<div id="tasks-page" class="page hidden"><div class="glass-effect rounded-3xl p-6 mt-4 text-center"><h2 class="text-xl font-semibold mb-4">Задания</h2><p class="text-gray-600 dark:text-gray-300">Страница в разработке</p></div></div>`;
-        }
-
-        function renderSchedulePage() {
-            return `<div id="schedule-page" class="page hidden"><div class="glass-effect rounded-3xl p-6 mt-4 text-center"><h2 class="text-xl font-semibold mb-4">Расписание</h2><p class="text-gray-600 dark:text-gray-300">Страница в разработке</p></div></div>`;
-        }
-
-        function renderProgressPage() {
-            return `<div id="progress-page" class="page hidden"><div class="glass-effect rounded-3xl p-6 mt-4 text-center"><h2 class="text-xl font-semibold mb-4">Успеваемость</h2><p class="text-gray-600 dark:text-gray-300">Страница в разработке</p></div></div>`;
-        }
-
-        function renderSettingsPage() {
-            return `<div id="settings-page" class="page hidden"><div class="glass-effect rounded-3xl p-6 mt-4 text-center"><h2 class="text-xl font-semibold mb-4">Настройки</h2><p class="text-gray-600 dark:text-gray-300">Страница в разработке</p></div></div>`;
-        }
     </script>
 </body>
 </html>
