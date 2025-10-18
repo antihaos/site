@@ -22,10 +22,6 @@
                     backdropBlur: {
                         'ios': '20px',
                     },
-                    screens: {
-                        'xs': '475px',
-                        '3xl': '1920px',
-                    },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -64,267 +60,137 @@
                 0%, 100% { opacity: 0.2; }
                 50% { opacity: 1; }
             }
-
-            /* Адаптивные стили для больших экранов */
-            @media (min-width: 768px) {
-                .adaptive-grid {
-                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-                }
-                .adaptive-layout {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 1.5rem;
-                }
-            }
-
-            @media (min-width: 1024px) {
-                .adaptive-layout {
-                    grid-template-columns: 2fr 1fr;
-                }
-                .sidebar-layout {
-                    display: grid;
-                    grid-template-columns: 250px 1fr;
-                }
-            }
-
-            @media (min-width: 1280px) {
-                .adaptive-layout {
-                    grid-template-columns: 3fr 1fr;
-                }
-            }
-
-            /* Адаптивная типографика */
-            .text-responsive {
-                font-size: clamp(1rem, 2.5vw, 1.5rem);
-            }
-
-            .heading-responsive {
-                font-size: clamp(1.5rem, 4vw, 2.5rem);
-            }
-
-            /* Адаптивные отступы */
-            .section-padding {
-                padding: clamp(1rem, 3vw, 2rem);
-            }
-
-            /* Адаптивная навигация */
-            @media (min-width: 768px) {
-                .nav-desktop {
-                    display: flex;
-                }
-                .nav-mobile {
-                    display: none;
-                }
-            }
-
-            @media (max-width: 767px) {
-                .nav-desktop {
-                    display: none;
-                }
-                .nav-mobile {
-                    display: block;
-                }
-            }
         }
     </style>
 </head>
 <body class="bg-cosmic-light dark:bg-cosmic min-h-screen text-gray-900 dark:text-white overflow-x-hidden transition-colors duration-300">
     <!-- Космический фон со звездами -->
     <div id="space-bg" class="fixed inset-0 z-0"></div>
-
-    <!-- Десктопная навигация -->
-    <nav class="nav-desktop fixed top-0 left-0 right-0 glass-effect z-30 hidden md:block">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Космический Университет</h1>
-                </div>
-                <div class="flex space-x-8">
-                    <button class="tab-btn flex items-center text-blue-500 font-medium" data-page="home-page">
-                        <i class="fas fa-home mr-2"></i>
-                        Главная
-                    </button>
-                    <button class="tab-btn flex items-center text-gray-500 font-medium" data-page="study-page">
-                        <i class="fas fa-book mr-2"></i>
-                        Учеба
-                    </button>
-                    <button class="tab-btn flex items-center text-gray-500 font-medium" data-page="settings-page">
-                        <i class="fas fa-cog mr-2"></i>
-                        Настройки
-                    </button>
-                    <button class="tab-btn flex items-center text-gray-500 font-medium" data-page="about-page">
-                        <i class="fas fa-info mr-2"></i>
-                        О сайте
-                    </button>
-                </div>
-                <button id="theme-toggle" class="p-3 rounded-full bg-gray-200 dark:bg-gray-700">
+    
+    <!-- Верхняя панель -->
+    <header class="fixed top-0 left-0 right-0 glass-effect border-b border-ios-border dark:border-ios-dark-border mx-auto z-30">
+        <div class="max-w-md mx-auto flex justify-between items-center p-4">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Космический Университет</h1>
+            <div class="flex items-center space-x-3">
+                <button id="notifications-btn" class="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <i class="fas fa-bell text-gray-700 dark:text-gray-300"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                </button>
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
                     <i class="fas fa-moon text-gray-700 dark:text-yellow-300"></i>
                 </button>
             </div>
         </div>
-    </nav>
-
+    </header>
+    
     <!-- Основной контейнер -->
-    <div class="relative z-10 max-w-7xl mx-auto min-h-screen flex flex-col pt-16 md:pt-0">
-        <!-- Заголовок для мобильных -->
-        <header class="p-6 pt-10 text-center md:hidden">
-            <h1 class="heading-responsive font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Космический Университет</h1>
-            <p class="text-gray-600 dark:text-gray-300 mt-2 text-responsive">Исследуйте знания вселенной</p>
-        </header>
-
+    <div class="relative z-10 max-w-md mx-auto min-h-screen flex flex-col pt-16 pb-20">
         <!-- Контейнер страниц -->
-        <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pb-24 md:pb-8 section-padding">
+        <main class="flex-1 overflow-y-auto px-4">
             <!-- Главная страница -->
-            <div id="home-page" class="page page-transition">
-                <div class="glass-effect rounded-3xl p-4 sm:p-6 mb-4 md:mb-6">
-                    <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center justify-between">
-                        <span class="flex items-center">
-                            <i class="fas fa-rocket mr-2 text-blue-400"></i>
-                            Добро пожаловать!
-                        </span>
-                        <button id="theme-toggle-mobile" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 md:hidden">
-                            <i class="fas fa-moon text-gray-700 dark:text-yellow-300"></i>
-                        </button>
+            <div id="home-page" class="page">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-rocket mr-2 text-blue-400"></i>
+                        Добро пожаловать!
                     </h2>
-                    <p class="text-gray-600 dark:text-gray-300 text-responsive">Начните своё космическое путешествие в мир знаний. Выберите раздел ниже для продолжения.</p>
+                    <p class="text-gray-600 dark:text-gray-300">Начните своё космическое путешествие в мир знаний. Выберите раздел ниже для продолжения.</p>
                 </div>
-
-                <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                    <div class="glass-effect rounded-2xl p-3 sm:p-4 text-center transition-transform hover:scale-105 duration-300">
-                        <i class="fas fa-book text-2xl sm:text-3xl text-blue-500 mb-2"></i>
-                        <h3 class="font-medium text-sm sm:text-base">Лекции</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="widget-btn glass-effect rounded-2xl p-4 text-center transition-transform hover:scale-105 active:scale-95" data-action="lectures">
+                        <i class="fas fa-book text-2xl text-blue-500 mb-2"></i>
+                        <h3 class="font-medium">Лекции</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">12 новых</p>
-                    </div>
-                    <div class="glass-effect rounded-2xl p-3 sm:p-4 text-center transition-transform hover:scale-105 duration-300">
-                        <i class="fas fa-tasks text-2xl sm:text-3xl text-green-500 mb-2"></i>
-                        <h3 class="font-medium text-sm sm:text-base">Задания</h3>
+                    </button>
+                    <button class="widget-btn glass-effect rounded-2xl p-4 text-center transition-transform hover:scale-105 active:scale-95" data-action="tasks">
+                        <i class="fas fa-tasks text-2xl text-green-500 mb-2"></i>
+                        <h3 class="font-medium">Задания</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">3 на проверке</p>
-                    </div>
-                    <div class="glass-effect rounded-2xl p-3 sm:p-4 text-center transition-transform hover:scale-105 duration-300">
-                        <i class="fas fa-calendar text-2xl sm:text-3xl text-purple-500 mb-2"></i>
-                        <h3 class="font-medium text-sm sm:text-base">Расписание</h3>
+                    </button>
+                    <button class="widget-btn glass-effect rounded-2xl p-4 text-center transition-transform hover:scale-105 active:scale-95" data-action="schedule">
+                        <i class="fas fa-calendar text-2xl text-purple-500 mb-2"></i>
+                        <h3 class="font-medium">Расписание</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">2 пары сегодня</p>
-                    </div>
-                    <div class="glass-effect rounded-2xl p-3 sm:p-4 text-center transition-transform hover:scale-105 duration-300">
-                        <i class="fas fa-chart-line text-2xl sm:text-3xl text-yellow-500 mb-2"></i>
-                        <h3 class="font-medium text-sm sm:text-base">Успеваемость</h3>
+                    </button>
+                    <button class="widget-btn glass-effect rounded-2xl p-4 text-center transition-transform hover:scale-105 active:scale-95" data-action="progress">
+                        <i class="fas fa-chart-line text-2xl text-yellow-500 mb-2"></i>
+                        <h3 class="font-medium">Успеваемость</h3>
                         <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">85% прогресс</p>
+                    </button>
+                </div>
+                
+                <div class="glass-effect rounded-3xl p-6 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-bell mr-2 text-yellow-500"></i>
+                        Уведомления
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="flex items-start notification-item" data-id="1">
+                            <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
+                                <i class="fas fa-book text-blue-500 dark:text-blue-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium">Новая лекция по астрофизике</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Добавлена 2 часа назад</p>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-start notification-item" data-id="2">
+                            <div class="bg-red-100 dark:bg-red-900 p-2 rounded-full mr-3">
+                                <i class="fas fa-clock text-red-500 dark:text-red-300"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium">Срок сдачи задания истекает</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Осталось 2 дня</p>
+                            </div>
+                            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="adaptive-layout gap-4 md:gap-6">
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="glass-effect rounded-3xl p-4 sm:p-6">
-                            <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
-                                <i class="fas fa-bell mr-2 text-yellow-500"></i>
-                                Уведомления
-                            </h2>
-                            <div class="space-y-3">
-                                <div class="flex items-start">
-                                    <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
-                                        <i class="fas fa-book text-blue-500 dark:text-blue-300"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium">Новая лекция по астрофизике</p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Добавлена 2 часа назад</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start">
-                                    <div class="bg-red-100 dark:bg-red-900 p-2 rounded-full mr-3">
-                                        <i class="fas fa-clock text-red-500 dark:text-red-300"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium">Срок сдачи задания истекает</p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Осталось 2 дня</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start">
-                                    <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full mr-3">
-                                        <i class="fas fa-user-graduate text-green-500 dark:text-green-300"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium">Ваша работа проверена</p>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Оценка: 5/5</p>
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Дополнительный контент для демонстрации скроллинга -->
+                <div class="glass-effect rounded-3xl p-6 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-newspaper mr-2 text-green-500"></i>
+                        Новости университета
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-green-500 pl-4 py-1">
+                            <p class="font-medium">Запуск новой лаборатории</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Открыта лаборатория космических исследований с современным оборудованием.</p>
                         </div>
-
-                        <div class="glass-effect rounded-3xl p-4 sm:p-6">
-                            <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
-                                <i class="fas fa-newspaper mr-2 text-green-500"></i>
-                                Новости университета
-                            </h2>
-                            <div class="space-y-4">
-                                <div class="border-l-4 border-green-500 pl-4 py-1">
-                                    <p class="font-medium">Запуск новой лаборатории</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Открыта лаборатория космических исследований с современным оборудованием.</p>
-                                </div>
-                                <div class="border-l-4 border-blue-500 pl-4 py-1">
-                                    <p class="font-medium">Конференция по астрономии</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Приглашаем всех желающих на ежегодную конференцию 15 ноября.</p>
-                                </div>
-                                <div class="border-l-4 border-purple-500 pl-4 py-1">
-                                    <p class="font-medium">Новые курсы</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Доступны для записи курсы по космической биологии и инженерии.</p>
-                                </div>
-                            </div>
+                        <div class="border-l-4 border-blue-500 pl-4 py-1">
+                            <p class="font-medium">Конференция по астрономии</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Приглашаем всех желающих на ежегодную конференцию 15 ноября.</p>
                         </div>
-                    </div>
-
-                    <div class="glass-effect rounded-3xl p-4 sm:p-6 h-fit">
-                        <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-fire mr-2 text-red-500"></i>
-                            Активность
-                        </h2>
-                        <div class="space-y-4">
-                            <div class="flex items-center">
-                                <div class="bg-purple-100 dark:bg-purple-900 p-2 rounded-full mr-3">
-                                    <i class="fas fa-video text-purple-500 dark:text-purple-300"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium">Просмотр лекций</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">120 мин сегодня</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full mr-3">
-                                    <i class="fas fa-tasks text-indigo-500 dark:text-indigo-300"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium">Выполненные задания</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">3 на этой неделе</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center">
-                                <div class="bg-pink-100 dark:bg-pink-900 p-2 rounded-full mr-3">
-                                    <i class="fas fa-trophy text-pink-500 dark:text-pink-300"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium">Достижения</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">5 новых</p>
-                                </div>
-                            </div>
+                        <div class="border-l-4 border-purple-500 pl-4 py-1">
+                            <p class="font-medium">Новые курсы</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Доступны для записи курсы по космической биологии и инженерии.</p>
                         </div>
                     </div>
                 </div>
             </div>
-
+            
             <!-- Страница учебы -->
-            <div id="study-page" class="page page-transition hidden">
-                <div class="glass-effect rounded-3xl p-4 sm:p-6 mb-4 md:mb-6">
-                    <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
+            <div id="study-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
                         <i class="fas fa-graduation-cap mr-2 text-purple-500"></i>
                         Моё обучение
                     </h2>
-                    <p class="text-gray-600 dark:text-gray-300 text-responsive">Ваши текущие курсы и материалы для изучения.</p>
+                    <p class="text-gray-600 dark:text-gray-300">Ваши текущие курсы и материалы для изучения.</p>
                 </div>
-
-                <div class="adaptive-grid gap-4 md:gap-6">
-                    <div class="glass-effect rounded-2xl p-4 sm:p-5 transition-transform hover:scale-[1.02] duration-300">
+                
+                <div class="space-y-4">
+                    <div class="course-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-course="astrophysics">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="font-semibold text-lg">Астрофизика</h3>
+                                <h3 class="font-semibold">Астрофизика</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Проф. Иванов</p>
                             </div>
                             <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">Активно</span>
@@ -335,17 +201,20 @@
                             </div>
                             <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">75%</span>
                         </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">12 лекций</span>
-                            <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full">5 тестов</span>
-                            <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-full">3 проекта</span>
+                        <div class="mt-4 flex space-x-2">
+                            <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-play mr-1"></i> Продолжить
+                            </button>
+                            <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-info-circle mr-1"></i> Подробнее
+                            </button>
                         </div>
                     </div>
-
-                    <div class="glass-effect rounded-2xl p-4 sm:p-5 transition-transform hover:scale-[1.02] duration-300">
+                    
+                    <div class="course-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-course="engineering">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="font-semibold text-lg">Космическая инженерия</h3>
+                                <h3 class="font-semibold">Космическая инженерия</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Проф. Петрова</p>
                             </div>
                             <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">Новый</span>
@@ -356,17 +225,20 @@
                             </div>
                             <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">30%</span>
                         </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">8 лекций</span>
-                            <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full">3 теста</span>
-                            <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-full">2 проекта</span>
+                        <div class="mt-4 flex space-x-2">
+                            <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-play mr-1"></i> Начать
+                            </button>
+                            <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-info-circle mr-1"></i> Подробнее
+                            </button>
                         </div>
                     </div>
-
-                    <div class="glass-effect rounded-2xl p-4 sm:p-5 transition-transform hover:scale-[1.02] duration-300">
+                    
+                    <div class="course-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-course="planetology">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="font-semibold text-lg">Планетология</h3>
+                                <h3 class="font-semibold">Планетология</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Проф. Сидоров</p>
                             </div>
                             <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-full">Скоро начало</span>
@@ -377,252 +249,217 @@
                             </div>
                             <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">0%</span>
                         </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">10 лекций</span>
-                            <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full">4 теста</span>
-                            <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-full">2 проекта</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-effect rounded-2xl p-4 sm:p-5 transition-transform hover:scale-[1.02] duration-300">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-semibold text-lg">Космическая биология</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Проф. Козлова</p>
-                            </div>
-                            <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">Активно</span>
-                        </div>
-                        <div class="mt-4 flex items-center">
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 45%"></div>
-                            </div>
-                            <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">45%</span>
-                        </div>
-                        <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">9 лекций</span>
-                            <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full">4 теста</span>
-                            <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs px-2 py-1 rounded-full">2 проекта</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Страница настроек -->
-            <div id="settings-page" class="page page-transition hidden">
-                <div class="glass-effect rounded-3xl p-4 sm:p-6 mb-4 md:mb-6">
-                    <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-cog mr-2 text-gray-500"></i>
-                        Настройки
-                    </h2>
-                    <p class="text-gray-600 dark:text-gray-300 text-responsive">Настройте приложение под свои предпочтения.</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="glass-effect rounded-2xl overflow-hidden">
-                            <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
-                                <div>
-                                    <p class="font-medium">Уведомления</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Push-уведомления о новых материалах</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                                </label>
-                            </div>
-                            <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
-                                <div>
-                                    <p class="font-medium">Тёмная тема</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Использовать тёмную цветовую схему</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                                </label>
-                            </div>
-                            <div class="p-4 flex justify-between items-center">
-                                <div>
-                                    <p class="font-medium">Автообновление</p>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Загружать контент в фоновом режиме</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="glass-effect rounded-2xl overflow-hidden">
-                            <div class="p-4 border-b border-ios-border dark:border-ios-dark-border">
-                                <p class="font-medium">Качество видео</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Автоматически (рекомендуется)</p>
-                            </div>
-                            <div class="p-4 border-b border-ios-border dark:border-ios-dark-border">
-                                <p class="font-medium">Язык</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Русский</p>
-                            </div>
-                            <div class="p-4">
-                                <p class="font-medium">Версия приложения</p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">1.2.4</p>
-                            </div>
-                        </div>
-
-                        <div class="glass-effect rounded-2xl p-4 sm:p-5">
-                            <h3 class="font-semibold mb-3">Обратная связь</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Мы ценим ваше мнение! Сообщите о проблемах или предложите улучшения.</p>
-                            <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-xl transition-colors duration-300">
-                                Отправить отзыв
+                        <div class="mt-4">
+                            <button class="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-clock mr-1"></i> Начнется 15 ноября
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Страница о сайте -->
-            <div id="about-page" class="page page-transition hidden">
-                <div class="glass-effect rounded-3xl p-4 sm:p-6 mb-4 md:mb-6">
-                    <h2 class="text-xl sm:text-2xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-info-circle mr-2 text-blue-500"></i>
-                        О приложении
+            
+            <!-- Страница настроек -->
+            <div id="settings-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-cog mr-2 text-gray-500"></i>
+                        Настройки
                     </h2>
-                    <p class="text-gray-600 dark:text-gray-300 text-responsive">Космический Университет - это инновационная платформа для обучения.</p>
+                    <p class="text-gray-600 dark:text-gray-300">Настройте приложение под свои предпочтения.</p>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="glass-effect rounded-2xl p-4 sm:p-5">
-                            <h3 class="font-semibold mb-3 text-lg">Наша миссия</h3>
-                            <p class="text-gray-600 dark:text-gray-300 text-sm">Мы стремимся сделать образование доступным и увлекательным, используя передовые технологии и интерактивные методы обучения.</p>
+                
+                <div class="space-y-4">
+                    <div class="glass-effect rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Уведомления</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Push-уведомления о новых материалах</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="notifications-toggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
                         </div>
-
-                        <div class="glass-effect rounded-2xl p-4 sm:p-5">
-                            <h3 class="font-semibold mb-3 text-lg">Основные функции</h3>
-                            <ul class="text-gray-600 dark:text-gray-300 text-sm space-y-2">
-                                <li class="flex items-start">
-                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                    <span>Интерактивные лекции с 3D-моделями</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                    <span>Виртуальные лабораторные работы</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                    <span>Персональные рекомендации по обучению</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                                    <span>Сообщество студентов и преподавателей</span>
-                                </li>
-                            </ul>
+                        <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Тёмная тема</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Использовать тёмную цветовую схему</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                        </div>
+                        <div class="p-4 flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Автообновление</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Загружать контент в фоновом режиме</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="autoupdate-toggle" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Качество видео</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Автоматически (рекомендуется)</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                        <div class="p-4 border-b border-ios-border dark:border-ios-dark-border flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Язык</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Русский</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </div>
+                        <div class="p-4 flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">Версия приложения</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">1.2.4</p>
+                            </div>
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-lg text-sm transition-colors">
+                                Обновить
+                            </button>
                         </div>
                     </div>
 
-                    <div class="space-y-4 md:space-y-6">
-                        <div class="glass-effect rounded-2xl p-4 sm:p-5">
-                            <h3 class="font-semibold mb-3 text-lg">Контакты</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center">
-                                    <i class="fas fa-globe text-gray-500 mr-3"></i>
-                                    <span class="text-gray-600 dark:text-gray-300">www.space-university.ru</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-envelope text-gray-500 mr-3"></i>
-                                    <span class="text-gray-600 dark:text-gray-300">info@space-university.ru</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-phone text-gray-500 mr-3"></i>
-                                    <span class="text-gray-600 dark:text-gray-300">+7 (495) 123-45-67</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt text-gray-500 mr-3"></i>
-                                    <span class="text-gray-600 dark:text-gray-300">Москва, ул. Космонавтов, 15</span>
-                                </div>
-                            </div>
+                    <div class="glass-effect rounded-2xl overflow-hidden">
+                        <div class="p-4 border-b border-ios-border dark:border-ios-dark-border">
+                            <button class="w-full text-left flex justify-between items-center">
+                                <span class="font-medium text-blue-500">Справка и поддержка</span>
+                                <i class="fas fa-external-link-alt text-blue-500"></i>
+                            </button>
                         </div>
-
-                        <div class="glass-effect rounded-2xl p-4 sm:p-5">
-                            <h3 class="font-semibold mb-3 text-lg">Социальные сети</h3>
-                            <div class="flex space-x-4">
-                                <a href="#" class="bg-blue-500 text-white p-3 rounded-full">
-                                    <i class="fab fa-vk"></i>
-                                </a>
-                                <a href="#" class="bg-blue-400 text-white p-3 rounded-full">
-                                    <i class="fab fa-telegram"></i>
-                                </a>
-                                <a href="#" class="bg-pink-500 text-white p-3 rounded-full">
-                                    <i class="fab fa-instagram"></i>
-                                </a>
-                                <a href="#" class="bg-gray-800 text-white p-3 rounded-full">
-                                    <i class="fab fa-github"></i>
-                                </a>
-                            </div>
+                        <div class="p-4">
+                            <button class="w-full text-left flex justify-between items-center">
+                                <span class="font-medium text-red-500">Выйти из аккаунта</span>
+                                <i class="fas fa-sign-out-alt text-red-500"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Страница о сайте -->
+            <div id="about-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                        О приложении
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">Космический Университет - это инновационная платформа для обучения.</p>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-5 mb-4">
+                    <h3 class="font-semibold mb-3">Наша миссия</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">Мы стремимся сделать образование доступным и увлекательным, используя передовые технологии и интерактивные методы обучения.</p>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-5 mb-4">
+                    <h3 class="font-semibold mb-3">Основные функции</h3>
+                    <ul class="text-gray-600 dark:text-gray-300 text-sm space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Интерактивные лекции с 3D-моделями</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Виртуальные лабораторные работы</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Персональные рекомендации по обучению</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Сообщество студентов и преподавателей</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-5">
+                    <h3 class="font-semibold mb-3">Контакты</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-globe text-gray-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">www.space-university.ru</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-envelope text-gray-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">info@space-university.ru</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-phone text-gray-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">+7 (495) 123-45-67</span>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
-
-        <!-- Мобильная нижняя панель навигации -->
-        <nav class="nav-mobile fixed bottom-0 left-0 right-0 glass-effect border-t border-ios-border dark:border-ios-dark-border mx-auto max-w-md z-20">
-            <div class="flex justify-around items-center py-3">
-                <button class="tab-btn flex flex-col items-center text-blue-500" data-page="home-page">
-                    <i class="fas fa-home text-lg"></i>
-                    <span class="text-xs mt-1">Главная</span>
-                </button>
-                <button class="tab-btn flex flex-col items-center text-gray-500" data-page="study-page">
-                    <i class="fas fa-book text-lg"></i>
-                    <span class="text-xs mt-1">Учеба</span>
-                </button>
-                <button class="tab-btn flex flex-col items-center text-gray-500" data-page="settings-page">
-                    <i class="fas fa-cog text-lg"></i>
-                    <span class="text-xs mt-1">Настройки</span>
-                </button>
-                <button class="tab-btn flex flex-col items-center text-gray-500" data-page="about-page">
-                    <i class="fas fa-info text-lg"></i>
-                    <span class="text-xs mt-1">О сайте</span>
-                </button>
-            </div>
-        </nav>
     </div>
+    
+    <!-- Нижняя панель навигации -->
+    <nav class="fixed bottom-0 left-0 right-0 glass-effect border-t border-ios-border dark:border-ios-dark-border mx-auto z-20">
+        <div class="max-w-md mx-auto flex justify-around items-center py-3">
+            <button class="tab-btn flex flex-col items-center text-blue-500" data-page="home-page">
+                <i class="fas fa-home text-lg"></i>
+                <span class="text-xs mt-1">Главная</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="study-page">
+                <i class="fas fa-book text-lg"></i>
+                <span class="text-xs mt-1">Учеба</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="settings-page">
+                <i class="fas fa-cog text-lg"></i>
+                <span class="text-xs mt-1">Настройки</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="about-page">
+                <i class="fas fa-info text-lg"></i>
+                <span class="text-xs mt-1">О сайте</span>
+            </button>
+        </div>
+    </nav>
 
     <script>
         // Создание звездного фона
         function createStars() {
             const spaceBg = document.getElementById('space-bg');
             const starCount = 150;
-
+            
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
-
+                
                 // Случайный размер и позиция
                 const size = Math.random() * 2 + 1;
                 const left = Math.random() * 100;
                 const top = Math.random() * 100;
                 const delay = Math.random() * 5;
-
+                
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
                 star.style.left = `${left}%`;
                 star.style.top = `${top}%`;
                 star.style.animationDelay = `${delay}s`;
-
+                
                 spaceBg.appendChild(star);
             }
         }
-
+        
         // Навигация между страницами
         function setupNavigation() {
             const tabButtons = document.querySelectorAll('.tab-btn');
             const pages = document.querySelectorAll('.page');
-
+            
             tabButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const targetPage = this.getAttribute('data-page');
-
+                    
                     // Обновляем активную кнопку
                     tabButtons.forEach(btn => {
                         btn.classList.remove('text-blue-500');
@@ -630,7 +467,7 @@
                     });
                     this.classList.remove('text-gray-500');
                     this.classList.add('text-blue-500');
-
+                    
                     // Показываем целевую страницу, скрываем остальные
                     pages.forEach(page => {
                         if (page.id === targetPage) {
@@ -644,40 +481,28 @@
                 });
             });
         }
-
+        
         // Функциональность переключения темы
         function setupThemeToggle() {
             const themeToggleBtn = document.getElementById('theme-toggle');
-            const themeToggleMobile = document.getElementById('theme-toggle-mobile');
             const darkModeToggle = document.getElementById('dark-mode-toggle');
-
+            
             // Проверяем сохраненную тему или системные настройки
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
                 if (darkModeToggle) darkModeToggle.checked = true;
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
-                if (themeToggleMobile) themeToggleMobile.innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
             } else {
                 document.documentElement.classList.remove('dark');
                 if (darkModeToggle) darkModeToggle.checked = false;
-                if (themeToggleBtn) themeToggleBtn.innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
-                if (themeToggleMobile) themeToggleMobile.innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
             }
-
+            
             // Обработчик для кнопки в заголовке
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', function() {
-                    toggleTheme();
-                });
-            }
-
-            // Обработчик для кнопки в мобильном заголовке
-            if (themeToggleMobile) {
-                themeToggleMobile.addEventListener('click', function() {
-                    toggleTheme();
-                });
-            }
-
+            themeToggleBtn.addEventListener('click', function() {
+                toggleTheme();
+            });
+            
             // Обработчик для переключателя в настройках
             if (darkModeToggle) {
                 darkModeToggle.addEventListener('change', function() {
@@ -685,40 +510,169 @@
                 });
             }
         }
-
+        
         function toggleTheme() {
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.theme = 'light';
-                if (document.getElementById('theme-toggle')) {
-                    document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
-                }
-                if (document.getElementById('theme-toggle-mobile')) {
-                    document.getElementById('theme-toggle-mobile').innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
-                }
+                document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon text-gray-700"></i>';
                 if (document.getElementById('dark-mode-toggle')) {
                     document.getElementById('dark-mode-toggle').checked = false;
                 }
             } else {
                 document.documentElement.classList.add('dark');
                 localStorage.theme = 'dark';
-                if (document.getElementById('theme-toggle')) {
-                    document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
-                }
-                if (document.getElementById('theme-toggle-mobile')) {
-                    document.getElementById('theme-toggle-mobile').innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
-                }
+                document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
                 if (document.getElementById('dark-mode-toggle')) {
                     document.getElementById('dark-mode-toggle').checked = true;
                 }
             }
         }
-
+        
+        // Функциональность виджетов на главной странице
+        function setupWidgets() {
+            const widgetButtons = document.querySelectorAll('.widget-btn');
+            
+            widgetButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.getAttribute('data-action');
+                    showNotification(`Открыт раздел: ${getActionName(action)}`);
+                });
+            });
+        }
+        
+        function getActionName(action) {
+            const actions = {
+                'lectures': 'Лекции',
+                'tasks': 'Задания',
+                'schedule': 'Расписание',
+                'progress': 'Успеваемость'
+            };
+            return actions[action] || action;
+        }
+        
+        // Функциональность уведомлений
+        function setupNotifications() {
+            const notificationItems = document.querySelectorAll('.notification-item');
+            const notificationsBtn = document.getElementById('notifications-btn');
+            const notificationsToggle = document.getElementById('notifications-toggle');
+            
+            // Удаление уведомлений
+            notificationItems.forEach(item => {
+                const closeBtn = item.querySelector('button');
+                closeBtn.addEventListener('click', function() {
+                    item.style.opacity = '0';
+                    item.style.height = '0';
+                    item.style.margin = '0';
+                    setTimeout(() => {
+                        item.remove();
+                        updateNotificationBadge();
+                    }, 300);
+                });
+            });
+            
+            // Переключение уведомлений в настройках
+            if (notificationsToggle) {
+                notificationsToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        showNotification('Уведомления включены');
+                    } else {
+                        showNotification('Уведомления отключены');
+                    }
+                });
+            }
+            
+            // Кнопка уведомлений в хедере
+            if (notificationsBtn) {
+                notificationsBtn.addEventListener('click', function() {
+                    showNotification('Показаны все уведомления');
+                });
+            }
+        }
+        
+        function updateNotificationBadge() {
+            const badge = document.querySelector('#notifications-btn span');
+            const currentCount = parseInt(badge.textContent);
+            if (currentCount > 0) {
+                badge.textContent = currentCount - 1;
+                if (currentCount - 1 === 0) {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        function showNotification(message) {
+            // Создаем временное уведомление
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 glass-effect rounded-xl p-4 z-40 transition-all duration-300 opacity-0 translate-y-2';
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Анимация появления
+            setTimeout(() => {
+                notification.classList.remove('opacity-0', 'translate-y-2');
+                notification.classList.add('opacity-100', 'translate-y-0');
+            }, 10);
+            
+            // Автоматическое скрытие через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('opacity-100', 'translate-y-0');
+                notification.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Функциональность карточек курсов
+        function setupCourseCards() {
+            const courseCards = document.querySelectorAll('.course-card');
+            
+            courseCards.forEach(card => {
+                const continueBtn = card.querySelector('button:first-child');
+                const infoBtn = card.querySelector('button:last-child');
+                
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const courseName = card.getAttribute('data-course');
+                        showNotification(`Курс "${getCourseName(courseName)}" открыт для изучения`);
+                    });
+                }
+                
+                if (infoBtn) {
+                    infoBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const courseName = card.getAttribute('data-course');
+                        showNotification(`Информация о курсе "${getCourseName(courseName)}"`);
+                    });
+                }
+            });
+        }
+        
+        function getCourseName(course) {
+            const courses = {
+                'astrophysics': 'Астрофизика',
+                'engineering': 'Космическая инженерия',
+                'planetology': 'Планетология'
+            };
+            return courses[course] || course;
+        }
+        
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             createStars();
             setupNavigation();
             setupThemeToggle();
+            setupWidgets();
+            setupNotifications();
+            setupCourseCards();
         });
     </script>
 </body>
