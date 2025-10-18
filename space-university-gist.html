@@ -12,6 +12,8 @@
             theme: {
                 extend: {
                     colors: {
+                        primary: '#3B82F6',
+                        secondary: '#8B5CF6',
                         'ios-bg': 'rgba(242, 242, 247, 0.8)',
                         'ios-card': 'rgba(255, 255, 255, 0.8)',
                         'ios-border': 'rgba(60, 60, 67, 0.18)',
@@ -56,6 +58,25 @@
             .widget-btn {
                 transition: all 0.2s ease;
             }
+            
+            /* Исправление для динамических цветов */
+            .bg-custom-blue { background-color: #3B82F6; }
+            .bg-custom-green { background-color: #10B981; }
+            .bg-custom-red { background-color: #EF4444; }
+            .bg-custom-yellow { background-color: #F59E0B; }
+            .bg-custom-purple { background-color: #8B5CF6; }
+            
+            .text-custom-blue { color: #3B82F6; }
+            .text-custom-green { color: #10B981; }
+            .text-custom-red { color: #EF4444; }
+            .text-custom-yellow { color: #F59E0B; }
+            .text-custom-purple { color: #8B5CF6; }
+            
+            .border-custom-blue { border-color: #3B82F6; }
+            .border-custom-green { border-color: #10B981; }
+            .border-custom-red { border-color: #EF4444; }
+            .border-custom-yellow { border-color: #F59E0B; }
+            .border-custom-purple { border-color: #8B5CF6; }
         }
     </style>
 </head>
@@ -73,7 +94,7 @@
                     <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" id="notification-count">3</span>
                 </button>
                 <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
-                    <i class="fas fa-moon text-gray-700"></i>
+                    <i class="fas fa-moon text-gray-700 dark:text-gray-300"></i>
                 </button>
             </div>
         </div>
@@ -99,7 +120,7 @@
         <div class="glass-effect rounded-3xl p-6 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xl font-semibold">Управление данными</h3>
-                <button id="close-gist-modal" class="text-gray-500 hover:text-gray-700">
+                <button id="close-gist-modal" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -133,23 +154,14 @@
     <script>
         // ========== КОНФИГУРАЦИЯ GIST ==========
         const GIST_CONFIG = {
-            // Замените на ваш GitHub Personal Access Token
-            // Можно получить здесь: https://github.com/settings/tokens
             GITHUB_TOKEN: localStorage.getItem('github_token') || '',
-            
-            // ID существующего Gist (если есть)
             GIST_ID: localStorage.getItem('gist_id') || '',
-            
-            // Имя файла в Gist
             FILENAME: 'university-data.json',
-            
-            // Описание Gist
             DESCRIPTION: 'Данные приложения Космический Университет'
         };
 
-        // ========== ДАННЫЕ ПРИЛОЖЕНИЯ В JSON ФОРМАТЕ ==========
+        // ========== ДАННЫЕ ПРИЛОЖЕНИЯ ==========
         
-        // Данные для навигации
         const navigationData = {
             "tabs": [
                 {
@@ -322,7 +334,7 @@
                     {
                         "id": 2,
                         "status": "in-progress", 
-                        "title": "Солнечная система",
+                        "title": "Солненая система",
                         "description": "Планеты, спутники и малые тела",
                         "duration": "52 мин", 
                         "instructor": "Проф. Петрова",
@@ -555,7 +567,6 @@
                     }
                 ]
             },
-            // Мета-данные
             meta: {
                 version: "1.0.0",
                 lastUpdated: new Date().toISOString(),
@@ -563,187 +574,22 @@
             }
         };
 
-        // ========== GIST API ФУНКЦИИ ==========
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        let currentPage = 'home-page';
 
-        // Функция для загрузки данных из Gist
-        async function loadFromGist() {
-            const token = document.getElementById('github-token').value || GIST_CONFIG.GITHUB_TOKEN;
-            const gistId = document.getElementById('gist-id').value || GIST_CONFIG.GIST_ID;
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
 
-            if (!token) {
-                showGistStatus('Ошибка: Не указан GitHub токен', 'error');
-                return;
-            }
-
-            if (!gistId) {
-                showGistStatus('Ошибка: Не указан Gist ID', 'error');
-                return;
-            }
-
-            showGistStatus('Загрузка данных...', 'loading');
-
-            try {
-                const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
-                }
-
-                const gist = await response.json();
-                const file = gist.files[GIST_CONFIG.FILENAME];
-
-                if (!file) {
-                    throw new Error('Файл с данными не найден в Gist');
-                }
-
-                const loadedData = JSON.parse(file.content);
-                
-                // Обновляем данные приложения
-                Object.assign(appData, loadedData);
-                
-                // Сохраняем настройки
-                localStorage.setItem('github_token', token);
-                localStorage.setItem('gist_id', gistId);
-                GIST_CONFIG.GITHUB_TOKEN = token;
-                GIST_CONFIG.GIST_ID = gistId;
-
-                // Перерисовываем приложение
-                renderAllPages();
-                showGistStatus('Данные успешно загружены!', 'success');
-                
-                // Закрываем модальное окно через 2 секунды
-                setTimeout(() => {
-                    hideGistModal();
-                    showNotification('Данные загружены из GitHub Gist');
-                }, 2000);
-
-            } catch (error) {
-                console.error('Ошибка загрузки:', error);
-                showGistStatus(`Ошибка загрузки: ${error.message}`, 'error');
-            }
+        // Функция для безопасного получения цвета
+        function getColorClass(color, type = 'bg') {
+            const colorMap = {
+                'blue': `${type}-custom-blue`,
+                'green': `${type}-custom-green`, 
+                'red': `${type}-custom-red`,
+                'yellow': `${type}-custom-yellow`,
+                'purple': `${type}-custom-purple`
+            };
+            return colorMap[color] || `${type}-custom-blue`;
         }
-
-        // Функция для сохранения данных в Gist
-        async function saveToGist() {
-            const token = document.getElementById('github-token').value || GIST_CONFIG.GITHUB_TOKEN;
-            const gistId = document.getElementById('gist-id').value || GIST_CONFIG.GIST_ID;
-
-            if (!token) {
-                showGistStatus('Ошибка: Не указан GitHub токен', 'error');
-                return;
-            }
-
-            showGistStatus('Сохранение данных...', 'loading');
-
-            try {
-                // Обновляем мета-данные
-                appData.meta.lastUpdated = new Date().toISOString();
-
-                const gistData = {
-                    description: GIST_CONFIG.DESCRIPTION,
-                    public: false,
-                    files: {
-                        [GIST_CONFIG.FILENAME]: {
-                            content: JSON.stringify(appData, null, 2)
-                        }
-                    }
-                };
-
-                let response;
-                if (gistId) {
-                    // Обновляем существующий Gist
-                    response = await fetch(`https://api.github.com/gists/${gistId}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(gistData)
-                    });
-                } else {
-                    // Создаем новый Gist
-                    response = await fetch('https://api.github.com/gists', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(gistData)
-                    });
-                }
-
-                if (!response.ok) {
-                    throw new Error(`Ошибка HTTP: ${response.status}`);
-                }
-
-                const result = await response.json();
-                
-                // Сохраняем настройки
-                const newGistId = result.id;
-                localStorage.setItem('github_token', token);
-                localStorage.setItem('gist_id', newGistId);
-                GIST_CONFIG.GITHUB_TOKEN = token;
-                GIST_CONFIG.GIST_ID = newGistId;
-
-                // Обновляем поле Gist ID
-                document.getElementById('gist-id').value = newGistId;
-
-                showGistStatus('Данные успешно сохранены!', 'success');
-                
-                // Закрываем модальное окно через 2 секунды
-                setTimeout(() => {
-                    hideGistModal();
-                    showNotification('Данные сохранены в GitHub Gist');
-                }, 2000);
-
-            } catch (error) {
-                console.error('Ошибка сохранения:', error);
-                showGistStatus(`Ошибка сохранения: ${error.message}`, 'error');
-            }
-        }
-
-        // Функция для показа статуса операций с Gist
-        function showGistStatus(message, type) {
-            const statusElement = document.getElementById('gist-status');
-            statusElement.textContent = message;
-            statusElement.className = 'text-sm text-center';
-            
-            switch (type) {
-                case 'success':
-                    statusElement.classList.add('text-green-500');
-                    break;
-                case 'error':
-                    statusElement.classList.add('text-red-500');
-                    break;
-                case 'loading':
-                    statusElement.classList.add('text-blue-500');
-                    break;
-            }
-            
-            statusElement.classList.remove('hidden');
-        }
-
-        // Функции для управления модальным окном
-        function showGistModal() {
-            document.getElementById('gist-modal').classList.remove('hidden');
-            // Заполняем поля из сохраненных настроек
-            document.getElementById('github-token').value = GIST_CONFIG.GITHUB_TOKEN;
-            document.getElementById('gist-id').value = GIST_CONFIG.GIST_ID;
-        }
-
-        function hideGistModal() {
-            document.getElementById('gist-modal').classList.add('hidden');
-            document.getElementById('gist-status').classList.add('hidden');
-        }
-
-        // ========== ФУНКЦИИ РЕНДЕРИНГА ==========
 
         // Функция для создания звездного фона
         function createStars() {
@@ -775,9 +621,8 @@
             navContainer.innerHTML = '';
             
             navigationData.tabs.forEach(tab => {
-                const isActive = tab.default || false;
                 const button = document.createElement('button');
-                button.className = `tab-btn flex flex-col items-center ${isActive ? 'text-blue-500' : 'text-gray-500'}`;
+                button.className = `tab-btn flex flex-col items-center ${tab.id === currentPage ? 'text-blue-500' : 'text-gray-500'}`;
                 button.setAttribute('data-page', tab.id);
                 
                 button.innerHTML = `
@@ -789,15 +634,16 @@
             });
         }
 
-        // Функция рендеринга главной страницы
+        // ========== ФУНКЦИИ РЕНДЕРИНГА СТРАНИЦ ==========
+
         function renderHomePage() {
             const data = appData.widgets.home;
             
             return `
-                <div id="home-page" class="page">
+                <div id="home-page" class="page ${currentPage === 'home-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-rocket mr-2 text-blue-400"></i>
+                            <i class="fas fa-rocket text-blue-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -806,7 +652,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         ${data.widgets.map(widget => `
                             <button class="widget-btn glass-effect rounded-2xl p-4 text-center transition-transform hover:scale-105 active:scale-95" data-action="${widget.action}">
-                                <i class="${widget.icon} text-2xl text-${widget.color}-500 mb-2"></i>
+                                <i class="${widget.icon} text-2xl ${getColorClass(widget.color, 'text')} mb-2"></i>
                                 <h3 class="font-medium">${widget.title}</h3>
                                 <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">${widget.subtitle}</p>
                             </button>
@@ -815,20 +661,20 @@
                     
                     <div class="glass-effect rounded-3xl p-6 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-bell mr-2 text-yellow-500"></i>
+                            <i class="fas fa-bell text-yellow-500 mr-2"></i>
                             Уведомления
                         </h2>
                         <div class="space-y-3">
                             ${data.notifications.map(notification => `
                                 <div class="flex items-start notification-item" data-id="${notification.id}">
-                                    <div class="bg-${notification.color}-100 dark:bg-${notification.color}-900 p-2 rounded-full mr-3">
-                                        <i class="${notification.icon} text-${notification.color}-500 dark:text-${notification.color}-300"></i>
+                                    <div class="${getColorClass(notification.color)} p-2 rounded-full mr-3">
+                                        <i class="${notification.icon} ${getColorClass(notification.color, 'text')}"></i>
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-medium">${notification.title}</p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">${notification.subtitle}</p>
                                     </div>
-                                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2">
+                                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 ml-2 notification-close">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
@@ -838,12 +684,12 @@
 
                     <div class="glass-effect rounded-3xl p-6 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-newspaper mr-2 text-green-500"></i>
+                            <i class="fas fa-newspaper text-green-500 mr-2"></i>
                             Новости университета
                         </h2>
                         <div class="space-y-4">
                             ${data.news.map(item => `
-                                <div class="border-l-4 border-${item.color}-500 pl-4 py-1">
+                                <div class="border-l-4 ${getColorClass(item.color, 'border')} pl-4 py-1">
                                     <p class="font-medium">${item.title}</p>
                                     <p class="text-sm text-gray-600 dark:text-gray-400">${item.content}</p>
                                 </div>
@@ -851,10 +697,9 @@
                         </div>
                     </div>
 
-                    <!-- Кнопка управления Gist -->
                     <div class="glass-effect rounded-3xl p-6 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-cloud mr-2 text-blue-500"></i>
+                            <i class="fas fa-cloud text-blue-500 mr-2"></i>
                             Облачное хранилище
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300 mb-4">
@@ -866,7 +711,7 @@
                         ${GIST_CONFIG.GIST_ID ? `
                             <div class="mt-3 text-center">
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Текущий Gist: ${GIST_CONFIG.GIST_ID}
+                                    Текущий Gist: ${GIST_CONFIG.GIST_ID.substring(0, 8)}...
                                 </p>
                             </div>
                         ` : ''}
@@ -875,15 +720,14 @@
             `;
         }
 
-        // Функция рендеринга страницы учебы
         function renderStudyPage() {
             const data = appData.study;
             
             return `
-                <div id="study-page" class="page hidden">
+                <div id="study-page" class="page ${currentPage === 'study-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-graduation-cap mr-2 text-purple-500"></i>
+                            <i class="fas fa-graduation-cap text-purple-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -891,27 +735,27 @@
                     
                     <div class="space-y-4">
                         ${data.courses.map(course => `
-                            <div class="course-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-course="${course.id}">
+                            <div class="course-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02]" data-course="${course.id}">
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <h3 class="font-semibold">${course.title}</h3>
                                         <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${course.instructor}</p>
                                     </div>
-                                    <span class="bg-${course.progressColor}-100 dark:bg-${course.progressColor}-900 text-${course.progressColor}-800 dark:text-${course.progressColor}-200 text-xs px-2 py-1 rounded-full">
+                                    <span class="${getColorClass(course.progressColor)} text-white text-xs px-2 py-1 rounded-full">
                                         ${course.status === 'active' ? 'Активно' : course.status === 'new' ? 'Новый' : 'Скоро начало'}
                                     </span>
                                 </div>
                                 <div class="mt-4 flex items-center">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div class="bg-${course.progressColor}-500 h-2 rounded-full" style="width: ${course.progress}%"></div>
+                                        <div class="${getColorClass(course.progressColor)} h-2 rounded-full" style="width: ${course.progress}%"></div>
                                     </div>
                                     <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">${course.progress}%</span>
                                 </div>
                                 <div class="mt-4 flex space-x-2">
-                                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors course-action">
                                         <i class="fas fa-play mr-1"></i> ${course.progress > 0 ? 'Продолжить' : 'Начать'}
                                     </button>
-                                    <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors course-info">
                                         <i class="fas fa-info-circle mr-1"></i> Подробнее
                                     </button>
                                 </div>
@@ -922,15 +766,14 @@
             `;
         }
 
-        // Функция рендеринга страницы лекций
         function renderLecturesPage() {
             const data = appData.lectures;
             
             return `
-                <div id="lectures-page" class="page hidden">
+                <div id="lectures-page" class="page ${currentPage === 'lectures-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-video mr-2 text-blue-500"></i>
+                            <i class="fas fa-video text-blue-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -947,67 +790,70 @@
                     </div>
 
                     <div class="space-y-4">
-                        ${data.lectures.map(lecture => `
-                            <div class="lecture-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-lecture="${lecture.id}" data-status="${lecture.status}">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div>
-                                        <span class="bg-${lecture.status === 'new' ? 'green' : lecture.status === 'in-progress' ? 'blue' : 'green'}-100 dark:bg-${lecture.status === 'new' ? 'green' : lecture.status === 'in-progress' ? 'blue' : 'green'}-900 text-${lecture.status === 'new' ? 'green' : lecture.status === 'in-progress' ? 'blue' : 'green'}-800 dark:text-${lecture.status === 'new' ? 'green' : lecture.status === 'in-progress' ? 'blue' : 'green'}-200 text-xs px-2 py-1 rounded-full">
-                                            ${lecture.status === 'new' ? 'Новая' : lecture.status === 'in-progress' ? 'В процессе' : 'Завершено'}
-                                        </span>
-                                        <h3 class="font-semibold mt-2">${lecture.title}</h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">${lecture.description}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">${lecture.duration}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">${lecture.instructor}</p>
-                                    </div>
-                                </div>
-                                ${lecture.progress > 0 ? `
-                                    <div class="mb-3">
-                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                            <div class="bg-${lecture.status === 'completed' ? 'green' : 'blue'}-500 h-2 rounded-full" style="width: ${lecture.progress}%"></div>
+                        ${data.lectures.map(lecture => {
+                            const statusColor = lecture.status === 'new' ? 'green' : lecture.status === 'in-progress' ? 'blue' : 'green';
+                            return `
+                                <div class="lecture-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02]" data-lecture="${lecture.id}" data-status="${lecture.status}">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div>
+                                            <span class="${getColorClass(statusColor)} text-white text-xs px-2 py-1 rounded-full">
+                                                ${lecture.status === 'new' ? 'Новая' : lecture.status === 'in-progress' ? 'В процессе' : 'Завершено'}
+                                            </span>
+                                            <h3 class="font-semibold mt-2">${lecture.title}</h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">${lecture.description}</p>
                                         </div>
-                                        <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                            <span>Просмотрено: ${lecture.progress}%</span>
-                                            <span>${Math.round(lecture.progress/100 * parseInt(lecture.duration))} мин / ${lecture.duration}</span>
+                                        <div class="text-right">
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">${lecture.duration}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">${lecture.instructor}</p>
                                         </div>
                                     </div>
-                                ` : ''}
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center space-x-2">
-                                        <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors flex items-center">
-                                            <i class="fas fa-${lecture.status === 'completed' ? 'redo' : 'play'} mr-2"></i> ${lecture.status === 'completed' ? 'Пересмотреть' : lecture.status === 'in-progress' ? 'Продолжить' : 'Смотреть'}
-                                        </button>
-                                        <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
-                                            <i class="fas fa-download"></i>
-                                        </button>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">${lecture.added}</p>
+                                    ${lecture.progress > 0 ? `
+                                        <div class="mb-3">
+                                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                <div class="${getColorClass(statusColor)} h-2 rounded-full" style="width: ${lecture.progress}%"></div>
+                                            </div>
+                                            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                <span>Просмотрено: ${lecture.progress}%</span>
+                                                <span>${Math.round(lecture.progress/100 * parseInt(lecture.duration))} мин / ${lecture.duration}</span>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center space-x-2">
+                                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors flex items-center lecture-watch">
+                                                <i class="fas fa-${lecture.status === 'completed' ? 'redo' : 'play'} mr-2"></i> ${lecture.status === 'completed' ? 'Пересмотреть' : lecture.status === 'in-progress' ? 'Продолжить' : 'Смотреть'}
+                                            </button>
+                                            <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors lecture-download">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">${lecture.added}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
 
                     <div class="glass-effect rounded-3xl p-6 mt-6">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-star mr-2 text-yellow-500"></i>
+                            <i class="fas fa-star text-yellow-500 mr-2"></i>
                             Рекомендуемые лекции
                         </h2>
                         <div class="space-y-3">
                             ${data.recommended.map(lecture => `
-                                <div class="flex items-center justify-between p-3 rounded-xl bg-${lecture.color}-50 dark:bg-${lecture.color}-900/20">
+                                <div class="flex items-center justify-between p-3 rounded-xl ${getColorClass(lecture.color, 'bg')} bg-opacity-20">
                                     <div class="flex items-center">
-                                        <div class="bg-${lecture.color}-100 dark:bg-${lecture.color}-800 p-2 rounded-lg mr-3">
-                                            <i class="fas fa-play text-${lecture.color}-500 dark:text-${lecture.color}-300"></i>
+                                        <div class="${getColorClass(lecture.color)} p-2 rounded-lg mr-3">
+                                            <i class="fas fa-play ${getColorClass(lecture.color, 'text')}"></i>
                                         </div>
                                         <div>
                                             <p class="font-medium">${lecture.title}</p>
                                             <p class="text-sm text-gray-600 dark:text-gray-400">${lecture.duration} · ${lecture.instructor}</p>
                                         </div>
                                     </div>
-                                    <button class="text-${lecture.color}-500 hover:text-${lecture.color}-600 text-sm">
+                                    <button class="${getColorClass(lecture.color, 'text')} hover:opacity-80 text-sm lecture-recommended">
                                         Смотреть
                                     </button>
                                 </div>
@@ -1018,15 +864,14 @@
             `;
         }
 
-        // Функция рендеринга страницы заданий
         function renderTasksPage() {
             const data = appData.tasks;
             
             return `
-                <div id="tasks-page" class="page hidden">
+                <div id="tasks-page" class="page ${currentPage === 'tasks-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-tasks mr-2 text-green-500"></i>
+                            <i class="fas fa-tasks text-green-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -1035,31 +880,31 @@
                     <div class="grid grid-cols-3 gap-2 mb-6">
                         ${data.stats.map(stat => `
                             <div class="glass-effect rounded-2xl p-3 text-center">
-                                <p class="text-2xl font-bold text-${stat.color}-500">${stat.count}</p>
+                                <p class="text-2xl font-bold ${getColorClass(stat.color, 'text')}">${stat.count}</p>
                                 <p class="text-xs text-gray-600 dark:text-gray-400">${stat.label}</p>
                             </div>
                         `).join('')}
                     </div>
 
                     ${data.urgent.length > 0 ? `
-                        <div class="glass-effect rounded-3xl p-5 mb-4 border-l-4 border-red-500">
+                        <div class="glass-effect rounded-3xl p-5 mb-4 border-l-4 ${getColorClass('red', 'border')}">
                             <h3 class="font-semibold mb-3 flex items-center">
                                 <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
                                 Срочные задания
                             </h3>
                             <div class="space-y-3">
                                 ${data.urgent.map(task => `
-                                    <div class="flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
+                                    <div class="flex items-center justify-between p-3 rounded-xl ${getColorClass(task.color, 'bg')} bg-opacity-20">
                                         <div class="flex items-center">
-                                            <div class="bg-red-100 dark:bg-red-800 p-2 rounded-full mr-3">
-                                                <i class="${task.icon} text-red-500 dark:text-red-300"></i>
+                                            <div class="${getColorClass(task.color)} p-2 rounded-full mr-3">
+                                                <i class="${task.icon} ${getColorClass(task.color, 'text')}"></i>
                                             </div>
                                             <div>
                                                 <p class="font-medium">${task.title}</p>
-                                                <p class="text-sm text-red-600 dark:text-red-400">Дедлайн: ${task.deadline}</p>
+                                                <p class="text-sm ${getColorClass(task.color, 'text')}">Дедлайн: ${task.deadline}</p>
                                             </div>
                                         </div>
-                                        <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                        <button class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm transition-colors task-submit">
                                             Сдать
                                         </button>
                                     </div>
@@ -1072,17 +917,17 @@
                         <h3 class="font-semibold mb-3">Активные задания</h3>
                         <div class="space-y-3">
                             ${data.active.map(task => `
-                                <div class="task-card flex items-center justify-between p-3 rounded-xl bg-${task.color}-50 dark:bg-${task.color}-900/20" data-task="${task.id}">
+                                <div class="task-card flex items-center justify-between p-3 rounded-xl ${getColorClass(task.color, 'bg')} bg-opacity-20" data-task="${task.id}">
                                     <div class="flex items-center">
-                                        <div class="bg-${task.color}-100 dark:bg-${task.color}-800 p-2 rounded-full mr-3">
-                                            <i class="${task.icon} text-${task.color}-500 dark:text-${task.color}-300"></i>
+                                        <div class="${getColorClass(task.color)} p-2 rounded-full mr-3">
+                                            <i class="${task.icon} ${getColorClass(task.color, 'text')}"></i>
                                         </div>
                                         <div>
                                             <p class="font-medium">${task.title}</p>
                                             <p class="text-sm text-gray-600 dark:text-gray-400">Дедлайн: ${task.deadline}</p>
                                         </div>
                                     </div>
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors task-complete">
                                         Выполнить
                                     </button>
                                 </div>
@@ -1094,17 +939,17 @@
                         <h3 class="font-semibold mb-3">Завершенные задания</h3>
                         <div class="space-y-3">
                             ${data.completed.map(task => `
-                                <div class="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20">
+                                <div class="flex items-center justify-between p-3 rounded-xl ${getColorClass(task.color, 'bg')} bg-opacity-20">
                                     <div class="flex items-center">
-                                        <div class="bg-green-100 dark:bg-green-800 p-2 rounded-full mr-3">
-                                            <i class="${task.icon} text-green-500 dark:text-green-300"></i>
+                                        <div class="${getColorClass(task.color)} p-2 rounded-full mr-3">
+                                            <i class="${task.icon} ${getColorClass(task.color, 'text')}"></i>
                                         </div>
                                         <div>
                                             <p class="font-medium">${task.title}</p>
                                             <p class="text-sm text-gray-600 dark:text-gray-400">${task.details}</p>
                                         </div>
                                     </div>
-                                    <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors task-redo">
                                         <i class="fas fa-redo"></i>
                                     </button>
                                 </div>
@@ -1115,25 +960,25 @@
             `;
         }
 
-        // Функция рендеринга страницы расписания
         function renderSchedulePage() {
             const data = appData.schedule;
+            const activeDay = data.days.find(day => day.active) || data.days[0];
             
             return `
-                <div id="schedule-page" class="page hidden">
+                <div id="schedule-page" class="page ${currentPage === 'schedule-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-calendar mr-2 text-purple-500"></i>
+                            <i class="fas fa-calendar text-purple-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
                         <div class="mt-2 flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">${data.currentWeek}</span>
                             <div class="flex space-x-2 schedule-nav">
-                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors">
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors schedule-prev">
                                     <i class="fas fa-chevron-left"></i>
                                 </button>
-                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors">
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-1 px-3 rounded-lg text-sm transition-colors schedule-next">
                                     <i class="fas fa-chevron-right"></i>
                                 </button>
                             </div>
@@ -1152,11 +997,11 @@
                     </div>
 
                     <div class="space-y-4">
-                        ${data.days.find(day => day.active)?.lessons.map(lesson => `
-                            <div class="lesson-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100">
+                        ${activeDay.lessons.map(lesson => `
+                            <div class="lesson-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02]">
                                 <div class="flex justify-between items-start mb-3">
                                     <div>
-                                        <span class="bg-${lesson.color}-100 dark:bg-${lesson.color}-900 text-${lesson.color}-800 dark:text-${lesson.color}-200 text-xs px-2 py-1 rounded-full">
+                                        <span class="${getColorClass(lesson.color)} text-white text-xs px-2 py-1 rounded-full">
                                             ${lesson.type}
                                         </span>
                                         <h3 class="font-semibold mt-2">${lesson.subject}</h3>
@@ -1168,10 +1013,10 @@
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm transition-colors lesson-join">
                                         <i class="fas fa-video mr-1"></i> Присоединиться
                                     </button>
-                                    <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <button class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors lesson-info">
                                         <i class="fas fa-info-circle mr-1"></i> Подробнее
                                     </button>
                                 </div>
@@ -1182,15 +1027,16 @@
             `;
         }
 
-        // Функция рендеринга страницы успеваемости
         function renderProgressPage() {
             const data = appData.progress;
+            const circumference = 2 * Math.PI * 56;
+            const strokeDashoffset = circumference - (data.overallProgress / 100) * circumference;
             
             return `
-                <div id="progress-page" class="page hidden">
+                <div id="progress-page" class="page ${currentPage === 'progress-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-chart-line mr-2 text-yellow-500"></i>
+                            <i class="fas fa-chart-line text-yellow-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -1202,8 +1048,8 @@
                                 <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="none" 
                                         class="text-gray-200 dark:text-gray-700"/>
                                 <circle cx="64" cy="64" r="56" stroke="currentColor" stroke-width="8" fill="none" 
-                                        stroke-dasharray="352" stroke-dashoffset="${352 - (352 * data.overallProgress / 100)}"
-                                        class="text-green-500" stroke-linecap="round"/>
+                                        stroke-dasharray="${circumference}" stroke-dashoffset="${strokeDashoffset}"
+                                        class="text-green-500 transition-all duration-1000" stroke-linecap="round"/>
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <span class="text-2xl font-bold">${data.overallProgress}%</span>
@@ -1220,12 +1066,12 @@
                                         <h3 class="font-semibold">${subject.name}</h3>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">${subject.instructor}</p>
                                     </div>
-                                    <span class="bg-${subject.color}-100 dark:bg-${subject.color}-900 text-${subject.color}-800 dark:text-${subject.color}-200 text-sm px-3 py-1 rounded-full">
+                                    <span class="${getColorClass(subject.color)} text-white text-sm px-3 py-1 rounded-full">
                                         ${subject.progress}%
                                     </span>
                                 </div>
                                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-${subject.color}-500 h-2 rounded-full" style="width: ${subject.progress}%"></div>
+                                    <div class="${getColorClass(subject.color)} h-2 rounded-full transition-all duration-1000" style="width: ${subject.progress}%"></div>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
                                     <span>Прогресс</span>
@@ -1260,15 +1106,15 @@
             `;
         }
 
-        // Функция рендеринга страницы настроек
         function renderSettingsPage() {
             const data = appData.settings;
+            const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
             
             return `
-                <div id="settings-page" class="page hidden">
+                <div id="settings-page" class="page ${currentPage === 'settings-page' ? '' : 'hidden'}">
                     <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
                         <h2 class="text-xl font-semibold mb-4 flex items-center">
-                            <i class="fas fa-cog mr-2 text-gray-500"></i>
+                            <i class="fas fa-cog text-gray-500 mr-2"></i>
                             ${data.title}
                         </h2>
                         <p class="text-gray-600 dark:text-gray-300">${data.subtitle}</p>
@@ -1306,7 +1152,7 @@
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="dark-mode-toggle" 
-                                       class="sr-only peer" ${localStorage.theme === 'dark' ? 'checked' : ''}>
+                                       class="sr-only peer" ${isDarkMode ? 'checked' : ''}>
                                 <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-500"></div>
                             </label>
                         </div>
@@ -1333,7 +1179,6 @@
             `;
         }
 
-        // Функция рендеринга всех страниц
         function renderAllPages() {
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = 
@@ -1344,12 +1189,188 @@
                 renderSchedulePage() +
                 renderProgressPage() +
                 renderSettingsPage();
+            
+            // После рендеринга переустанавливаем обработчики
+            setupPageInteractions();
         }
 
-        // ========== ФУНКЦИОНАЛЬНОСТЬ ==========
+        // ========== GIST API ФУНКЦИИ ==========
 
-        // Навигация между страницами
-        function setupNavigation() {
+        async function loadFromGist() {
+            const token = document.getElementById('github-token').value || GIST_CONFIG.GITHUB_TOKEN;
+            const gistId = document.getElementById('gist-id').value || GIST_CONFIG.GIST_ID;
+
+            if (!token) {
+                showGistStatus('Ошибка: Не указан GitHub токен', 'error');
+                return;
+            }
+
+            if (!gistId) {
+                showGistStatus('Ошибка: Не указан Gist ID', 'error');
+                return;
+            }
+
+            showGistStatus('Загрузка данных...', 'loading');
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+
+                const gist = await response.json();
+                const file = gist.files[GIST_CONFIG.FILENAME];
+
+                if (!file) {
+                    throw new Error('Файл с данными не найден в Gist');
+                }
+
+                const loadedData = JSON.parse(file.content);
+                
+                Object.assign(appData, loadedData);
+                
+                localStorage.setItem('github_token', token);
+                localStorage.setItem('gist_id', gistId);
+                GIST_CONFIG.GITHUB_TOKEN = token;
+                GIST_CONFIG.GIST_ID = gistId;
+
+                // Сохраняем текущую страницу перед перерисовкой
+                const currentPageBeforeReload = currentPage;
+                
+                renderAllPages();
+                renderNavigation();
+                setupNavigation(); // ВАЖНО: переустанавливаем обработчики навигации
+                
+                // Восстанавливаем текущую страницу
+                switchPage(currentPageBeforeReload);
+                
+                showGistStatus('Данные успешно загружены!', 'success');
+                
+                setTimeout(() => {
+                    hideGistModal();
+                    showNotification('Данные загружены из GitHub Gist');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showGistStatus(`Ошибка загрузки: ${error.message}`, 'error');
+            }
+        }
+
+        async function saveToGist() {
+            const token = document.getElementById('github-token').value || GIST_CONFIG.GITHUB_TOKEN;
+            const gistId = document.getElementById('gist-id').value || GIST_CONFIG.GIST_ID;
+
+            if (!token) {
+                showGistStatus('Ошибка: Не указан GitHub токен', 'error');
+                return;
+            }
+
+            showGistStatus('Сохранение данных...', 'loading');
+
+            try {
+                appData.meta.lastUpdated = new Date().toISOString();
+
+                const gistData = {
+                    description: GIST_CONFIG.DESCRIPTION,
+                    public: false,
+                    files: {
+                        [GIST_CONFIG.FILENAME]: {
+                            content: JSON.stringify(appData, null, 2)
+                        }
+                    }
+                };
+
+                let response;
+                if (gistId) {
+                    response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(gistData)
+                    });
+                } else {
+                    response = await fetch('https://api.github.com/gists', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(gistData)
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                const newGistId = result.id;
+                localStorage.setItem('github_token', token);
+                localStorage.setItem('gist_id', newGistId);
+                GIST_CONFIG.GITHUB_TOKEN = token;
+                GIST_CONFIG.GIST_ID = newGistId;
+
+                document.getElementById('gist-id').value = newGistId;
+
+                showGistStatus('Данные успешно сохранены!', 'success');
+                
+                setTimeout(() => {
+                    hideGistModal();
+                    showNotification('Данные сохранены в GitHub Gist');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showGistStatus(`Ошибка сохранения: ${error.message}`, 'error');
+            }
+        }
+
+        function showGistStatus(message, type) {
+            const statusElement = document.getElementById('gist-status');
+            statusElement.textContent = message;
+            statusElement.className = 'text-sm text-center';
+            
+            switch (type) {
+                case 'success':
+                    statusElement.classList.add('text-green-500');
+                    break;
+                case 'error':
+                    statusElement.classList.add('text-red-500');
+                    break;
+                case 'loading':
+                    statusElement.classList.add('text-blue-500');
+                    break;
+            }
+            
+            statusElement.classList.remove('hidden');
+        }
+
+        function showGistModal() {
+            document.getElementById('gist-modal').classList.remove('hidden');
+            document.getElementById('github-token').value = GIST_CONFIG.GITHUB_TOKEN;
+            document.getElementById('gist-id').value = GIST_CONFIG.GIST_ID;
+        }
+
+        function hideGistModal() {
+            document.getElementById('gist-modal').classList.add('hidden');
+            document.getElementById('gist-status').classList.add('hidden');
+        }
+
+        // ========== ОСНОВНАЯ ФУНКЦИОНАЛЬНОСТЬ ==========
+
+        function switchPage(targetPage) {
             const tabButtons = document.querySelectorAll('.tab-btn');
             const pages = document.querySelectorAll('.page');
             const pageTitle = document.getElementById('page-title');
@@ -1364,44 +1385,48 @@
                 'settings-page': 'Настройки'
             };
             
-            // Функция для переключения страниц
-            const switchPage = (targetPage) => {
-                // Обновляем активную кнопку
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('text-blue-500');
-                    btn.classList.add('text-gray-500');
-                });
-                
-                // Находим и активируем нужную кнопку
-                const activeButton = Array.from(tabButtons).find(btn => btn.getAttribute('data-page') === targetPage);
-                if (activeButton) {
-                    activeButton.classList.remove('text-gray-500');
-                    activeButton.classList.add('text-blue-500');
-                }
-                
-                // Обновляем заголовок
-                pageTitle.textContent = pageTitles[targetPage] || 'Космический Университет';
-                
-                // Показываем целевую страницу, скрываем остальные
-                pages.forEach(page => {
-                    if (page.id === targetPage) {
-                        page.classList.remove('hidden');
-                        // Плавная прокрутка к началу страницы
-                        setTimeout(() => {
-                            page.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 100);
-                    } else {
-                        page.classList.add('hidden');
-                    }
-                });
-            };
+            // Обновляем активную кнопку
+            tabButtons.forEach(btn => {
+                btn.classList.remove('text-blue-500');
+                btn.classList.add('text-gray-500');
+            });
             
-            // Обработчики для кнопок навигации
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const targetPage = this.getAttribute('data-page');
-                    switchPage(targetPage);
-                });
+            const activeButton = Array.from(tabButtons).find(btn => btn.getAttribute('data-page') === targetPage);
+            if (activeButton) {
+                activeButton.classList.remove('text-gray-500');
+                activeButton.classList.add('text-blue-500');
+            }
+            
+            // Обновляем заголовок
+            pageTitle.textContent = pageTitles[targetPage] || 'Космический Университет';
+            
+            // Показываем целевую страницу, скрываем остальные
+            pages.forEach(page => {
+                if (page.id === targetPage) {
+                    page.classList.remove('hidden');
+                    // Плавная прокрутка к началу страницы
+                    setTimeout(() => {
+                        page.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                } else {
+                    page.classList.add('hidden');
+                }
+            });
+            
+            // Сохраняем текущую страницу
+            currentPage = targetPage;
+        }
+
+        function setupNavigation() {
+            // Удаляем старые обработчики
+            const oldButtons = document.querySelectorAll('.tab-btn');
+            oldButtons.forEach(button => {
+                button.removeEventListener('click', handleTabClick);
+            });
+
+            // Добавляем новые обработчики
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', handleTabClick);
             });
             
             // Обработчики для виджетов на главной странице
@@ -1413,25 +1438,22 @@
                     if (targetPage && document.getElementById(targetPage)) {
                         switchPage(targetPage);
                         showNotification(`Открыт раздел: ${targetPage.replace('-page', '')}`);
-                    } else {
-                        showNotification(`Раздел "${targetPage}" временно недоступен`);
                     }
                 }
             });
-
-            // Активируем главную страницу по умолчанию
-            const defaultTab = navigationData.tabs.find(tab => tab.default);
-            if (defaultTab) {
-                switchPage(defaultTab.id);
-            }
         }
 
-        // Настройка взаимодействий на страницах
+        // Отдельная функция для обработки кликов по табам
+        function handleTabClick() {
+            const targetPage = this.getAttribute('data-page');
+            switchPage(targetPage);
+        }
+
         function setupPageInteractions() {
             // Удаление уведомлений
-            document.querySelectorAll('.notification-item').forEach(item => {
-                const closeBtn = item.querySelector('button');
-                closeBtn.addEventListener('click', function() {
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.notification-close')) {
+                    const item = e.target.closest('.notification-item');
                     item.style.opacity = '0';
                     item.style.height = '0';
                     item.style.margin = '0';
@@ -1439,23 +1461,24 @@
                         item.remove();
                         updateNotificationBadge();
                     }, 300);
-                });
+                }
             });
 
             // Фильтры лекций
-            document.querySelectorAll('.filter-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const filter = this.getAttribute('data-filter');
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.filter-btn')) {
+                    const button = e.target.closest('.filter-btn');
+                    const filter = button.getAttribute('data-filter');
                     
                     document.querySelectorAll('.filter-btn').forEach(btn => {
                         btn.classList.remove('bg-blue-500', 'text-white');
                         btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
                     });
-                    this.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
-                    this.classList.add('bg-blue-500', 'text-white');
+                    button.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    button.classList.add('bg-blue-500', 'text-white');
                     
                     showNotification(`Применен фильтр: ${filter}`);
-                });
+                }
             });
 
             // Переключение дней в расписании
@@ -1471,16 +1494,30 @@
                     button.classList.remove('text-gray-600', 'dark:text-gray-400');
                     button.classList.add('bg-blue-500', 'text-white');
                     
+                    // Обновляем данные активного дня
+                    appData.schedule.days.forEach(day => {
+                        day.active = day.id === dayId;
+                    });
+                    
+                    // Перерисовываем только расписание
+                    const schedulePage = document.getElementById('schedule-page');
+                    if (schedulePage && currentPage === 'schedule-page') {
+                        schedulePage.outerHTML = renderSchedulePage();
+                        setupPageInteractions(); // Переустанавливаем обработчики
+                    }
+                    
                     showNotification(`Показано расписание на ${button.querySelector('span:last-child').textContent} число`);
                 }
             });
 
-            // Навигация по неделям в расписании
-            document.querySelectorAll('.schedule-nav button').forEach(button => {
-                button.addEventListener('click', function() {
-                    const direction = this.querySelector('i').classList.contains('fa-chevron-left') ? 'предыдущую' : 'следующую';
-                    showNotification(`Загружена ${direction} неделя`);
-                });
+            // Навигация по неделям
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.schedule-prev')) {
+                    showNotification('Загружена предыдущая неделя');
+                }
+                if (e.target.closest('.schedule-next')) {
+                    showNotification('Загружена следующая неделя');
+                }
             });
 
             // Кнопка управления Gist
@@ -1490,59 +1527,55 @@
                 }
             });
 
+            // Обработчики для различных кнопок
+            const buttonHandlers = {
+                'course-action': 'Курс открыт для изучения',
+                'course-info': 'Информация о курсе',
+                'lecture-watch': 'Лекция запущена',
+                'lecture-download': 'Лекция загружается',
+                'lecture-recommended': 'Рекомендованная лекция запущена',
+                'task-submit': 'Задание открыто для сдачи',
+                'task-complete': 'Задание открыто для выполнения',
+                'task-redo': 'Задание переоткрыто',
+                'lesson-join': 'Присоединение к занятию',
+                'lesson-info': 'Информация о занятии'
+            };
+
+            Object.keys(buttonHandlers).forEach(className => {
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest(`.${className}`)) {
+                        const element = e.target.closest(`.${className}`);
+                        let title = '';
+                        
+                        // Находим заголовок элемента
+                        const titleElement = element.closest('.course-card, .lecture-card, .task-card, .lesson-card');
+                        if (titleElement) {
+                            const titleEl = titleElement.querySelector('h3, .font-medium');
+                            if (titleEl) title = titleEl.textContent;
+                        }
+                        
+                        showNotification(`${buttonHandlers[className]}${title ? `: "${title}"` : ''}`);
+                    }
+                });
+            });
+
             // Кнопки в модальном окне Gist
             document.getElementById('load-gist').addEventListener('click', loadFromGist);
             document.getElementById('save-gist').addEventListener('click', saveToGist);
             document.getElementById('close-gist-modal').addEventListener('click', hideGistModal);
 
-            // Закрытие модального окна по клику вне его
             document.getElementById('gist-modal').addEventListener('click', function(e) {
                 if (e.target === this) {
                     hideGistModal();
                 }
             });
 
-            // Кнопки заданий
-            document.querySelectorAll('.task-card button').forEach(button => {
-                if (button.textContent.includes('Сдать') || button.textContent.includes('Выполнить')) {
-                    button.addEventListener('click', function() {
-                        const taskCard = this.closest('.task-card');
-                        const taskTitle = taskCard.querySelector('.font-medium').textContent;
-                        showNotification(`Задание "${taskTitle}" открыто для выполнения`);
-                    });
-                }
-            });
-
-            // Кнопки лекций
-            document.querySelectorAll('.lecture-card button').forEach(button => {
-                if (button.textContent.includes('Смотреть') || button.textContent.includes('Продолжить') || button.textContent.includes('Пересмотреть')) {
-                    button.addEventListener('click', function() {
-                        const lectureCard = this.closest('.lecture-card');
-                        const lectureTitle = lectureCard.querySelector('h3').textContent;
-                        showNotification(`Лекция "${lectureTitle}" запущена`);
-                    });
-                }
-            });
-
-            // Кнопки курсов
-            document.querySelectorAll('.course-card button').forEach(button => {
-                if (button.textContent.includes('Продолжить') || button.textContent.includes('Начать') || button.textContent.includes('Подробнее')) {
-                    button.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const courseCard = this.closest('.course-card');
-                        const courseTitle = courseCard.querySelector('h3').textContent;
-                        const action = button.textContent.includes('Подробнее') ? 'Информация о курсе' : 'Курс открыт для изучения';
-                        showNotification(`${action}: "${courseTitle}"`);
-                    });
-                }
-            });
-
-            // Кнопка уведомлений в хедере
+            // Кнопка уведомлений
             document.getElementById('notifications-btn').addEventListener('click', function() {
                 showNotification('Показаны все уведомления');
             });
 
-            // Переключатели в настройках
+            // Переключатели
             document.addEventListener('change', function(e) {
                 if (e.target.id === 'dark-mode-toggle') {
                     toggleTheme();
@@ -1553,11 +1586,9 @@
             });
         }
 
-        // Функциональность переключения темы
         function setupThemeToggle() {
             const themeToggleBtn = document.getElementById('theme-toggle');
             
-            // Проверяем сохраненную тему
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
                 themeToggleBtn.innerHTML = '<i class="fas fa-sun text-yellow-300"></i>';
@@ -1595,7 +1626,6 @@
         }
 
         function showNotification(message) {
-            // Удаляем существующие уведомления
             const existingNotifications = document.querySelectorAll('.custom-notification');
             existingNotifications.forEach(notification => notification.remove());
 
@@ -1632,11 +1662,6 @@
             setupThemeToggle();
             setupNavigation();
             setupPageInteractions();
-            
-            // Показываем информацию о Gist, если есть сохраненные настройки
-            if (GIST_CONFIG.GIST_ID) {
-                console.log('Gist настроен:', GIST_CONFIG.GIST_ID);
-            }
         });
     </script>
 </body>
