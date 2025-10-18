@@ -70,7 +70,7 @@
     <!-- Верхняя панель -->
     <header class="fixed top-0 left-0 right-0 glass-effect border-b border-ios-border dark:border-ios-dark-border mx-auto z-30">
         <div class="max-w-md mx-auto flex justify-between items-center p-4">
-            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Космический Университет</h1>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent" id="page-title">Космический Университет</h1>
             <div class="flex items-center space-x-3">
                 <button id="notifications-btn" class="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700">
                     <i class="fas fa-bell text-gray-700 dark:text-gray-300"></i>
@@ -258,6 +258,546 @@
                 </div>
             </div>
             
+            <!-- Страница лекций -->
+            <div id="lectures-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-video mr-2 text-blue-500"></i>
+                        Лекции
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">Все доступные лекции по вашим курсам.</p>
+                </div>
+
+                <!-- Фильтры лекций -->
+                <div class="glass-effect rounded-3xl p-4 mb-4">
+                    <div class="flex overflow-x-auto space-x-2 pb-2">
+                        <button class="filter-btn px-4 py-2 rounded-full bg-blue-500 text-white text-sm whitespace-nowrap" data-filter="all">
+                            Все лекции
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-filter="new">
+                            Новые
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-filter="in-progress">
+                            В процессе
+                        </button>
+                        <button class="filter-btn px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm whitespace-nowrap" data-filter="completed">
+                            Завершённые
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Список лекций -->
+                <div class="space-y-4">
+                    <div class="lecture-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-lecture="1" data-status="new">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">Новая</span>
+                                <h3 class="font-semibold mt-2">Введение в астрофизику</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Основные понятия и методы астрофизики</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">45 мин</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Проф. Иванов</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors flex items-center">
+                                    <i class="fas fa-play mr-2"></i> Смотреть
+                                </button>
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Добавлено 2 дня назад</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lecture-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-lecture="2" data-status="in-progress">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">В процессе</span>
+                                <h3 class="font-semibold mt-2">Солнечная система</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Планеты, спутники и малые тела</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">52 мин</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Проф. Петрова</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                <span>Просмотрено: 65%</span>
+                                <span>34 мин / 52 мин</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors flex items-center">
+                                    <i class="fas fa-play mr-2"></i> Продолжить
+                                </button>
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Начато 5 дней назад</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lecture-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100" data-lecture="3" data-status="completed">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">Завершено</span>
+                                <h3 class="font-semibold mt-2">Звёзды и галактики</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Эволюция звёзд и структура галактик</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">38 мин</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Проф. Иванов</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                <span>Просмотрено: 100%</span>
+                                <span>38 мин / 38 мин</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg text-sm transition-colors flex items-center">
+                                    <i class="fas fa-redo mr-2"></i> Пересмотреть
+                                </button>
+                                <button class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg text-sm transition-colors">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Завершено 2 недели назад</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Рекомендуемые лекции -->
+                <div class="glass-effect rounded-3xl p-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-star mr-2 text-yellow-500"></i>
+                        Рекомендуемые лекции
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 dark:bg-blue-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-play text-blue-500 dark:text-blue-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Чёрные дыры</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">32 мин · Проф. Сидоров</p>
+                                </div>
+                            </div>
+                            <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                Смотреть
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 dark:bg-purple-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-play text-purple-500 dark:text-purple-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Космология</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">41 мин · Проф. Иванов</p>
+                                </div>
+                            </div>
+                            <button class="text-purple-500 hover:text-purple-600 text-sm">
+                                Смотреть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Страница заданий -->
+            <div id="tasks-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-tasks mr-2 text-green-500"></i>
+                        Задания
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">Все задания по вашим курсам с сроками сдачи.</p>
+                </div>
+
+                <!-- Статусы заданий -->
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="glass-effect rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-bold text-blue-500">3</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">Активных</p>
+                    </div>
+                    <div class="glass-effect rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-bold text-green-500">7</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">Завершено</p>
+                    </div>
+                    <div class="glass-effect rounded-2xl p-3 text-center">
+                        <p class="text-2xl font-bold text-red-500">1</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-400">Просрочено</p>
+                    </div>
+                </div>
+
+                <!-- Срочные задания -->
+                <div class="glass-effect rounded-3xl p-6 mb-4">
+                    <h3 class="font-semibold mb-3 flex items-center text-red-500">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Срочные задания
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="task-card flex items-center justify-between p-3 rounded-xl bg-red-50 dark:bg-red-900/20" data-task="1" data-priority="high">
+                            <div class="flex items-center">
+                                <div class="bg-red-100 dark:bg-red-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-flag text-red-500 dark:text-red-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Расчёт орбиты спутника</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Срок: завтра, 10:00</p>
+                                </div>
+                            </div>
+                            <button class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg text-sm transition-colors">
+                                Сдать
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Активные задания -->
+                <div class="glass-effect rounded-3xl p-6 mb-4">
+                    <h3 class="font-semibold mb-3 flex items-center text-blue-500">
+                        <i class="fas fa-clock mr-2"></i>
+                        Активные задания
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="task-card flex items-center justify-between p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20" data-task="2" data-priority="medium">
+                            <div class="flex items-center">
+                                <div class="bg-blue-100 dark:bg-blue-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-file-alt text-blue-500 dark:text-blue-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Лабораторная работа №3</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Срок: 25 ноября</p>
+                                </div>
+                            </div>
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-lg text-sm transition-colors">
+                                Выполнить
+                            </button>
+                        </div>
+                        
+                        <div class="task-card flex items-center justify-between p-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/20" data-task="3" data-priority="low">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-100 dark:bg-yellow-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-chart-bar text-yellow-500 dark:text-yellow-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Анализ данных телескопа</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Срок: 30 ноября</p>
+                                </div>
+                            </div>
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-lg text-sm transition-colors">
+                                Выполнить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Завершённые задания -->
+                <div class="glass-effect rounded-3xl p-6">
+                    <h3 class="font-semibold mb-3 flex items-center text-green-500">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Завершённые задания
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 opacity-80">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 dark:bg-green-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-check text-green-500 dark:text-green-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Контрольная работа №1</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Оценка: 95% · Сдано 15 ноября</p>
+                                </div>
+                            </div>
+                            <button class="text-green-500 hover:text-green-600 text-sm">
+                                Посмотреть
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/20 opacity-80">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 dark:bg-green-800 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-check text-green-500 dark:text-green-300"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium">Проект "Солнечная система"</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Оценка: 88% · Сдано 10 ноября</p>
+                                </div>
+                            </div>
+                            <button class="text-green-500 hover:text-green-600 text-sm">
+                                Посмотреть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Страница расписания -->
+            <div id="schedule-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2 text-purple-500"></i>
+                        Расписание занятий
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">Ваше расписание на текущую неделю.</p>
+                </div>
+
+                <!-- Дни недели -->
+                <div class="glass-effect rounded-3xl p-4 mb-4">
+                    <div class="flex justify-between overflow-x-auto pb-2">
+                        <button class="day-btn flex flex-col items-center px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 min-w-16" data-day="mon">
+                            <span class="text-sm">ПН</span>
+                            <span class="text-xs mt-1">20</span>
+                        </button>
+                        <button class="day-btn flex flex-col items-center px-3 py-2 rounded-lg min-w-16" data-day="tue">
+                            <span class="text-sm">ВТ</span>
+                            <span class="text-xs mt-1">21</span>
+                        </button>
+                        <button class="day-btn flex flex-col items-center px-3 py-2 rounded-lg min-w-16" data-day="wed">
+                            <span class="text-sm">СР</span>
+                            <span class="text-xs mt-1">22</span>
+                        </button>
+                        <button class="day-btn flex flex-col items-center px-3 py-2 rounded-lg min-w-16" data-day="thu">
+                            <span class="text-sm">ЧТ</span>
+                            <span class="text-xs mt-1">23</span>
+                        </button>
+                        <button class="day-btn flex flex-col items-center px-3 py-2 rounded-lg min-w-16" data-day="fri">
+                            <span class="text-sm">ПТ</span>
+                            <span class="text-xs mt-1">24</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Расписание на день -->
+                <div class="space-y-4">
+                    <div class="schedule-item glass-effect rounded-2xl p-4 transition-transform hover:scale-[1.02] active:scale-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">09:00-10:30</span>
+                                <h3 class="font-semibold mt-2">Астрофизика</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Лекция · Аудитория 301 · Проф. Иванов</p>
+                            </div>
+                            <button class="text-blue-500 hover:text-blue-600">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item glass-effect rounded-2xl p-4 transition-transform hover:scale-[1.02] active:scale-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs px-2 py-1 rounded-full">11:00-12:30</span>
+                                <h3 class="font-semibold mt-2">Космическая инженерия</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Практика · Лаборатория 105 · Проф. Петрова</p>
+                            </div>
+                            <button class="text-blue-500 hover:text-blue-600">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item glass-effect rounded-2xl p-4 transition-transform hover:scale-[1.02] active:scale-100 opacity-60">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs px-2 py-1 rounded-full">14:00-15:30</span>
+                                <h3 class="font-semibold mt-2">Математический анализ</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Семинар · Аудитория 208 · Проф. Сидоров</p>
+                            </div>
+                            <button class="text-blue-500 hover:text-blue-600">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ближайшие события -->
+                <div class="glass-effect rounded-3xl p-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-flag mr-2 text-red-500"></i>
+                        Ближайшие события
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-red-100 dark:bg-red-900 p-2 rounded-full mr-3">
+                                <i class="fas fa-graduation-cap text-red-500 dark:text-red-300"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Экзамен по астрофизике</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">25 ноября · 10:00 · Аудитория 301</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
+                                <i class="fas fa-users text-blue-500 dark:text-blue-300"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Научная конференция</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">28 ноября · 14:00 · Актовый зал</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full mr-3">
+                                <i class="fas fa-microscope text-green-500 dark:text-green-300"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Лабораторная работа</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">30 ноября · 11:00 · Лаборатория 105</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Страница успеваемости -->
+            <div id="progress-page" class="page hidden">
+                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-line mr-2 text-yellow-500"></i>
+                        Успеваемость
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-300">Ваша успеваемость по всем предметам.</p>
+                </div>
+
+                <!-- Общая статистика -->
+                <div class="glass-effect rounded-3xl p-6 mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold">Общий прогресс</h3>
+                        <span class="text-2xl font-bold text-green-500">85%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full" style="width: 85%"></div>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        <span>Начало семестра</span>
+                        <span>Конец семестра</span>
+                    </div>
+                </div>
+
+                <!-- Прогресс по предметам -->
+                <div class="space-y-4">
+                    <div class="progress-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-semibold">Астрофизика</h3>
+                            <span class="text-lg font-bold text-green-500">92%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-2">
+                            <span>Лекции: 100%</span>
+                            <span>Задания: 85%</span>
+                            <span>Тесты: 95%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-semibold">Космическая инженерия</h3>
+                            <span class="text-lg font-bold text-blue-500">78%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 78%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-2">
+                            <span>Лекции: 90%</span>
+                            <span>Задания: 70%</span>
+                            <span>Тесты: 80%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-card glass-effect rounded-2xl p-5 transition-transform hover:scale-[1.02] active:scale-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-semibold">Математический анализ</h3>
+                            <span class="text-lg font-bold text-purple-500">65%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div class="bg-purple-500 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mt-2">
+                            <span>Лекции: 80%</span>
+                            <span>Задания: 55%</span>
+                            <span>Тесты: 70%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Последние оценки -->
+                <div class="glass-effect rounded-3xl p-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-star mr-2 text-yellow-500"></i>
+                        Последние оценки
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-green-50 dark:bg-green-900/20">
+                            <div>
+                                <p class="font-medium">Тест по астрофизике</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">18 ноября</p>
+                            </div>
+                            <span class="text-xl font-bold text-green-500">95%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20">
+                            <div>
+                                <p class="font-medium">Проект по инженерии</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">15 ноября</p>
+                            </div>
+                            <span class="text-xl font-bold text-blue-500">88%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center p-3 rounded-xl bg-purple-50 dark:bg-purple-900/20">
+                            <div>
+                                <p class="font-medium">Контрольная по математике</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">12 ноября</p>
+                            </div>
+                            <span class="text-xl font-bold text-purple-500">76%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Статистика посещаемости -->
+                <div class="glass-effect rounded-3xl p-6 mt-6">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-calendar-check mr-2 text-blue-500"></i>
+                        Посещаемость
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-500">94%</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Общая посещаемость</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-500">12</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Пропущено пар</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Страница настроек -->
             <div id="settings-page" class="page hidden">
                 <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
@@ -344,62 +884,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Страница о сайте -->
-            <div id="about-page" class="page hidden">
-                <div class="glass-effect rounded-3xl p-6 mb-4 mt-4">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-info-circle mr-2 text-blue-500"></i>
-                        О приложении
-                    </h2>
-                    <p class="text-gray-600 dark:text-gray-300">Космический Университет - это инновационная платформа для обучения.</p>
-                </div>
-                
-                <div class="glass-effect rounded-2xl p-5 mb-4">
-                    <h3 class="font-semibold mb-3">Наша миссия</h3>
-                    <p class="text-gray-600 dark:text-gray-300 text-sm">Мы стремимся сделать образование доступным и увлекательным, используя передовые технологии и интерактивные методы обучения.</p>
-                </div>
-                
-                <div class="glass-effect rounded-2xl p-5 mb-4">
-                    <h3 class="font-semibold mb-3">Основные функции</h3>
-                    <ul class="text-gray-600 dark:text-gray-300 text-sm space-y-2">
-                        <li class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                            <span>Интерактивные лекции с 3D-моделями</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                            <span>Виртуальные лабораторные работы</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                            <span>Персональные рекомендации по обучению</span>
-                        </li>
-                        <li class="flex items-start">
-                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
-                            <span>Сообщество студентов и преподавателей</span>
-                        </li>
-                    </ul>
-                </div>
-                
-                <div class="glass-effect rounded-2xl p-5">
-                    <h3 class="font-semibold mb-3">Контакты</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center">
-                            <i class="fas fa-globe text-gray-500 mr-3"></i>
-                            <span class="text-gray-600 dark:text-gray-300">www.space-university.ru</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-envelope text-gray-500 mr-3"></i>
-                            <span class="text-gray-600 dark:text-gray-300">info@space-university.ru</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-phone text-gray-500 mr-3"></i>
-                            <span class="text-gray-600 dark:text-gray-300">+7 (495) 123-45-67</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
     
@@ -414,13 +898,17 @@
                 <i class="fas fa-book text-lg"></i>
                 <span class="text-xs mt-1">Учеба</span>
             </button>
+            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="lectures-page">
+                <i class="fas fa-video text-lg"></i>
+                <span class="text-xs mt-1">Лекции</span>
+            </button>
+            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="tasks-page">
+                <i class="fas fa-tasks text-lg"></i>
+                <span class="text-xs mt-1">Задания</span>
+            </button>
             <button class="tab-btn flex flex-col items-center text-gray-500" data-page="settings-page">
                 <i class="fas fa-cog text-lg"></i>
                 <span class="text-xs mt-1">Настройки</span>
-            </button>
-            <button class="tab-btn flex flex-col items-center text-gray-500" data-page="about-page">
-                <i class="fas fa-info text-lg"></i>
-                <span class="text-xs mt-1">О сайте</span>
             </button>
         </div>
     </nav>
@@ -455,6 +943,18 @@
         function setupNavigation() {
             const tabButtons = document.querySelectorAll('.tab-btn');
             const pages = document.querySelectorAll('.page');
+            const pageTitle = document.getElementById('page-title');
+            
+            // Названия страниц для заголовка
+            const pageTitles = {
+                'home-page': 'Космический Университет',
+                'study-page': 'Учеба',
+                'lectures-page': 'Лекции',
+                'tasks-page': 'Задания',
+                'schedule-page': 'Расписание',
+                'progress-page': 'Успеваемость',
+                'settings-page': 'Настройки'
+            };
             
             tabButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -467,6 +967,9 @@
                     });
                     this.classList.remove('text-gray-500');
                     this.classList.add('text-blue-500');
+                    
+                    // Обновляем заголовок
+                    pageTitle.textContent = pageTitles[targetPage] || 'Космический Университет';
                     
                     // Показываем целевую страницу, скрываем остальные
                     pages.forEach(page => {
@@ -536,7 +1039,34 @@
             widgetButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const action = this.getAttribute('data-action');
-                    showNotification(`Открыт раздел: ${getActionName(action)}`);
+                    const targetPage = action + '-page';
+                    
+                    // Переключаемся на соответствующую страницу
+                    if (document.getElementById(targetPage)) {
+                        document.querySelectorAll('.page').forEach(page => {
+                            page.classList.add('hidden');
+                        });
+                        document.getElementById(targetPage).classList.remove('hidden');
+                        
+                        // Обновляем активную кнопку в нижней панели
+                        document.querySelectorAll('.tab-btn').forEach(btn => {
+                            btn.classList.remove('text-blue-500');
+                            btn.classList.add('text-gray-500');
+                        });
+                        
+                        // Для страниц, которых нет в нижней панели, остаемся на главной
+                        if (document.querySelector(`.tab-btn[data-page="${targetPage}"]`)) {
+                            document.querySelector(`.tab-btn[data-page="${targetPage}"]`).classList.remove('text-gray-500');
+                            document.querySelector(`.tab-btn[data-page="${targetPage}"]`).classList.add('text-blue-500');
+                        } else {
+                            document.querySelector('.tab-btn[data-page="home-page"]').classList.add('text-blue-500');
+                        }
+                        
+                        // Обновляем заголовок
+                        document.getElementById('page-title').textContent = getActionName(action);
+                    } else {
+                        showNotification(`Открыт раздел: ${getActionName(action)}`);
+                    }
                 });
             });
         }
@@ -665,6 +1195,122 @@
             return courses[course] || course;
         }
         
+        // Функциональность фильтров лекций
+        function setupLectureFilters() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const lectureCards = document.querySelectorAll('.lecture-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Обновляем активный фильтр
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    this.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    this.classList.add('bg-blue-500', 'text-white');
+                    
+                    // Фильтруем лекции
+                    lectureCards.forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = 'block';
+                        } else {
+                            const status = card.getAttribute('data-status');
+                            if (status === filter) {
+                                card.style.display = 'block';
+                            } else {
+                                card.style.display = 'none';
+                            }
+                        }
+                    });
+                    
+                    showNotification(`Показаны ${getFilterName(filter)} лекции`);
+                });
+            });
+        }
+        
+        function getFilterName(filter) {
+            const filters = {
+                'all': 'все',
+                'new': 'новые',
+                'in-progress': 'в процессе',
+                'completed': 'завершённые'
+            };
+            return filters[filter] || filter;
+        }
+        
+        // Функциональность кнопок лекций
+        function setupLectureButtons() {
+            const watchButtons = document.querySelectorAll('.lecture-card button');
+            
+            watchButtons.forEach(button => {
+                if (button.textContent.includes('Смотреть') || button.textContent.includes('Продолжить')) {
+                    button.addEventListener('click', function() {
+                        const lectureCard = this.closest('.lecture-card');
+                        const lectureTitle = lectureCard.querySelector('h3').textContent;
+                        showNotification(`Лекция "${lectureTitle}" запущена`);
+                    });
+                }
+            });
+        }
+        
+        // Функциональность заданий
+        function setupTaskButtons() {
+            const taskButtons = document.querySelectorAll('.task-card button');
+            
+            taskButtons.forEach(button => {
+                if (button.textContent.includes('Сдать') || button.textContent.includes('Выполнить')) {
+                    button.addEventListener('click', function() {
+                        const taskCard = this.closest('.task-card');
+                        const taskTitle = taskCard.querySelector('.font-medium').textContent;
+                        showNotification(`Задание "${taskTitle}" открыто для выполнения`);
+                    });
+                }
+            });
+        }
+        
+        // Функциональность дней недели в расписании
+        function setupScheduleDays() {
+            const dayButtons = document.querySelectorAll('.day-btn');
+            
+            dayButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Убираем выделение у всех кнопок
+                    dayButtons.forEach(btn => {
+                        btn.classList.remove('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    // Добавляем выделение текущей кнопке
+                    this.classList.add('bg-gray-200', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                    
+                    // Показываем уведомление о смене дня
+                    const day = this.getAttribute('data-day');
+                    const dayNames = {
+                        'mon': 'Понедельник',
+                        'tue': 'Вторник',
+                        'wed': 'Среда',
+                        'thu': 'Четверг',
+                        'fri': 'Пятница'
+                    };
+                    showNotification(`Расписание на ${dayNames[day]}`);
+                });
+            });
+        }
+        
+        // Функциональность карточек успеваемости
+        function setupProgressCards() {
+            const progressCards = document.querySelectorAll('.progress-card');
+            
+            progressCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const subject = this.querySelector('h3').textContent;
+                    showNotification(`Детальная статистика по предмету "${subject}"`);
+                });
+            });
+        }
+        
         // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             createStars();
@@ -673,6 +1319,11 @@
             setupWidgets();
             setupNotifications();
             setupCourseCards();
+            setupLectureFilters();
+            setupLectureButtons();
+            setupTaskButtons();
+            setupScheduleDays();
+            setupProgressCards();
         });
     </script>
 </body>
