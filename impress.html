@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космическая тестирующая система</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Космический фон с звездами */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: 
+                radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%),
+                linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 100%);
+            overflow: hidden;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        /* Анимированные звезды */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Стили для эффекта космического стекла */
+        .cosmic-glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .cosmic-glow {
+            box-shadow: 
+                0 0 20px rgba(96, 165, 250, 0.3),
+                0 0 40px rgba(59, 130, 246, 0.2),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-item {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.2);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+            transition: width 0.5s ease;
+        }
+
+        /* Impress.js styles */
+        #impress {
+            width: 100%;
+            height: 100vh;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .step {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            width: 800px;
+            height: 600px;
+            padding: 2rem;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        /* Анимация появления */
+        .fade-in {
+            animation: cosmicFadeIn 1s ease-in;
+        }
+
+        @keyframes cosmicFadeIn {
+            from { 
+                opacity: 0; 
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+
+        /* Скрываем навигационные стрелки impress.js */
+        .impress-enabled .hint {
+            display: none !important;
+        }
+
+        /* Космические кнопки */
+        .cosmic-button {
+            background: linear-gradient(135deg, #1e40af, #3730a3);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cosmic-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cosmic-button:hover::before {
+            left: 100%;
+        }
+
+        .cosmic-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(59, 130, 246, 0.4),
+                0 0 0 1px rgba(96, 165, 250, 0.5);
+        }
+
+        /* Панель управления камерой */
+        .camera-controls {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .camera-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .camera-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+        }
+
+        .zoom-display {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #60a5fa;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        /* Адаптивные стили */
+        @media (max-width: 1024px) {
+            .step {
+                width: 90vw;
+                height: 70vh;
+                padding: 1.5rem;
+            }
+            
+            .camera-controls {
+                right: 10px;
+            }
+            
+            .camera-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .step {
+                width: 95vw;
+                height: 80vh;
+                padding: 1rem;
+            }
+            
+            .camera-controls {
+                display: none;
+            }
+        }
+
+        /* Пульсирующая анимация для важных элементов */
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(96, 165, 250, 0.3),
+                    0 0 40px rgba(59, 130, 246, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(96, 165, 250, 0.5),
+                    0 0 60px rgba(59, 130, 246, 0.3);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Инструкция по управлению */
+        .controls-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: #94a3b8;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Космический фон -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Контейнер для Impress.js -->
+    <div id="impress">
+        <!-- Главный экран - передняя грань -->
+        <div id="main" class="step" data-x="0" data-y="0" data-z="0" data-rotate-x="0" data-rotate-y="0" data-rotate-z="0">
+            <div class="cosmic-glass cosmic-glow rounded-3xl p-8 w-full h-full flex flex-col justify-center items-center text-center fade-in">
+                <div class="mb-8">
+                    <div class="text-6xl mb-4">🚀</div>
+                    <h1 class="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        Космическая викторина
+                    </h1>
+                    <p class="text-blue-200 text-xl">Исследуйте глубины медицинских знаний</p>
+                </div>
+                <button id="start-btn" class="cosmic-button font-semibold py-4 px-12 rounded-full text-lg transition-all duration-300 pulse-glow">
+                    Начать путешествие
+                </button>
+            </div>
+        </div>
+
+        <!-- Слайды с вопросами на других гранях куба -->
+        <div id="questions-container"></div>
+
+        <!-- Экран результатов - задняя грань -->
+        <div id="results" class="step" data-x="0" data-y="0" data-z="-1200" data-rotate-x="0" data-rotate-y="180" data-rotate-z="0">
+            <div class="cosmic-glass cosmic-glow rounded-3xl p-8 w-full h-full flex flex-col justify-center items-center text-center">
+                <div class="mb-8">
+                    <div class="text-6xl mb-4">🌌</div>
+                    <h1 class="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        Миссия завершена
+                    </h1>
+                </div>
+                <div id="results-content" class="text-blue-200 text-lg mb-8 w-full max-h-96 overflow-y-auto px-4">
+                    <!-- Результаты будут добавлены сюда -->
+                </div>
+                <button id="restart-btn" class="cosmic-button font-semibold py-3 px-8 rounded-full text-lg transition-all duration-300">
+                    Новое путешествие
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Панель управления камерой -->
+    <div class="camera-controls">
+        <button id="zoom-in" class="camera-btn" title="Приблизить">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+        </button>
+        <button id="zoom-out" class="camera-btn" title="Отдалить">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+            </svg>
+        </button>
+        <button id="reset-view" class="camera-btn" title="Сбросить вид">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Индикатор масштаба -->
+    <div id="zoom-display" class="zoom-display hidden">
+        Масштаб: <span id="zoom-level">100%</span>
+    </div>
+
+    <!-- Инструкция по управлению -->
+    <div class="controls-hint">
+        🔍 Колесико мыши - приближение/отдаление
+    </div>
+
+    <!-- Нижняя панель навигации -->
+    <div id="bottom-bar" class="fixed bottom-0 left-0 right-0 p-4 flex justify-center hidden">
+        <div class="cosmic-glass rounded-2xl p-3 flex space-x-8">
+            <button id="prev-btn" class="p-3 text-blue-300 opacity-50 transition-all duration-300 hover:opacity-100 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <div class="progress-bar w-40 my-auto">
+                <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <button id="next-btn" class="p-3 text-blue-300 transition-all duration-300 hover:scale-110 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Индикатор текущего вопроса -->
+    <div id="question-indicator" class="fixed top-4 right-4 cosmic-glass rounded-full px-4 py-2 text-blue-300 font-semibold hidden cosmic-glow">
+        <span class="text-white">🚀</span> Вопрос <span id="current-question" class="text-white">1</span> из <span id="total-questions" class="text-white">4</span>
+    </div>
+
+    <!-- Подключаем impress.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/impress.js/0.5.3/impress.min.js"></script>
+    <script>
+        // Данные теста в формате JSON
+        const testData = {
+            "title": "Космическая викторина по кардиологии",
+            "questions": [
+                {
+                    "question_id": 30,
+                    "question_text": "Чем характеризуется базальная обструкция выносящего тракта левого желудочка?",
+                    "choices": [
+                        "возникает только на фоне приёма нитратов",
+                        "возникает только при нагрузке",
+                        "характеризуется градиентом давления более 30 мм рт. ст.",
+                        "характеризуется спонтанными колебаниями внутрижелудочкового градиента давления без видимой причины"
+                    ],
+                    "correct_answer": "c"
+                },
+                {
+                    "question_id": 31,
+                    "question_text": "Что из перечисленного может уменьшать выраженность внутрижелудочкового градиента давления у больных гипертрофической кардиомиопатией?",
+                    "choices": [
+                        "назначение бета-адреноблокаторов",
+                        "назначение изопротеренола",
+                        "проведение пробы Вальсальвы",
+                        "увеличение ЧСС"
+                    ],
+                    "correct_answer": "a"
+                },
+                {
+                    "question_id": 32,
+                    "question_text": "Какой метод диагностики является наиболее информативным для оценки гипертрофии миокарда?",
+                    "choices": [
+                        "ЭКГ",
+                        "Рентгенография грудной клетки",
+                        "Эхокардиография",
+                        "КТ сердца"
+                    ],
+                    "correct_answer": "c"
+                },
+                {
+                    "question_id": 33,
+                    "question_text": "Какой препарат противопоказан при гипертрофической кардиомиопатии с обструкцией?",
+                    "choices": [
+                        "Бета-адреноблокаторы",
+                        "Блокаторы кальциевых каналов",
+                        "Нитраты",
+                        "Диуретики"
+                    ],
+                    "correct_answer": "c"
+                }
+            ]
+        };
+
+        // Переменные состояния приложения
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let testStarted = false;
+        let impressApi;
+        let currentScale = 1;
+        const minScale = 0.3;
+        const maxScale = 3;
+        const scaleStep = 0.2;
+
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            // Создаем звездное небо
+            createStars();
+            
+            // Генерация слайдов с вопросами
+            generateQuestionSlides();
+            
+            // Настройка обработчиков событий
+            setupEventListeners();
+            
+            // Инициализация impress.js
+            initImpress();
+            
+            // Обновление интерфейса
+            updateUI();
+        });
+
+        // Создание звездного неба
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // Случайные параметры звезды
+                const size = Math.random() * 3;
+                const duration = 3 + Math.random() * 7;
+                const delay = Math.random() * 5;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.animationDelay = `${delay}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Инициализация impress.js
+        function initImpress() {
+            // Инициализируем impress.js с настройками для куба
+            impressApi = impress();
+            impressApi.init();
+            
+            // Показываем индикатор масштаба
+            document.getElementById('zoom-display').classList.remove('hidden');
+            updateZoomDisplay();
+        }
+
+        // Генерация слайдов с вопросами на гранях куба
+        function generateQuestionSlides() {
+            const container = document.getElementById('questions-container');
+            const questions = testData.questions;
+            
+            // Располагаем вопросы на разных гранях куба
+            const cubePositions = [
+                { x: 1200, y: 0, z: 0, rotateY: 90 },    // Правая грань
+                { x: 0, y: 800, z: 0, rotateX: -90 },   // Верхняя грань
+                { x: -1200, y: 0, z: 0, rotateY: -90 }, // Левая грань
+                { x: 0, y: -800, z: 0, rotateX: 90 }    // Нижняя грань
+            ];
+            
+            questions.forEach((question, index) => {
+                const position = cubePositions[index] || cubePositions[0];
+                const slide = document.createElement('div');
+                slide.className = 'step question-slide';
+                slide.id = `question-${question.question_id}`;
+                
+                // Устанавливаем позицию на грани куба
+                slide.setAttribute('data-x', position.x);
+                slide.setAttribute('data-y', position.y);
+                slide.setAttribute('data-z', position.z);
+                slide.setAttribute('data-rotate-x', position.rotateX || 0);
+                slide.setAttribute('data-rotate-y', position.rotateY || 0);
+                slide.setAttribute('data-rotate-z', position.rotateZ || 0);
+                
+                const choicesHtml = question.choices.map((choice, choiceIndex) => {
+                    const letter = String.fromCharCode(97 + choiceIndex); // a, b, c, d
+                    return `
+                        <div class="choice-item cosmic-glass rounded-2xl p-4 mb-4 text-blue-200 cursor-pointer transition-all duration-300" data-choice="${letter}">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center mr-3 font-semibold text-white">
+                                    ${letter.toUpperCase()}
+                                </div>
+                                <span class="text-left">${choice}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                slide.innerHTML = `
+                    <div class="cosmic-glass cosmic-glow rounded-3xl p-8 w-full h-full flex flex-col justify-center fade-in">
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-blue-300 text-lg">Вопрос ${index + 1} из ${questions.length}</span>
+                                <span class="text-2xl">🛰️</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-white mt-3 leading-relaxed">${question.question_text}</h2>
+                        </div>
+                        <div class="choices-container flex-1 overflow-y-auto pr-2">
+                            ${choicesHtml}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(slide);
+                console.log(`Создан вопрос ${question.question_id} на позиции`, position);
+            });
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Кнопка начала теста
+            document.getElementById('start-btn').addEventListener('click', function() {
+                startTest();
+            });
+            
+            // Кнопка перезапуска теста
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                restartTest();
+            });
+            
+            // Кнопка "Назад"
+            document.getElementById('prev-btn').addEventListener('click', function() {
+                navigateToPrev();
+            });
+            
+            // Кнопка "Вперед"
+            document.getElementById('next-btn').addEventListener('click', function() {
+                navigateToNext();
+            });
+            
+            // Управление камерой
+            document.getElementById('zoom-in').addEventListener('click', function() {
+                zoomIn();
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', function() {
+                zoomOut();
+            });
+            
+            document.getElementById('reset-view').addEventListener('click', function() {
+                resetView();
+            });
+            
+            // Обработка колесика мыши для масштабирования
+            document.addEventListener('wheel', function(e) {
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+                e.preventDefault();
+            }, { passive: false });
+            
+            // Обработка выбора ответа
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.choice-item')) {
+                    handleAnswerSelection(e.target.closest('.choice-item'));
+                }
+            });
+            
+            // Обработка клавиш для навигации
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    navigateToPrev();
+                } else if (e.key === 'ArrowRight') {
+                    navigateToNext();
+                } else if (e.key === '+') {
+                    zoomIn();
+                } else if (e.key === '-') {
+                    zoomOut();
+                } else if (e.key === '0') {
+                    resetView();
+                } else if (e.key >= '1' && e.key <= '4') {
+                    // Быстрый выбор ответа цифрами 1-4
+                    const choiceIndex = parseInt(e.key) - 1;
+                    const currentSlide = document.querySelector('.step.active');
+                    if (currentSlide && currentSlide.classList.contains('question-slide')) {
+                        const choices = currentSlide.querySelectorAll('.choice-item');
+                        if (choices[choiceIndex]) {
+                            handleAnswerSelection(choices[choiceIndex]);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Приближение
+        function zoomIn() {
+            if (currentScale < maxScale) {
+                currentScale += scaleStep;
+                applyScale();
+            }
+        }
+
+        // Отдаление
+        function zoomOut() {
+            if (currentScale > minScale) {
+                currentScale -= scaleStep;
+                applyScale();
+            }
+        }
+
+        // Сброс вида
+        function resetView() {
+            currentScale = 1;
+            applyScale();
+        }
+
+        // Применение масштаба
+        function applyScale() {
+            const impressElement = document.getElementById('impress');
+            impressElement.style.transform = `scale(${currentScale})`;
+            updateZoomDisplay();
+        }
+
+        // Обновление индикатора масштаба
+        function updateZoomDisplay() {
+            const zoomLevel = Math.round(currentScale * 100);
+            document.getElementById('zoom-level').textContent = `${zoomLevel}%`;
+            
+            // Показываем индикатор на короткое время
+            const display = document.getElementById('zoom-display');
+            display.classList.remove('hidden');
+            clearTimeout(display.timeout);
+            display.timeout = setTimeout(() => {
+                display.classList.add('hidden');
+            }, 2000);
+        }
+
+        // Начать тест
+        function startTest() {
+            testStarted = true;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            document.getElementById('bottom-bar').classList.remove('hidden');
+            document.getElementById('question-indicator').classList.remove('hidden');
+            goToQuestion(currentQuestionIndex);
+            updateUI();
+        }
+
+        // Перезапустить тест
+        function restartTest() {
+            testStarted = true;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            document.getElementById('bottom-bar').classList.remove('hidden');
+            document.getElementById('question-indicator').classList.remove('hidden');
+            goToQuestion(currentQuestionIndex);
+            updateUI();
+        }
+
+        // Навигация назад
+        function navigateToPrev() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                goToQuestion(currentQuestionIndex);
+                updateUI();
+            } else {
+                // Возврат на главный экран
+                goToSlide('main');
+                document.getElementById('bottom-bar').classList.add('hidden');
+                document.getElementById('question-indicator').classList.add('hidden');
+                testStarted = false;
+            }
+        }
+
+        // Навигация вперед
+        function navigateToNext() {
+            if (currentQuestionIndex < testData.questions.length - 1) {
+                currentQuestionIndex++;
+                goToQuestion(currentQuestionIndex);
+                updateUI();
+            } else {
+                // Переход к результатам
+                showResults();
+                goToSlide('results');
+            }
+        }
+
+        // Обработка выбора ответа
+        function handleAnswerSelection(choiceItem) {
+            const questionSlide = choiceItem.closest('.question-slide');
+            if (!questionSlide) return;
+            
+            const questionId = parseInt(questionSlide.id.split('-')[1]);
+            const selectedChoice = choiceItem.getAttribute('data-choice');
+            
+            // Сохраняем ответ пользователя
+            userAnswers[questionId] = selectedChoice;
+            
+            // Визуально выделяем выбранный ответ
+            const allChoices = questionSlide.querySelectorAll('.choice-item');
+            allChoices.forEach(item => {
+                item.classList.remove('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+            });
+            choiceItem.classList.add('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+            
+            // Обновляем UI
+            updateUI();
+        }
+
+        // Перейти к вопросу по индексу
+        function goToQuestion(index) {
+            const currentQuestionId = testData.questions[index].question_id;
+            const questionElement = document.getElementById(`question-${currentQuestionId}`);
+            
+            if (questionElement) {
+                goToSlide(`question-${currentQuestionId}`);
+                restoreSelectedAnswer();
+            } else {
+                console.error(`Вопрос с ID ${currentQuestionId} не найден`);
+            }
+        }
+
+        // Перейти к слайду по ID
+        function goToSlide(slideId) {
+            const slide = document.getElementById(slideId);
+            if (slide && impressApi) {
+                console.log(`Переход к слайду: ${slideId}`);
+                impressApi.goto(slide);
+            } else {
+                console.error(`Слайд с ID ${slideId} не найден`);
+            }
+        }
+
+        // Восстановить выбранный ответ
+        function restoreSelectedAnswer() {
+            const currentQuestionId = testData.questions[currentQuestionIndex].question_id;
+            const userAnswer = userAnswers[currentQuestionId];
+            
+            if (userAnswer) {
+                const currentSlide = document.getElementById(`question-${currentQuestionId}`);
+                if (currentSlide) {
+                    const allChoices = currentSlide.querySelectorAll('.choice-item');
+                    
+                    allChoices.forEach(item => {
+                        if (item.getAttribute('data-choice') === userAnswer) {
+                            item.classList.add('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+                        } else {
+                            item.classList.remove('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Обновление индикатора вопроса
+        function updateQuestionIndicator() {
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = testData.questions.length;
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            if (!testStarted) return;
+            
+            const totalQuestions = testData.questions.length;
+            const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+            
+            // Обновление прогресс-бара
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            
+            // Обновление состояния кнопок
+            const prevBtn = document.getElementById('prev-btn');
+            if (currentQuestionIndex === 0) {
+                prevBtn.classList.add('opacity-50');
+                prevBtn.classList.remove('opacity-100');
+            } else {
+                prevBtn.classList.remove('opacity-50');
+                prevBtn.classList.add('opacity-100');
+            }
+            
+            // Обновление иконки кнопки "Далее"
+            const nextBtn = document.getElementById('next-btn');
+            if (currentQuestionIndex === totalQuestions - 1) {
+                nextBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                `;
+            } else {
+                nextBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                `;
+            }
+            
+            // Обновление индикатора вопроса
+            updateQuestionIndicator();
+        }
+
+        // Показать результаты теста
+        function showResults() {
+            const resultsContainer = document.getElementById('results-content');
+            let correctAnswers = 0;
+            
+            const resultsHtml = testData.questions.map(question => {
+                const userAnswer = userAnswers[question.question_id];
+                const isCorrect = userAnswer === question.correct_answer;
+                
+                if (isCorrect) correctAnswers++;
+                
+                const userAnswerText = userAnswer ? 
+                    question.choices[userAnswer.charCodeAt(0) - 97] : 'Нет ответа';
+                const correctAnswerText = question.choices[question.correct_answer.charCodeAt(0) - 97];
+                
+                return `
+                    <div class="mb-4 p-4 rounded-xl ${isCorrect ? 'bg-green-500 bg-opacity-20 border border-green-400' : 'bg-red-500 bg-opacity-20 border border-red-400'}">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-semibold text-white text-sm flex-1 mr-4">${question.question_text}</h3>
+                            <span class="text-sm ${isCorrect ? 'text-green-300' : 'text-red-300'} whitespace-nowrap">
+                                ${isCorrect ? '✓ Правильно' : '✗ Неправильно'}
+                            </span>
+                        </div>
+                        <div class="text-sm text-blue-200">
+                            <p class="mb-1"><span class="font-semibold text-white">Ваш ответ:</span> ${userAnswerText}</p>
+                            <p><span class="font-semibold text-white">Правильный ответ:</span> ${correctAnswerText}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const scorePercentage = Math.round((correctAnswers / testData.questions.length) * 100);
+            
+            // Определяем сообщение в зависимости от результата
+            let message = "";
+            let emoji = "🌠";
+            if (scorePercentage >= 90) {
+                message = "Потрясающе! Вы настоящий эксперт!";
+                emoji = "🚀";
+            } else if (scorePercentage >= 70) {
+                message = "Отличный результат!";
+                emoji = "⭐";
+            } else if (scorePercentage >= 50) {
+                message = "Хорошая работа!";
+                emoji = "✨";
+            } else {
+                message = "Продолжайте изучать материал!";
+                emoji = "🌌";
+            }
+            
+            resultsContainer.innerHTML = `
+                <div class="mb-6 text-center">
+                    <div class="text-6xl mb-4">${emoji}</div>
+                    <div class="text-5xl font-bold mb-2 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">${scorePercentage}%</div>
+                    <div class="text-xl text-white mb-2">Правильных ответов: ${correctAnswers} из ${testData.questions.length}</div>
+                    <div class="text-lg text-blue-300">${message}</div>
+                </div>
+                ${resultsHtml}
+            `;
+            
+            // Скрыть нижнюю панель и индикатор на экране результатов
+            document.getElementById('bottom-bar').classList.add('hidden');
+            document.getElementById('question-indicator').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
