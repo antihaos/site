@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космическая викторина по Linux</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Космический фон с звездами */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: 
+                radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%),
+                linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 100%);
+            overflow: hidden;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        /* Анимированные звезды */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Стили для эффекта космического стекла */
+        .cosmic-glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .cosmic-glow {
+            box-shadow: 
+                0 0 20px rgba(96, 165, 250, 0.3),
+                0 0 40px rgba(59, 130, 246, 0.2),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-item {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-item:hover {
+            transform: translateY(-2px);
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.2);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+            transition: width 0.5s ease;
+        }
+
+        /* Стили для карусели слайдов */
+        .slides-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.5s ease;
+            pointer-events: none;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .slide-content {
+            width: 800px;
+            max-width: 90%;
+            height: 600px;
+            max-height: 90%;
+        }
+
+        /* Анимация появления */
+        .fade-in {
+            animation: cosmicFadeIn 1s ease-in;
+        }
+
+        @keyframes cosmicFadeIn {
+            from { 
+                opacity: 0; 
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+
+        /* Космические кнопки */
+        .cosmic-button {
+            background: linear-gradient(135deg, #1e40af, #3730a3);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cosmic-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cosmic-button:hover::before {
+            left: 100%;
+        }
+
+        .cosmic-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 25px rgba(59, 130, 246, 0.4),
+                0 0 0 1px rgba(96, 165, 250, 0.5);
+        }
+
+        /* Пульсирующая анимация для важных элементов */
+        @keyframes pulse-glow {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(96, 165, 250, 0.3),
+                    0 0 40px rgba(59, 130, 246, 0.2);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 30px rgba(96, 165, 250, 0.5),
+                    0 0 60px rgba(59, 130, 246, 0.3);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Адаптивные стили */
+        @media (max-width: 1024px) {
+            .slide-content {
+                width: 90vw;
+                height: 70vh;
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide-content {
+                width: 95vw;
+                height: 80vh;
+                padding: 1rem;
+            }
+            
+            .mobile-nav {
+                display: flex !important;
+            }
+            
+            .desktop-nav {
+                display: none !important;
+            }
+        }
+
+        /* Навигация для десктопов */
+        .desktop-nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .nav-btn:disabled:hover {
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: none;
+        }
+
+        /* Навигация для мобильных устройств */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            gap: 15px;
+        }
+        
+        .mobile-nav-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #60a5fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .mobile-nav-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.4);
+        }
+        
+        .mobile-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .mobile-nav-btn:disabled:hover {
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: none;
+        }
+
+        /* Индикатор прогресса */
+        .progress-indicator {
+            min-width: 120px;
+            text-align: center;
+            color: #60a5fa;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Космический фон -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Контейнер для слайдов -->
+    <div class="slides-container">
+        <!-- Главный экран -->
+        <div id="main" class="slide active">
+            <div class="slide-content cosmic-glass cosmic-glow rounded-3xl flex flex-col justify-center items-center text-center fade-in">
+                <div class="mb-8">
+                    <div class="text-6xl mb-4">🐧</div>
+                    <h1 class="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                        Космическая викторина по Linux
+                    </h1>
+                    <p class="text-blue-200 text-xl">Проверьте свои знания операционной системы</p>
+                </div>
+                <button id="start-btn" class="cosmic-button font-semibold py-4 px-12 rounded-full text-lg transition-all duration-300 pulse-glow">
+                    Начать тестирование
+                </button>
+            </div>
+        </div>
+
+        <!-- Слайды с вопросами -->
+        <div id="questions-container"></div>
+
+        <!-- Экран результатов -->
+        <div id="results" class="slide">
+            <div class="slide-content cosmic-glass cosmic-glow rounded-3xl flex flex-col justify-center items-center text-center">
+                <div class="mb-8">
+                    <div class="text-6xl mb-4">🌌</div>
+                    <h1 class="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+                        Тестирование завершено
+                    </h1>
+                </div>
+                <div id="results-content" class="text-blue-200 text-lg mb-8 w-full max-h-96 overflow-y-auto px-4">
+                    <!-- Результаты будут добавлены сюда -->
+                </div>
+                <button id="restart-btn" class="cosmic-button font-semibold py-3 px-8 rounded-full text-lg transition-all duration-300">
+                    Пройти снова
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигация для десктопов -->
+    <div class="desktop-nav hidden" id="desktop-nav">
+        <button id="prev-btn" class="nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Назад
+        </button>
+        
+        <div class="progress-indicator cosmic-glass rounded-full px-4 py-2">
+            <span id="current-question">1</span> / <span id="total-questions">8</span>
+        </div>
+        
+        <button id="next-btn" class="nav-btn">
+            Далее
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Навигация для мобильных устройств -->
+    <div class="mobile-nav hidden" id="mobile-nav">
+        <button id="mobile-prev" class="mobile-nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button id="mobile-next" class="mobile-nav-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        // Данные теста по Linux
+        const testData = {
+            "title": "Космическая викторина по Linux",
+            "questions": [
+                {
+                    "question_id": 1,
+                    "question_text": "Какая команда используется для просмотра содержимого каталога в Linux?",
+                    "choices": [
+                        "dir",
+                        "list",
+                        "ls",
+                        "show"
+                    ],
+                    "correct_answer": "c"
+                },
+                {
+                    "question_id": 2,
+                    "question_text": "Какой символ используется для обозначения домашней директории пользователя?",
+                    "choices": [
+                        "/home",
+                        "~",
+                        "&",
+                        "$HOME"
+                    ],
+                    "correct_answer": "b"
+                },
+                {
+                    "question_id": 3,
+                    "question_text": "Какая команда позволяет изменить права доступа к файлу?",
+                    "choices": [
+                        "chmod",
+                        "chown",
+                        "chattr",
+                        "setperm"
+                    ],
+                    "correct_answer": "a"
+                },
+                {
+                    "question_id": 4,
+                    "question_text": "Что делает команда 'grep'?",
+                    "choices": [
+                        "Управляет группами пользователей",
+                        "Ищет текст по шаблону в файлах",
+                        "Создает графические отчеты",
+                        "Управляет процессами"
+                    ],
+                    "correct_answer": "b"
+                },
+                {
+                    "question_id": 5,
+                    "question_text": "Какой файл содержит информацию о загружаемых модулях ядра?",
+                    "choices": [
+                        "/etc/modules",
+                        "/proc/modules",
+                        "/sys/modules",
+                        "/lib/modules"
+                    ],
+                    "correct_answer": "a"
+                },
+                {
+                    "question_id": 6,
+                    "question_text": "Что означает опция -r в команде rm?",
+                    "choices": [
+                        "Рекурсивное удаление",
+                        "Чтение файла",
+                        "Перезапись",
+                        "Восстановление"
+                    ],
+                    "correct_answer": "a"
+                },
+                {
+                    "question_id": 7,
+                    "question_text": "Какая команда показывает занятое дисковое пространство?",
+                    "choices": [
+                        "diskfree",
+                        "df",
+                        "du",
+                        "freespace"
+                    ],
+                    "correct_answer": "b"
+                },
+                {
+                    "question_id": 8,
+                    "question_text": "Какой демон отвечает за планирование заданий в Linux?",
+                    "choices": [
+                        "init",
+                        "systemd",
+                        "cron",
+                        "scheduler"
+                    ],
+                    "correct_answer": "c"
+                }
+            ]
+        };
+
+        // Переменные состояния приложения
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let testStarted = false;
+
+        // Инициализация приложения
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            generateQuestionSlides();
+            setupEventListeners();
+            updateUI();
+        });
+
+        // Создание звездного неба
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                const size = Math.random() * 3;
+                const duration = 3 + Math.random() * 7;
+                const delay = Math.random() * 5;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.setProperty('--duration', `${duration}s`);
+                star.style.animationDelay = `${delay}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Генерация слайдов с вопросами
+        function generateQuestionSlides() {
+            const container = document.getElementById('questions-container');
+            const questions = testData.questions;
+            
+            questions.forEach((question, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide question-slide';
+                slide.id = `question-${question.question_id}`;
+                
+                const choicesHtml = question.choices.map((choice, choiceIndex) => {
+                    const letter = String.fromCharCode(97 + choiceIndex);
+                    return `
+                        <div class="choice-item cosmic-glass rounded-2xl p-4 mb-4 text-blue-200 cursor-pointer transition-all duration-300" data-choice="${letter}">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-blue-500 bg-opacity-20 flex items-center justify-center mr-3 font-semibold text-white">
+                                    ${letter.toUpperCase()}
+                                </div>
+                                <span class="text-left">${choice}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                slide.innerHTML = `
+                    <div class="slide-content cosmic-glass cosmic-glow rounded-3xl p-8 flex flex-col justify-center fade-in">
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-blue-300 text-lg">Вопрос ${index + 1} из ${questions.length}</span>
+                                <span class="text-2xl">🐧</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-white mt-3 leading-relaxed">${question.question_text}</h2>
+                        </div>
+                        <div class="choices-container flex-1 overflow-y-auto pr-2">
+                            ${choicesHtml}
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(slide);
+            });
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            document.getElementById('start-btn').addEventListener('click', startTest);
+            document.getElementById('restart-btn').addEventListener('click', restartTest);
+            document.getElementById('prev-btn').addEventListener('click', navigateToPrev);
+            document.getElementById('next-btn').addEventListener('click', navigateToNext);
+            document.getElementById('mobile-prev').addEventListener('click', navigateToPrev);
+            document.getElementById('mobile-next').addEventListener('click', navigateToNext);
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.choice-item')) {
+                    handleAnswerSelection(e.target.closest('.choice-item'));
+                }
+            });
+            
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    navigateToPrev();
+                } else if (e.key === 'ArrowRight') {
+                    navigateToNext();
+                } else if (e.key >= '1' && e.key <= '4') {
+                    const choiceIndex = parseInt(e.key) - 1;
+                    const currentSlide = document.querySelector('.slide.active.question-slide');
+                    if (currentSlide) {
+                        const choices = currentSlide.querySelectorAll('.choice-item');
+                        if (choices[choiceIndex]) {
+                            handleAnswerSelection(choices[choiceIndex]);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Начать тест
+        function startTest() {
+            testStarted = true;
+            currentQuestionIndex = 0;
+            userAnswers = {}; // ОБНУЛЕНИЕ ОТВЕТОВ
+            document.getElementById('desktop-nav').classList.remove('hidden');
+            document.getElementById('mobile-nav').classList.remove('hidden');
+            goToQuestion(currentQuestionIndex);
+            updateUI();
+        }
+
+        // Перезапустить тест
+        function restartTest() {
+            testStarted = true;
+            currentQuestionIndex = 0;
+            userAnswers = {}; // ОБНУЛЕНИЕ ОТВЕТОВ ПРИ ПЕРЕЗАПУСКЕ
+            document.getElementById('desktop-nav').classList.remove('hidden');
+            document.getElementById('mobile-nav').classList.remove('hidden');
+            
+            // Сброс всех выбранных ответов на слайдах
+            const allQuestionSlides = document.querySelectorAll('.question-slide');
+            allQuestionSlides.forEach(slide => {
+                const choices = slide.querySelectorAll('.choice-item');
+                choices.forEach(choice => {
+                    choice.classList.remove('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+                });
+            });
+            
+            goToQuestion(currentQuestionIndex);
+            updateUI();
+        }
+
+        // Навигация назад
+        function navigateToPrev() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                goToQuestion(currentQuestionIndex);
+                updateUI();
+            } else {
+                goToSlide('main');
+                document.getElementById('desktop-nav').classList.add('hidden');
+                document.getElementById('mobile-nav').classList.add('hidden');
+                testStarted = false;
+            }
+        }
+
+        // Навигация вперед
+        function navigateToNext() {
+            if (currentQuestionIndex < testData.questions.length - 1) {
+                currentQuestionIndex++;
+                goToQuestion(currentQuestionIndex);
+                updateUI();
+            } else {
+                showResults();
+                goToSlide('results');
+            }
+        }
+
+        // Обработка выбора ответа
+        function handleAnswerSelection(choiceItem) {
+            const questionSlide = choiceItem.closest('.question-slide');
+            if (!questionSlide) return;
+            
+            const questionId = parseInt(questionSlide.id.split('-')[1]);
+            const selectedChoice = choiceItem.getAttribute('data-choice');
+            
+            userAnswers[questionId] = selectedChoice;
+            
+            const allChoices = questionSlide.querySelectorAll('.choice-item');
+            allChoices.forEach(item => {
+                item.classList.remove('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+            });
+            choiceItem.classList.add('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+            
+            updateUI();
+        }
+
+        // Перейти к вопросу по индексу
+        function goToQuestion(index) {
+            const currentQuestionId = testData.questions[index].question_id;
+            const questionElement = document.getElementById(`question-${currentQuestionId}`);
+            
+            if (questionElement) {
+                goToSlide(`question-${currentQuestionId}`);
+                restoreSelectedAnswer();
+            }
+        }
+
+        // Перейти к слайду по ID
+        function goToSlide(slideId) {
+            const allSlides = document.querySelectorAll('.slide');
+            allSlides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            const targetSlide = document.getElementById(slideId);
+            if (targetSlide) {
+                targetSlide.classList.add('active');
+            }
+        }
+
+        // Восстановить выбранный ответ
+        function restoreSelectedAnswer() {
+            const currentQuestionId = testData.questions[currentQuestionIndex].question_id;
+            const userAnswer = userAnswers[currentQuestionId];
+            
+            if (userAnswer) {
+                const currentSlide = document.getElementById(`question-${currentQuestionId}`);
+                if (currentSlide) {
+                    const allChoices = currentSlide.querySelectorAll('.choice-item');
+                    
+                    allChoices.forEach(item => {
+                        if (item.getAttribute('data-choice') === userAnswer) {
+                            item.classList.add('cosmic-glow', 'border-blue-400', 'scale-105', 'bg-blue-500', 'bg-opacity-30');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            if (!testStarted) return;
+            
+            const totalQuestions = testData.questions.length;
+            
+            // Обновление индикатора прогресса
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = totalQuestions;
+            
+            // Обновление состояния кнопок
+            const prevBtn = document.getElementById('prev-btn');
+            const mobilePrevBtn = document.getElementById('mobile-prev');
+            const nextBtn = document.getElementById('next-btn');
+            const mobileNextBtn = document.getElementById('mobile-next');
+            
+            if (currentQuestionIndex === 0) {
+                [prevBtn, mobilePrevBtn].forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                });
+            } else {
+                [prevBtn, mobilePrevBtn].forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+                });
+            }
+            
+            if (currentQuestionIndex === totalQuestions - 1) {
+                [nextBtn, mobileNextBtn].forEach(btn => {
+                    btn.innerHTML = btn.id.includes('mobile') ? 
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>' :
+                        'Завершить <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>';
+                });
+            } else {
+                [nextBtn, mobileNextBtn].forEach(btn => {
+                    btn.innerHTML = btn.id.includes('mobile') ? 
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>' :
+                        'Далее <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>';
+                });
+            }
+        }
+
+        // Показать результаты теста
+        function showResults() {
+            const resultsContainer = document.getElementById('results-content');
+            let correctAnswers = 0;
+            
+            const resultsHtml = testData.questions.map(question => {
+                const userAnswer = userAnswers[question.question_id];
+                const isCorrect = userAnswer === question.correct_answer;
+                
+                if (isCorrect) correctAnswers++;
+                
+                const userAnswerText = userAnswer ? 
+                    question.choices[userAnswer.charCodeAt(0) - 97] : 'Нет ответа';
+                const correctAnswerText = question.choices[question.correct_answer.charCodeAt(0) - 97];
+                
+                return `
+                    <div class="mb-4 p-4 rounded-xl ${isCorrect ? 'bg-green-500 bg-opacity-20 border border-green-400' : 'bg-red-500 bg-opacity-20 border border-red-400'}">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-semibold text-white text-sm flex-1 mr-4">${question.question_text}</h3>
+                            <span class="text-sm ${isCorrect ? 'text-green-300' : 'text-red-300'} whitespace-nowrap">
+                                ${isCorrect ? '✓ Правильно' : '✗ Неправильно'}
+                            </span>
+                        </div>
+                        <div class="text-sm text-blue-200">
+                            <p class="mb-1"><span class="font-semibold text-white">Ваш ответ:</span> ${userAnswerText}</p>
+                            <p><span class="font-semibold text-white">Правильный ответ:</span> ${correctAnswerText}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const scorePercentage = Math.round((correctAnswers / testData.questions.length) * 100);
+            
+            let message = "";
+            let emoji = "🌠";
+            if (scorePercentage >= 90) {
+                message = "Потрясающе! Вы Linux-гуру!";
+                emoji = "🚀";
+            } else if (scorePercentage >= 70) {
+                message = "Отличный результат!";
+                emoji = "⭐";
+            } else if (scorePercentage >= 50) {
+                message = "Хорошая работа!";
+                emoji = "✨";
+            } else {
+                message = "Продолжайте изучать Linux!";
+                emoji = "📚";
+            }
+            
+            resultsContainer.innerHTML = `
+                <div class="mb-6 text-center">
+                    <div class="text-6xl mb-4">${emoji}</div>
+                    <div class="text-5xl font-bold mb-2 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">${scorePercentage}%</div>
+                    <div class="text-xl text-white mb-2">Правильных ответов: ${correctAnswers} из ${testData.questions.length}</div>
+                    <div class="text-lg text-blue-300">${message}</div>
+                </div>
+                ${resultsHtml}
+            `;
+            
+            document.getElementById('desktop-nav').classList.add('hidden');
+            document.getElementById('mobile-nav').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
