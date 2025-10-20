@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Liquid Glass SPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="src/styles/main.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="cosmic-gradient text-white">
+    <!-- Космический декор -->
+    <div id="cosmic-decor"></div>
+    
+    <!-- Основной контейнер -->
+    <div class="relative max-w-md mx-auto h-screen flex flex-col">
+        <!-- Страницы -->
+        <div class="flex-1 relative overflow-hidden">
+            <!-- Главная страница будет загружена динамически -->
+            <div id="home-page-container"></div>
+            
+            <!-- Страница тестов будет загружена динамически -->
+            <div id="tests-page-container"></div>
+            
+            <!-- Страница настроек будет загружена динамически -->
+            <div id="settings-page-container"></div>
+        </div>
+        
+        <!-- Bottom Bar будет загружен динамически -->
+        <div id="bottom-bar-container"></div>
+    </div>
+
+    <script type="module" src="src/scripts/app.js"></script>
+</body>
+</html>

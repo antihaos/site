@@ -1,0 +1,93 @@
+<div id="tests-page" class="page stacked-page">
+    <!-- Заголовок будет загружен динамически -->
+    <div id="tests-page-header-container"></div>
+    
+    <!-- Содержимое страницы -->
+    <div class="page-content">
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold mb-2">Тесты по Linux (продвинутый уровень)</h2>
+            <p class="text-gray-300 text-sm mb-4">Проверьте свои знания по продвинутым темам Linux. Всего 20 тестов.</p>
+        </div>
+        
+        <!-- Контейнер для тестов Linux -->
+        <div id="linux-tests-container" class="space-y-4 mb-6"></div>
+        
+        <!-- Кнопка для запуска всех тестов -->
+        <button id="run-all-linux-tests-btn" class="glass rounded-2xl p-4 w-full text-center font-semibold">
+            <i class="fas fa-play-circle mr-2"></i>
+            Запустить все тесты Linux
+        </button>
+        
+        <!-- Разделитель -->
+        <div class="border-t border-gray-700 my-6"></div>
+        
+        <!-- Оригинальные тесты системы -->
+        <div class="mb-4">
+            <h2 class="text-xl font-semibold mb-2">Оригинальные тесты системы</h2>
+            <p class="text-gray-300 text-sm mb-4">Тестирование основных систем космической станции.</p>
+        </div>
+        
+        <div class="space-y-4">
+            <div id="engine-test" class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">Двигательная установка</h2>
+                    <span id="engine-status" class="text-green-400 text-sm">Пройден</span>
+                </div>
+                <p class="text-gray-300 text-sm mb-3">Тест на полную мощность</p>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="engine-progress" class="test-progress bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                </div>
+                <button id="engine-test-btn" class="mt-3 text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full">
+                    <i class="fas fa-redo mr-1"></i>Повторить
+                </button>
+            </div>
+            
+            <div id="navigation-test" class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">Система навигации</h2>
+                    <span id="navigation-status" class="text-yellow-400 text-sm">В процессе</span>
+                </div>
+                <p class="text-gray-300 text-sm mb-3">Калибровка звездных датчиков</p>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="navigation-progress" class="test-progress bg-yellow-500 h-2 rounded-full" style="width: 60%"></div>
+                </div>
+                <button id="navigation-test-btn" class="mt-3 text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full">
+                    <i class="fas fa-play mr-1"></i>Запустить
+                </button>
+            </div>
+            
+            <div id="life-support-test" class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">Система жизнеобеспечения</h2>
+                    <span id="life-support-status" class="text-blue-400 text-sm">Ожидание</span>
+                </div>
+                <p class="text-gray-300 text-sm mb-3">Проверка атмосферы</p>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="life-support-progress" class="test-progress bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+                <button id="life-support-test-btn" class="mt-3 text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full">
+                    <i class="fas fa-play mr-1"></i>Запустить
+                </button>
+            </div>
+            
+            <div id="communication-test" class="glass rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold">Связь</h2>
+                    <span id="communication-status" class="text-green-400 text-sm">Пройден</span>
+                </div>
+                <p class="text-gray-300 text-sm mb-3">Тест передачи данных</p>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="communication-progress" class="test-progress bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                </div>
+                <button id="communication-test-btn" class="mt-3 text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-full">
+                    <i class="fas fa-redo mr-1"></i>Повторить
+                </button>
+            </div>
+        </div>
+        
+        <button id="run-all-tests-btn" class="glass rounded-2xl p-4 mt-6 w-full text-center font-semibold">
+            <i class="fas fa-play-circle mr-2"></i>
+            Запустить все тесты
+        </button>
+    </div>
+</div>
