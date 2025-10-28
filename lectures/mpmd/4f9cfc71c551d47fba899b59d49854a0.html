@@ -1,0 +1,2528 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Методы обработки и улучшения качества аудиоданных - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Python';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .complexity-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .complexity-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .complexity-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+        }
+
+        .mermaid {
+            background: white;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .format-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .format-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .format-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .format-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .effect {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-primary);
+        }
+
+        .filter {
+            background: rgba(255, 46, 99, 0.2);
+            color: var(--accent-secondary);
+        }
+
+        .enhancement {
+            background: rgba(100, 255, 100, 0.2);
+            color: #64ff64;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .algorithm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .algorithm-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .algorithm-title {
+            font-weight: 600;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .library-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .library-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .language-tabs {
+            display: flex;
+            margin-bottom: -1px;
+            flex-wrap: wrap;
+        }
+
+        .language-tab {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .language-tab.active {
+            background: #1e293b;
+            color: var(--accent-primary);
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .code-content {
+            display: none;
+        }
+
+        .code-content.active {
+            display: block;
+        }
+
+        /* Стили для графиков и визуализаций */
+        .graph-container {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .graph-title {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .graph-description {
+            color: var(--text-secondary);
+            margin-top: 10px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .signal-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .signal-item {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .signal-name {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .format-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .complexity-chart {
+                grid-template-columns: 1fr;
+            }
+
+            .algorithm-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .library-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .signal-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение</a>
+        <a href="#section2" class="nav-item">Основы ЦОС</a>
+        <a href="#section3" class="nav-item">Фильтрация</a>
+        <a href="#section4" class="nav-item">Шумоподавление</a>
+        <a href="#section5" class="nav-item">Улучшение качества</a>
+        <a href="#section6" class="nav-item">Эффекты</a>
+        <a href="#section7" class="nav-item">Спектральный анализ</a>
+        <a href="#section8" class="nav-item">Современные методы</a>
+        <a href="#section9" class="nav-item">Практика</a>
+        <a href="#section10" class="nav-item">Библиотеки</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Методы обработки и улучшения качества аудиоданных</h1>
+            <p class="lecture-subtitle">Подробный конспект лекции для направления "Программная инженерия"</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение: Проблемы качества аудио и методы их решения</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные проблемы качества аудиосигналов</h3>
+                    <div class="text-content">
+                        <p>Цифровая обработка звука позволяет решать различные проблемы, возникающие при записи, передаче и воспроизведении аудиосигналов. Качество звука может страдать из-за множества факторов.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Проблемы качества аудио] --> B[Шумы и помехи]
+                                A --> C[Искажения частотной характеристики]
+                                A --> D[Динамические искажения]
+                                A --> E[Артефакты сжатия]
+
+                                B --> F["- Фоновый шум<br>- Щелчки и треск<br>- Гул сети"]
+                                C --> G["- Недостаток низких/высоких<br>- Резонансы<br>- Фазовые искажения"]
+                                D --> H["- Клиппинг<br>- Перегрузка<br>- Нелинейные искажения"]
+                                E --> I["- Артефакты MP3<br>- Прерывания потока<br>- Потеря высоких частот"]
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Классификация методов обработки:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Коррекция частотной характеристики</span>: эквалайзеры, фильтры</li>
+                            <li><span class="highlight">Динамическая обработка</span>: компрессоры, лимитеры, экспандеры</li>
+                            <li><span class="highlight">Пространственная обработка</span>: реверберация, задержка, панорамирование</li>
+                            <li><span class="highlight">Специальные эффекты</span>: дисторшн, хорус, фленджер</li>
+                            <li><span class="highlight">Восстановление</span>: удаление шумов, восстановление клиппинга</li>
+                        </ul>
+
+                        <div class="formula">
+                            <div class="formula-title">Общая модель обработки аудиосигнала</div>
+                            <div class="katex-formula" id="formula1"></div>
+                            <div class="formula-explanation">
+                                <p>где \( x[n] \) - входной сигнал, \( h[n] \) - импульсная характеристика системы обработки, \( y[n] \) - выходной сигнал. Свертка описывает линейные системы обработки.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>Основные проблемы: шумы, частотные искажения, динамические искажения, артефакты сжатия</li>
+                        <li>Методы обработки включают коррекцию, динамическую обработку, пространственные эффекты</li>
+                        <li>Линейные системы описываются операцией свертки</li>
+                        <li>Цифровая обработка позволяет исправлять дефекты, недоступные для аналоговой коррекции</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Основы ЦОС -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Основы цифровой обработки сигналов</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Дискретное преобразование Фурье (DFT)</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Дискретное преобразование Фурье</div>
+                        <div class="katex-formula" id="formula2"></div>
+                        <div class="formula-explanation">
+                            <p>где \( x[n] \) - дискретный сигнал, \( X[k] \) - его спектр, \( N \) - размер преобразования. DFT позволяет анализировать частотный состав сигнала.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Обратное преобразование Фурье</div>
+                        <div class="katex-formula" id="formula3"></div>
+                        <div class="formula-explanation">
+                            <p>Обратное преобразование позволяет восстановить сигнал из его частотного представления.</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import numpy as np
+import matplotlib.pyplot as plt
+
+def analyze_spectrum(audio_signal, sample_rate):
+    """Анализ спектра аудиосигнала"""
+    # Применение БПФ
+    spectrum = np.fft.fft(audio_signal)
+    frequencies = np.fft.fftfreq(len(audio_signal), 1/sample_rate)
+
+    # Вычисление амплитудного спектра
+    magnitude_spectrum = np.abs(spectrum)
+
+    # Нормализация
+    magnitude_spectrum = magnitude_spectrum / len(audio_signal)
+
+    return frequencies[:len(frequencies)//2], magnitude_spectrum[:len(magnitude_spectrum)//2]
+
+# Пример использования
+if __name__ == "__main__":
+    # Создание тестового сигнала (смесь частот)
+    sample_rate = 44100
+    duration = 1.0
+    t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+
+    # Сигнал с тремя частотами
+    signal_250hz = 0.5 * np.sin(2 * np.pi * 250 * t)
+    signal_1000hz = 0.3 * np.sin(2 * np.pi * 1000 * t)
+    signal_4000hz = 0.2 * np.sin(2 * np.pi * 4000 * t)
+
+    audio_signal = signal_250hz + signal_1000hz + signal_4000hz
+
+    # Анализ спектра
+    freqs, spectrum = analyze_spectrum(audio_signal, sample_rate)
+
+    print("Спектральный анализ завершен")
+    print(f"Пики на частотах: 250 Гц, 1000 Гц, 4000 Гц")
+                    </pre></div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Z-преобразование и передаточные функции</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Z-преобразование</div>
+                        <div class="katex-formula" id="formula4"></div>
+                        <div class="formula-explanation">
+                            <p>Z-преобразование используется для анализа и проектирования цифровых фильтров в частотной области.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Передаточная функция цифрового фильтра</div>
+                        <div class="katex-formula" id="formula5"></div>
+                        <div class="formula-explanation">
+                            <p>где \( b_k \) и \( a_k \) - коэффициенты фильтра. Передаточная функция описывает поведение фильтра в Z-области.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Z-преобразование является основным математическим аппаратом для анализа и проектирования цифровых фильтров. Оно позволяет работать с разностными уравнениями в частотной области.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Фильтрация -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Фильтрация аудиосигналов</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Классификация фильтров</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Типы фильтров] --> B[По частотной характеристике]
+                                A --> C[По импульсной характеристике]
+                                A --> D[По структуре]
+
+                                B --> E["- ФНЧ (Low-pass)<br>- ФВЧ (High-pass)<br>- ПФ (Band-pass)<br>- РФ (Band-stop)"]
+                                C --> F["- КИХ (FIR)<br>- БИХ (IIR)"]
+                                D --> G["- Рекурсивные<br>- Нерекурсивные<br>- Адаптивные"]
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Сравнение КИХ и БИХ фильтров:</strong></p>
+                        <ul>
+                            <li><span class="highlight">КИХ (FIR)</span>: всегда устойчивы, линейная ФЧХ, требуют больше вычислений</li>
+                            <li><span class="highlight">БИХ (IIR)</span>: могут быть неустойчивы, нелинейная ФЧХ, эффективнее по вычислениям</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Проектирование КИХ фильтров</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Импульсная характеристика КИХ фильтра</div>
+                        <div class="katex-formula" id="formula6"></div>
+                        <div class="formula-explanation">
+                            <p>где \( h[n] \) - коэффициенты фильтра, \( N \) - порядок фильтра. КИХ фильтры характеризуются конечной импульсной характеристикой.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Метод взвешивания методом окон</div>
+                        <div class="katex-formula" id="formula7"></div>
+                        <div class="formula-explanation">
+                            <p>где \( h_d[n] \) - идеальная импульсная характеристика, \( w[n] \) - оконная функция. Метод окон позволяет уменьшить эффект Гиббса.</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import scipy.signal as signal
+import numpy as np
+
+def design_fir_lowpass(cutoff_freq, sample_rate, numtaps=101):
+    """Проектирование КИХ ФНЧ фильтра"""
+    # Нормализация частоты среза
+    nyquist = sample_rate / 2
+    normalized_cutoff = cutoff_freq / nyquist
+
+    # Создание фильтра методом окон
+    taps = signal.firwin(numtaps, normalized_cutoff, window='hamming')
+
+    return taps
+
+def apply_fir_filter(audio_signal, filter_taps):
+    """Применение КИХ фильтра к сигналу"""
+    filtered_signal = signal.lfilter(filter_taps, 1.0, audio_signal)
+    return filtered_signal
+
+# Пример использования
+if __name__ == "__main__":
+    # Параметры фильтра
+    sample_rate = 44100
+    cutoff_freq = 5000  # 5 кГц
+    numtaps = 101
+
+    # Проектирование фильтра
+    filter_taps = design_fir_lowpass(cutoff_freq, sample_rate, numtaps)
+
+    print(f"Спроектирован КИХ ФНЧ фильтр {numtaps}-го порядка")
+    print(f"Частота среза: {cutoff_freq} Гц")
+    print(f"Частота дискретизации: {sample_rate} Гц")
+                    </pre></div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эквалайзеры и коррекция АЧХ</h3>
+
+                    <div class="text-content">
+                        <p>Эквалайзеры позволяют корректировать амплитудно-частотную характеристику сигнала. Существуют различные типы эквалайзеров:</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Тип эквалайзера</th>
+                                <th>Характеристики</th>
+                                <th>Применение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Графический</td>
+                                <td>Множество полос с фиксированными центральными частотами</td>
+                                <td>Коррекция АЧХ помещений</td>
+                            </tr>
+                            <tr>
+                                <td>Параметрический</td>
+                                <td>Несколько полос с регулируемой частотой, добротностью и усилением</td>
+                                <td>Точная коррекция, устранение резонансов</td>
+                            </tr>
+                            <tr>
+                                <td>Шельфовый</td>
+                                <td>Коррекция низких и высоких частот</td>
+                                <td>Тональный баланс</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Шумоподавление -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Методы шумоподавления</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Адаптивная фильтрация</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Алгоритм LMS (Least Mean Squares)</div>
+                        <div class="katex-formula" id="formula8"></div>
+                        <div class="formula-explanation">
+                            <p>где \( w[n] \) - веса фильтра, \( \mu \) - шаг адаптации, \( e[n] \) - ошибка. Алгоритм LMS минимизирует среднеквадратичную ошибку.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Алгоритм NLMS (Normalized LMS)</div>
+                        <div class="katex-formula" id="formula9"></div>
+                        <div class="formula-explanation">
+                            <p>NLMS обеспечивает лучшую сходимость за счет нормализации шага адаптации.</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import numpy as np
+
+def lms_noise_cancellation(primary_signal, reference_signal, filter_order, mu):
+    """Адаптивное шумоподавление с использованием алгоритма LMS"""
+    n = len(primary_signal)
+    w = np.zeros(filter_order)  # Инициализация весов фильтра
+    output_signal = np.zeros(n)
+    error_signal = np.zeros(n)
+
+    for i in range(filter_order, n):
+        # Вектор отсчетов опорного сигнала
+        x = reference_signal[i-filter_order+1:i+1][::-1]
+
+        # Выход адаптивного фильтра
+        y = np.dot(w, x)
+
+        # Ошибка (первичный сигнал минус оценка шума)
+        error = primary_signal[i] - y
+        error_signal[i] = error
+
+        # Обновление весов по алгоритму LMS
+        w = w + 2 * mu * error * x
+
+        output_signal[i] = error
+
+    return output_signal, error_signal, w
+
+# Пример использования
+if __name__ == "__main__":
+    # Параметры алгоритма
+    filter_order = 32
+    mu = 0.01  # Шаг адаптации
+
+    print("Алгоритм LMS для шумоподавления")
+    print(f"Порядок фильтра: {filter_order}")
+    print(f"Шаг адаптации: {mu}")
+                    </pre></div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Спектральное вычитание</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Алгоритм спектрального вычитания</div>
+                        <div class="katex-formula" id="formula10"></div>
+                        <div class="formula-explanation">
+                            <p>где \( Y(\omega) \) - спектр зашумленного сигнала, \( |N(\omega)| \) - оценка спектра шума, \( \alpha \) - параметр oversubtraction.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Спектральное вычитание основано на оценке спектра шума в паузах речи и последующем вычитании этой оценки из спектра зашумленного сигнала.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A["Зашумленный<br>сигнал"] --> B["Спектральный<br>анализ (STFT)"]
+                                B --> C["Оценка спектра<br>шума"]
+                                C --> D["Спектральное<br>вычитание"]
+                                D --> E["Обратное STFT"]
+                                E --> F["Очищенный<br>сигнал"]
+
+                                G["Обнаружение<br>пауз"] --> C
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Улучшение качества -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Улучшение качества звука</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Динамическая обработка</h3>
+
+                    <div class="format-grid">
+                        <div class="format-card">
+                            <div class="format-name">Компрессор</div>
+                            <div class="format-type enhancement">Динамика</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Уменьшение динамического диапазона</p>
+                                <p><strong>Параметры:</strong> Порог, отношение, атака, восстановление</p>
+                                <p><strong>Применение:</strong> Выравнивание громкости, увеличение воспринимаемой громкости</p>
+                            </div>
+                        </div>
+
+                        <div class="format-card">
+                            <div class="format-name">Лимитер</div>
+                            <div class="format-type enhancement">Динамика</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Ограничение пиков сигнала</p>
+                                <p><strong>Параметры:</strong> Предел, время атаки</p>
+                                <p><strong>Применение:</strong> Защита от клиппинга, мастеринг</p>
+                            </div>
+                        </div>
+
+                        <div class="format-card">
+                            <div class="format-name">Экспандер</div>
+                            <div class="format-type enhancement">Динамика</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Увеличение динамического диапазона</p>
+                                <p><strong>Параметры:</strong> Порог, отношение</p>
+                                <p><strong>Применение:</strong> Подавление шума в паузах, увеличение динамики</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Характеристика компрессора</div>
+                        <div class="katex-formula" id="formula11"></div>
+                        <div class="formula-explanation">
+                            <p>где \( T \) - порог, \( R \) - отношение компрессии. При превышении порога уровень сигнала уменьшается в соответствии с заданным отношением.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Восстановление клиппинга</h3>
+
+                    <div class="text-content">
+                        <p>Клиппинг возникает когда сигнал превышает максимальный уровень квантования. Методы восстановления включают интерполяцию и спектральную реконструкцию.</p>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Обнаружение клиппинга</div>
+                        <div class="katex-formula" id="formula12"></div>
+                        <div class="formula-explanation">
+                            <p>где \( x_{max} \) - максимальное значение квантования. Отсчеты с абсолютным значением, близким к \( x_{max} \), считаются клиппированными.</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import numpy as np
+from scipy import interpolate
+
+def detect_and_repair_clipping(audio_signal, threshold=0.99):
+    """Обнаружение и восстановление клиппинга"""
+    max_val = np.max(np.abs(audio_signal))
+    clip_threshold = threshold * max_val
+
+    # Поиск клиппированных отсчетов
+    clipped_indices = np.where(np.abs(audio_signal) >= clip_threshold)[0]
+
+    if len(clipped_indices) == 0:
+        return audio_signal, 0  # Клиппинга нет
+
+    # Восстановление методом кубической интерполяции
+    repaired_signal = audio_signal.copy()
+
+    # Создание массива индексов без клиппированных точек
+    valid_indices = np.setdiff1d(np.arange(len(audio_signal)), clipped_indices)
+
+    if len(valid_indices) > 3:  # Достаточно точек для интерполяции
+        # Интерполяция
+        interp_func = interpolate.interp1d(valid_indices,
+                                         audio_signal[valid_indices],
+                                         kind='cubic',
+                                         fill_value="extrapolate")
+
+        # Замена клиппированных значений
+        repaired_signal[clipped_indices] = interp_func(clipped_indices)
+
+    return repaired_signal, len(clipped_indices)
+
+# Пример использования
+if __name__ == "__main__":
+    # Создание тестового сигнала с клиппингом
+    t = np.linspace(0, 1, 1000)
+    clean_signal = np.sin(2 * np.pi * 5 * t)  # 5 Гц синус
+
+    # Добавление клиппинга
+    clipped_signal = np.clip(clean_signal * 1.5, -1.0, 1.0)
+
+    # Восстановление
+    repaired, num_clipped = detect_and_repair_clipping(clipped_signal)
+
+    print(f"Обнаружено {num_clipped} клиппированных отсчетов")
+    print(f"Процент восстановления: {(len(clipped_signal) - num_clipped) / len(clipped_signal) * 100:.1f}%")
+                    </pre></div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Эффекты - ДОПОЛНЕННАЯ ВЕРСИЯ -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Аудио эффекты и модификация</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пространственные эффекты</h3>
+
+                    <div class="algorithm-grid">
+                        <div class="algorithm-card">
+                            <div class="algorithm-title">Реверберация</div>
+                            <div class="text-content">
+                                <p>Имитация акустики помещений с помощью цепочек задержек и фильтров. Реверберация создает ощущение пространства и глубины.</p>
+                                <p><strong>Физическая основа:</strong> Множественные отражения звука от поверхностей</p>
+                                <p><strong>Параметры:</strong> Время реверберации, предзадержка, плотность, размер помещения</p>
+                                <p><strong>Типы алгоритмов:</strong> Convolution (свертка с импульсной характеристикой), Algorithmic (на основе задержек)</p>
+                            </div>
+                        </div>
+
+                        <div class="algorithm-card">
+                            <div class="algorithm-title">Задержка (Delay)</div>
+                            <div class="text-content">
+                                <p>Повторение сигнала с временным сдвигом. Используется для создания эха, удвоения и пространственных эффектов.</p>
+                                <p><strong>Физическая основа:</strong> Отражения от удаленных поверхностей</p>
+                                <p><strong>Параметры:</strong> Время задержки, обратная связь, количество повторов, модуляция</p>
+                                <p><strong>Применение:</strong> Создание глубины, ритмические эффекты, дублирование голоса</p>
+                            </div>
+                        </div>
+
+                        <div class="algorithm-card">
+                            <div class="algorithm-title">Хорус (Chorus)</div>
+                            <div class="text-content">
+                                <p>Создание эффекта хора или ансамбля за счет модулированных задержек с небольшой задержкой (10-30 мс).</p>
+                                <p><strong>Физическая основа:</strong> Небольшие расхождения во времени и высоте тона в хоре</p>
+                                <p><strong>Параметры:</strong> Глубина, скорость, количество голосов, смешивание</p>
+                                <p><strong>Применение:</strong> "Утолщение" звука, создание ансамблевого эффекта</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Входной сигнал] --> B[Предзадержка]
+                                B --> C[Параллельные гребенчатые фильтры]
+                                C --> D["4 гребенчатых фильтра<br>разной длины"]
+                                D --> E[Сумматор]
+                                E --> F[Последовательные алпасс-фильтры]
+                                F --> G["2 алпасс-фильтра<br>для плотности"]
+                                G --> H[Смешивание Dry/Wet]
+                                H --> I[Выход с реверберацией]
+
+                                J[Параметры] --> B
+                                J --> C
+                                J --> F
+                                J --> H
+
+                                subgraph Параметры[J]
+                                    K[Время реверберации]
+                                    L[Предзадержка]
+                                    M[Плотность]
+                                    N[Соотношение Dry/Wet]
+                                end
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Схема Шредера для реверберации</div>
+                        <div class="katex-formula" id="formula13"></div>
+                        <div class="formula-explanation">
+                            <p>Комбинация параллельных гребенчатых фильтров (comb filters) и последовательных алпасс-фильтров (all-pass filters) для создания реалистичной реверберации. Гребенчатые фильтры создают ранние отражения, алпасс-фильтры - плотный хвост реверберации.</p>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import numpy as np
+from scipy import signal
+
+def schroeder_reverb(audio_signal, sample_rate, rt60=2.0, pre_delay=0.05):
+    """
+    Упрощенная реализация ревербератора Шредера
+    rt60: время реверберации (сек)
+    pre_delay: предзадержка (сек)
+    """
+    # Предзадержка
+    pre_delay_samples = int(pre_delay * sample_rate)
+    delayed_signal = np.zeros(len(audio_signal) + pre_delay_samples)
+    delayed_signal[pre_delay_samples:pre_delay_samples + len(audio_signal)] = audio_signal
+
+    # Параметры гребенчатых фильтров
+    comb_delays = [29.7, 37.1, 41.1, 43.7]  # мс
+    comb_gains = [0.9, 0.9, 0.9, 0.9]
+
+    # Параметры алпасс-фильтров
+    allpass_delays = [5.0, 1.7]  # мс
+    allpass_gains = [0.7, 0.7]
+
+    # Применение гребенчатых фильтров (параллельно)
+    comb_outputs = []
+    for delay_ms, gain in zip(comb_delays, comb_gains):
+        delay_samples = int(delay_ms * sample_rate / 1000)
+        # Простой гребенчатый фильтр: y[n] = x[n] + g * y[n - D]
+        b = np.zeros(delay_samples + 1)
+        b[0] = 1
+        b[-1] = gain
+        a = np.zeros(delay_samples + 1)
+        a[0] = 1
+
+        comb_output = signal.lfilter(b, a, delayed_signal)
+        comb_outputs.append(comb_output)
+
+    # Суммирование выходов гребенчатых фильтров
+    mixed = np.sum(comb_outputs, axis=0) / len(comb_outputs)
+
+    # Применение алпасс-фильтров (последовательно)
+    for delay_ms, gain in zip(allpass_delays, allpass_gains):
+        delay_samples = int(delay_ms * sample_rate / 1000)
+        # Алпасс-фильтр: y[n] = -g * x[n] + x[n - D] + g * y[n - D]
+        b = np.zeros(delay_samples + 1)
+        b[0] = -gain
+        b[-1] = 1
+        a = np.zeros(delay_samples + 1)
+        a[0] = 1
+        a[-1] = gain
+
+        mixed = signal.lfilter(b, a, mixed)
+
+    # Обрезка до исходной длины и смешивание с сухим сигналом
+    wet = mixed[:len(audio_signal)]
+    output = 0.7 * audio_signal + 0.3 * wet  # 70% dry, 30% wet
+
+    return output
+
+# Пример использования с объяснением
+if __name__ == "__main__":
+    # Создание тестового сигнала (нота ля 440 Гц)
+    sample_rate = 44100
+    duration = 2.0
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # ADSR-огибающая для более музыкального примера
+    attack = 0.1
+    decay = 0.2
+    sustain = 0.6
+    release = 0.1
+
+    envelope = np.ones_like(t)
+    # Attack
+    attack_samples = int(attack * sample_rate)
+    envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+    # Decay
+    decay_samples = int(decay * sample_rate)
+    envelope[attack_samples:attack_samples+decay_samples] = np.linspace(1, sustain, decay_samples)
+    # Sustain
+    sustain_end = int((attack + decay + sustain) * sample_rate)
+    envelope[attack_samples+decay_samples:sustain_end] = sustain
+    # Release
+    envelope[sustain_end:] = np.linspace(sustain, 0, len(envelope) - sustain_end)
+
+    test_signal = np.sin(2 * np.pi * 440 * t) * envelope
+
+    # Применение реверберации
+    reverbed = schroeder_reverb(test_signal, sample_rate, rt60=1.5, pre_delay=0.03)
+
+    print("Реверберация Шредера применена успешно")
+    print("Параметры:")
+    print("- Время реверберации: 1.5 сек")
+    print("- Предзадержка: 30 мс")
+    print("- 4 гребенчатых фильтра + 2 алпасс-фильтра")
+    print("- Соотношение dry/wet: 70/30")
+        </pre></div>
+
+                    <div class="graph-container">
+                        <div class="graph-title">Визуализация реверберации</div>
+                        <div class="diagram">
+                            <div class="mermaid">
+                                graph LR
+                                    A[Исходный сигнал] --> B[Короткий импульс]
+                                    B --> C[Ранние отражения]
+                                    C --> D[Поздние отражения]
+                                    D --> E[Хвост реверберации]
+
+                                    F["Временная диаграмма<br>импульсной характеристики"] --> G["Амплитуда"]
+                                    G --> H["Время →"]
+
+                                    subgraph Импульсная_характеристика[Импульсная характеристика реверберации]
+                                        I["Прямой звук<br>0 мс"] --> J["Ранние отражения<br>5-50 мс"]
+                                        J --> K["Поздние отражения<br>50-100 мс"]
+                                        K --> L["Хвост реверберации<br>100+ мс"]
+                                    end
+                            </div>
+                        </div>
+                        <div class="graph-description">
+                            Импульсная характеристика реверберации показывает, как единичный импульс распространяется в помещении.
+                            Прямой звук приходит первым, за ним следуют ранние отражения от ближайших поверхностей,
+                            затем плотные поздние отражения и постепенно затухающий хвост реверберации.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Модуляционные эффекты</h3>
+
+                    <div class="text-content">
+                        <p><strong>Принцип модуляционных эффектов:</strong> Изменение параметров сигнала (задержка, частота, амплитуда) с помощью низкочастотного осциллятора (LFO). Создает движение и живость в звуке.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Входной сигнал] --> B[Задержка с LFO-модуляцией]
+                                B --> C[Смешивание с исходным]
+                                C --> D[Выходной сигнал]
+
+                                E[Низкочастотный осциллятор LFO] --> B
+
+                                subgraph LFO_параметры[Параметры LFO]
+                                    F[Форма волны<br>синус/треугольная/пила]
+                                    G[Частота<br>0.1-10 Гц]
+                                    H[Глубина модуляции]
+                                end
+
+                                subgraph Типы_эффектов[Типы модуляционных эффектов]
+                                    I[Фленджер<br>задержка 1-10 мс]
+                                    J[Хорус<br>задержка 10-30 мс]
+                                    K[Фейзер<br>фазовый сдвиг]
+                                end
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+import numpy as np
+
+def flanger_effect(audio_signal, sample_rate, delay=0.003, depth=0.002, rate=0.5, feedback=0.5):
+    """
+    Эффект фленджера
+    delay: базовая задержка (сек)
+    depth: глубина модуляции (сек)
+    rate: частота модуляции (Гц)
+    feedback: коэффициент обратной связи (0-1)
+    """
+    n = len(audio_signal)
+    output_signal = np.zeros(n)
+
+    # Максимальная задержка в отсчетах
+    max_delay_samples = int((delay + depth) * sample_rate) + 1
+
+    # Буфер для задержанного сигнала
+    delay_buffer = np.zeros(max_delay_samples)
+    write_pos = 0
+
+    for i in range(n):
+        # Модуляция задержки (синусоидальная)
+        current_delay = delay + depth * np.sin(2 * np.pi * rate * i / sample_rate)
+        delay_samples = current_delay * sample_rate
+
+        # Линейная интерполяция для дробных задержек
+        read_pos = (write_pos - delay_samples) % max_delay_samples
+        int_part = int(read_pos)
+        frac_part = read_pos - int_part
+
+        # Чтение из буфера задержки с интерполяцией
+        sample1 = delay_buffer[int_part]
+        sample2 = delay_buffer[(int_part + 1) % max_delay_samples]
+        delayed_sample = sample1 + frac_part * (sample2 - sample1)
+
+        # Текущий входной sample
+        input_sample = audio_signal[i]
+
+        # Смешивание с исходным сигналом
+        output_signal[i] = 0.7 * input_sample + 0.7 * delayed_sample
+
+        # Запись в буфер задержки (вход + обратная связь)
+        delay_buffer[write_pos] = input_sample + feedback * delayed_sample
+
+        # Обновление позиции записи
+        write_pos = (write_pos + 1) % max_delay_samples
+
+    return output_signal
+
+def phaser_effect(audio_signal, sample_rate, rate=0.5, depth=0.8, stages=4):
+    """
+    Эффект фейзера
+    rate: частота модуляции (Гц)
+    depth: глубина модуляции (0-1)
+    stages: количество фазовращающих ступеней
+    """
+    n = len(audio_signal)
+
+    # Параметры алпасс-фильтров
+    min_freq = 200  # Гц
+    max_freq = 2000  # Гц
+
+    # Модуляция частоты среза
+    t = np.arange(n) / sample_rate
+    mod_signal = 0.5 * (1 + np.sin(2 * np.pi * rate * t))
+    cutoff_freq = min_freq + (max_freq - min_freq) * mod_signal * depth
+
+    # Каскад фазовращающих фильтров
+    output = audio_signal.copy()
+    for stage in range(stages):
+        for i in range(1, n):
+            # Простой фазовращающий фильтр первого порядка
+            # y[n] = a * (x[n] + y[n-1]) - x[n-1]
+            # где a = (1 - tan(π * fc / fs)) / (1 + tan(π * fc / fs))
+
+            fc = cutoff_freq[i]
+            tan_val = np.tan(np.pi * fc / sample_rate)
+            a = (1 - tan_val) / (1 + tan_val)
+
+            output[i] = a * (output[i] + output[i-1]) - output[i-1]
+
+    # Смешивание с исходным сигналом
+    mixed = 0.5 * audio_signal + 0.5 * output
+    return mixed
+
+def tremolo_effect(audio_signal, sample_rate, rate=5, depth=0.8, waveform='sine'):
+    """
+    Эффект тремоло (амплитудная модуляция)
+    rate: частота модуляции (Гц)
+    depth: глубина модуляции (0-1)
+    waveform: форма модулирующего сигнала ('sine', 'triangle', 'square')
+    """
+    n = len(audio_signal)
+    t = np.arange(n) / sample_rate
+
+    # Генерирование модулирующего сигнала
+    if waveform == 'sine':
+        modulator = 1 - depth + depth * (1 + np.sin(2 * np.pi * rate * t)) / 2
+    elif waveform == 'triangle':
+        # Треугольная волна
+        triangle = 2 * np.abs(2 * (t * rate - np.floor(t * rate + 0.5))) - 1
+        modulator = 1 - depth + depth * (triangle + 1) / 2
+    elif waveform == 'square':
+        # Прямоугольная волна
+        square = np.sign(np.sin(2 * np.pi * rate * t))
+        modulator = 1 - depth + depth * (square + 1) / 2
+    else:
+        modulator = np.ones(n)
+
+    # Применение модуляции
+    output_signal = audio_signal * modulator
+
+    return output_signal
+
+# Расширенный пример использования
+if __name__ == "__main__":
+    sample_rate = 44100
+    duration = 3.0
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание более сложного тестового сигнала (аккорд)
+    freq_a = 440  # Ля
+    freq_c = 523  # До
+    freq_e = 659  # Ми
+
+    test_signal = (0.4 * np.sin(2 * np.pi * freq_a * t) +
+                  0.3 * np.sin(2 * np.pi * freq_c * t) +
+                  0.3 * np.sin(2 * np.pi * freq_e * t))
+
+    # Применение различных эффектов
+    print("Создание модуляционных эффектов:")
+
+    # Фленджер
+    flanged = flanger_effect(test_signal, sample_rate,
+                           delay=0.002, depth=0.001, rate=0.3, feedback=0.3)
+    print("- Фленджер: задержка 2мс, глубина 1мс, скорость 0.3Гц")
+
+    # Фейзер
+    phased = phaser_effect(test_signal, sample_rate,
+                         rate=0.2, depth=0.9, stages=6)
+    print("- Фейзер: 6 ступеней, скорость 0.2Гц, глубина 90%")
+
+    # Тремоло
+    tremoloed = tremolo_effect(test_signal, sample_rate,
+                             rate=4, depth=0.7, waveform='sine')
+    print("- Тремоло: синусоидальная, 4Гц, глубина 70%")
+
+    # Комбинация эффектов (фленджер + тремоло)
+    combined = tremolo_effect(flanged, sample_rate, rate=2, depth=0.5)
+    print("- Комбинированный: фленджер + тремоло 2Гц")
+        </pre></div>
+
+        <div class="graph-container">
+            <div class="graph-title">Сравнение модуляционных эффектов</div>
+            <div class="diagram">
+                <div class="mermaid">
+                    graph TD
+                        A[Исходный сигнал] --> B[Синусоида 440 Гц]
+
+                        B --> C[Фленджер]
+                        B --> D[Фейзер]
+                        B --> E[Тремоло]
+
+                        C --> F["Характер: свистящий,<br>летящий звук<br>Задержка: 1-10 мс"]
+                        D --> G["Характер: пропеллерный,<br>космический звук<br>Фазовый сдвиг"]
+                        E --> H["Характер: пульсирующий,<br>вибрирующий звук<br>Амплитудная модуляция"]
+
+                        subgraph Спектральные_изменения[Спектральные изменения]
+                            I[Фленджер] --> J["Гребенчатая фильтрация<br>периодические пики и провалы"]
+                            K[Фейзер] --> L["Фазовые сдвиги<br>интерференционные провалы"]
+                            M[Тремоло] --> N["Боковые полосы<br>AM-модуляция спектра"]
+                        end
+                </div>
+            </div>
+            <div class="graph-description">
+                Модуляционные эффекты создают характерные изменения в спектре сигнала.
+                Фленджер производит гребенчатую фильтрацию с периодическими пиками и провалами,
+                фейзер создает интерференционные провалы из-за фазовых сдвигов,
+                а тремоло добавляет боковые полосы вокруг исходных частот из-за амплитудной модуляции.
+            </div>
+        </div>
+
+        <div class="text-content">
+            <p><strong>Сравнение модуляционных эффектов:</strong></p>
+            <ul>
+                <li><span class="highlight">Фленджер</span>: Использует модулированную задержку 1-10 мс. Создает "летящий", "свистящий" звук. Физическая основа - интерференция исходного и задержанного сигналов.</li>
+                <li><span class="highlight">Фейзер</span>: Использует каскад фазовращающих фильтров. Создает "пропеллерный", "космический" звук. Работает за счет фазовых сдвигов и их интерференции.</li>
+                <li><span class="highlight">Тремоло</span>: Амплитудная модуляция. Создает пульсирующий эффект. Самый простой из модуляционных эффектов.</li>
+                <li><span class="highlight">Хорус</span>: Модулированная задержка 10-30 мс. Создает эффект множественных источников, "утолщение" звука.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <h3 class="subsection-title">Нелинейные эффекты и дисторшн</h3>
+
+        <div class="diagram">
+            <div class="mermaid">
+                graph LR
+                    A[Исходный сигнал] --> B[Нелинейное преобразование]
+                    B --> C[Выходной сигнал]
+
+                    D["Передаточная характеристика<br>y = f(x)"] --> B
+
+                    subgraph Типы_дисторшна[Типы нелинейных характеристик]
+                        E[Мягкое ограничение] --> F["y = tanh(x)<br>Плавное насыщение"]
+                        G[Жесткое ограничение] --> H["y = clip(x)<br>Резкое насыщение"]
+                        I[Трубное насыщение] --> J["y = x/(1+|x|)<br>Характер лампы"]
+                        K[Бит-крашер] --> L["y = round(x*2ⁿ)/2ⁿ<br>Квантование"]
+                    end
+
+                    subgraph Гармоники[Добавленные гармоники]
+                        M[Исходный сигнал] --> N["Основная частота f"]
+                        O[После дисторшна] --> P["f + 2f + 3f + ...<br>гармонические искажения"]
+                    end
+            </div>
+        </div>
+
+        <div class="code-block"><pre>
+import numpy as np
+
+def soft_clipping(x, drive=1.0):
+    """
+    Мягкое ограничение (soft clipping)
+    drive: коэффициент усиления перед ограничением
+    """
+    x = x * drive
+    # Функция гиперболического тангенса для мягкого ограничения
+    return np.tanh(x)
+
+def hard_clipping(x, threshold=0.5):
+    """
+    Жесткое ограничение (hard clipping)
+    threshold: порог ограничения (0-1)
+    """
+    return np.clip(x, -threshold, threshold)
+
+def tube_saturation(x, drive=1.0):
+    """
+    Трубное насыщение (tube saturation)
+    Имитирует характер ламповых усилителей
+    """
+    x = x * drive
+    # Аппроксимация характеристики лампы
+    return x / (1 + np.abs(x)**1.5) ** (1/1.5)
+
+def bit_crusher(audio_signal, bit_depth=8, sample_rate_reduction=1):
+    """
+    Бит-крашер - снижение разрядности и частоты дискретизации
+    bit_depth: целевая разрядность (бит)
+    sample_rate_reduction: коэффициент снижения частоты дискретизации
+    """
+    n = len(audio_signal)
+
+    # Снижение разрядности
+    max_val = 2**(bit_depth - 1) - 1
+    quantized = np.round(audio_signal * max_val) / max_val
+
+    # Снижение частоты дискретизации (децимация)
+    if sample_rate_reduction > 1:
+        # Простая децимация без антиалиасингового фильтра
+        crushed = quantized[::sample_rate_reduction]
+        # Линейная интерполяция обратно к исходной длине
+        x_old = np.arange(len(crushed))
+        x_new = np.linspace(0, len(crushed)-1, n)
+        crushed = np.interp(x_new, x_old, crushed)
+    else:
+        crushed = quantized
+
+    return crushed
+
+# Пример использования дисторшн-эффектов
+if __name__ == "__main__":
+    # Создание гитарного-like сигнала
+    sample_rate = 44100
+    duration = 2.0
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Симуляция гитарной струны (основная частота + обертона)
+    fundamental = 110  # Ля 2-й октавы
+    harmonics = [1, 2, 3, 4, 5]  # гармоники
+    amplitudes = [0.6, 0.3, 0.2, 0.1, 0.05]  # амплитуды гармоник
+
+    guitar_signal = np.zeros_like(t)
+    for harm, amp in zip(harmonics, amplitudes):
+        guitar_signal += amp * np.sin(2 * np.pi * fundamental * harm * t)
+
+    # ADSR-огибающая
+    attack = 0.01
+    decay = 0.1
+    sustain = 0.5
+    release = 0.5
+
+    envelope = np.ones_like(t)
+    # Attack
+    attack_samples = int(attack * sample_rate)
+    envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+    # Decay
+    decay_samples = int(decay * sample_rate)
+    envelope[attack_samples:attack_samples+decay_samples] = np.linspace(1, sustain, decay_samples)
+    # Sustain
+    sustain_end = int((attack + decay + sustain) * sample_rate)
+    envelope[attack_samples+decay_samples:sustain_end] = sustain
+    # Release
+    envelope[sustain_end:] = np.linspace(sustain, 0, len(envelope) - sustain_end)
+
+    guitar_signal *= envelope
+
+    print("Применение дисторшн-эффектов к гитарному сигналу:")
+
+    # Мягкое ограничение (овердрайв)
+    overdrive = soft_clipping(guitar_signal, drive=3.0)
+    print("- Овердрайв: мягкое ограничение, drive=3.0")
+
+    # Жесткое ограничение (дисторшн)
+    distortion = hard_clipping(guitar_signal, threshold=0.3)
+    print("- Дисторшн: жесткое ограничение, порог=0.3")
+
+    # Трубное насыщение
+    tube = tube_saturation(guitar_signal, drive=2.0)
+    print("- Трубное насыщение: характер лампы, drive=2.0")
+
+    # Бит-крашер (лёфай-эффект)
+    crushed = bit_crusher(guitar_signal, bit_depth=4, sample_rate_reduction=4)
+    print("- Бит-крашер: 4-бит, 1/4 частоты дискретизации")
+        </pre></div>
+
+        <div class="graph-container">
+            <div class="graph-title">Сравнение характеристик дисторшна</div>
+            <div class="diagram">
+                <div class="mermaid">
+                    graph TB
+                        A[Входной сигнал] --> B[Синусоида]
+
+                        B --> C[Мягкое ограничение]
+                        B --> D[Жесткое ограничение]
+                        B --> E[Трубное насыщение]
+                        B --> F[Бит-крашер]
+
+                        C --> G["Плавная характеристика<br>Богатые четные гармоники<br>Теплое звучание"]
+                        D --> H["Резкая характеристика<br>Много нечетных гармоник<br>Агрессивное звучание"]
+                        E --> I["Характерная кривизна<br>Сбалансированные гармоники<br>Аналоговое звучание"]
+                        F --> J["Ступенчатая характеристика<br>Алиасинг и шум квантования<br>Цифровое звучание"]
+
+                        subgraph Гармонический_анализ[Гармонический анализ]
+                            K[Основная частота] --> L["f₀ = 440 Гц"]
+                            M[После мягкого ограничения] --> N["f₀ + 2f₀ + 4f₀ + ...<br>преимущественно четные гармоники"]
+                            O[После жесткого ограничения] --> P["f₀ + 3f₀ + 5f₀ + ...<br>преимущественно нечетные гармоники"]
+                        end
+                </div>
+            </div>
+            <div class="graph-description">
+                Различные типы дисторшна создают характерные гармонические спектры.
+                Мягкое ограничение (овердрайв) генерирует преимущественно четные гармоники, создавая теплый звук.
+                Жесткое ограничение (дисторшн) производит много нечетных гармоник, создавая агрессивное звучание.
+                Трубное насыщение дает сбалансированный спектр с характерным "ламповым" звуком.
+            </div>
+        </div>
+
+        <div class="text-content">
+            <p><strong>Типы дисторшн-эффектов и их применение:</strong></p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Тип дисторшна</th>
+                        <th>Характеристика</th>
+                        <th>Звучание</th>
+                        <th>Типичное применение</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Овердрайв</td>
+                        <td>Мягкое ограничение, плавная характеристика</td>
+                        <td>Тёплое, насыщенное, "трубное"</td>
+                        <td>Блюз, рок-н-ролл, мягкий рок</td>
+                    </tr>
+                    <tr>
+                        <td>Дисторшн</td>
+                        <td>Жесткое ограничение, резкие клипы</td>
+                        <td>Агрессивное, "металлическое"</td>
+                        <td>Хард-рок, хэви-метал, панк</td>
+                    </tr>
+                    <tr>
+                        <td>Фузз</td>
+                        <td>Экстремальное ограничение, квадратные волны</td>
+                        <td>Размытое, "жужжащее"</td>
+                        <td>Психоделический рок, гармонический фузз</td>
+                    </tr>
+                    <tr>
+                        <td>Бит-крашер</td>
+                        <td>Снижение битности и частоты дискретизации</td>
+                        <td>Цифровое, "грязное", 8-битное</td>
+                        <td>Электронная музыка, лёфай-эстетика</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p><strong>Математическая основа дисторшна:</strong> Нелинейные эффекты основаны на нелинейных передаточных функциях, которые добавляют гармоники в сигнал. Чем более нелинейная характеристика, тем больше гармоник создается, что воспринимается как "искажение" или "насыщение".</p>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <h3 class="subsection-title">Временные и спектральные эффекты</h3>
+
+        <div class="diagram">
+            <div class="mermaid">
+                flowchart TD
+                    A[Исходный сигнал] --> B[STFT анализ]
+                    B --> C["Частотные бины<br>и фазы"]
+                    C --> D[Модификация спектра]
+                    D --> E[Обратное STFT]
+                    E --> F[Модифицированный сигнал]
+
+                    G["Pitch shifting<br>Сдвиг высоты тона"] --> D
+                    H["Time stretching<br>Изменение темпа"] --> D
+                    I["Vocoder<br>Спектральное наложение"] --> D
+
+                    subgraph STFT_параметры[Параметры STFT]
+                        J[Размер окна]
+                        K[Шаг перекрытия]
+                        L[Оконная функция]
+                    end
+
+                    subgraph Применение[Типичное применение]
+                        M[Pitch shifting] --> N["Коррекция вокала<br>Создание гармоний"]
+                        O[Time stretching] --> P["Синхронизация темпов<br>Изменение длительности"]
+                        Q[Vocoder] --> R["Роботизация голоса<br>Синтез речи"]
+                    end
+            </div>
+        </div>
+
+        <div class="code-block"><pre>
+import numpy as np
+from scipy import signal
+
+def pitch_shift(audio_signal, sample_rate, shift_semitones):
+    """
+    Сдвиг высоты тона без изменения длительности
+    Использует метод фазового вокодера (упрощенный)
+    shift_semitones: сдвиг в полутонах (положительные - выше, отрицательные - ниже)
+    """
+    # Преобразование полутонов в коэффициент
+    shift_ratio = 2 ** (shift_semitones / 12)
+
+    # STFT параметры
+    window_size = 2048
+    hop_size = 512
+
+    # STFT анализ
+    f, t, stft = signal.stft(audio_signal, sample_rate,
+                            nperseg=window_size, noverlap=window_size-hop_size)
+
+    # Сдвиг частотных бинов
+    new_stft = np.zeros_like(stft, dtype=complex)
+    for i in range(len(f)):
+        new_bin = int(i * shift_ratio)
+        if new_bin < len(f):
+            new_stft[new_bin] += stft[i]
+
+    # Обратное STFT
+    t, shifted = signal.istft(new_stft, sample_rate,
+                             nperseg=window_size, noverlap=window_size-hop_size)
+
+    # Обрезка до исходной длины
+    if len(shifted) > len(audio_signal):
+        shifted = shifted[:len(audio_signal)]
+    else:
+        shifted = np.pad(shifted, (0, len(audio_signal) - len(shifted)))
+
+    return shifted
+
+def time_stretch(audio_signal, stretch_factor):
+    """
+    Изменение длительности без изменения высоты тона
+    stretch_factor: коэффициент растяжения (>1 - медленнее, <1 - быстрее)
+    """
+    # Простой метод на основе линейной интерполяции
+    n_original = len(audio_signal)
+    n_new = int(n_original * stretch_factor)
+
+    # Создание новых временных точек
+    x_original = np.arange(n_original)
+    x_new = np.linspace(0, n_original-1, n_new)
+
+    # Линейная интерполяция
+    stretched = np.interp(x_new, x_original, audio_signal)
+
+    return stretched
+
+def vocoder_effect(carrier_signal, modulator_signal, sample_rate, bands=16):
+    """
+    Простой вокодер - наложение спектра одного сигнала на другой
+    carrier: сигнал-носитель (обычно шум или синтезатор)
+    modulator: модулирующий сигнал (обычно речь)
+    """
+    # Разделение на полосы частот
+    band_edges = np.logspace(np.log10(80), np.log10(8000), bands+1)
+
+    output = np.zeros_like(carrier_signal)
+
+    for i in range(bands):
+        low_freq = band_edges[i]
+        high_freq = band_edges[i+1]
+
+        # Полосовой фильтр для модулятора
+        b_mod, a_mod = signal.butter(4, [low_freq, high_freq],
+                                   btype='band', fs=sample_rate)
+        mod_band = signal.lfilter(b_mod, a_mod, modulator_signal)
+
+        # Полосовой фильтр для носителя
+        b_carr, a_carr = signal.butter(4, [low_freq, high_freq],
+                                     btype='band', fs=sample_rate)
+        carr_band = signal.lfilter(b_carr, a_carr, carrier_signal)
+
+        # Огибающая модулятора
+        envelope = np.abs(signal.hilbert(mod_band))
+
+        # Модуляция носителя огибающей
+        output += carr_band * envelope
+
+    return output
+
+# Демонстрация временных и спектральных эффектов
+if __name__ == "__main__":
+    sample_rate = 44100
+    duration = 3.0
+
+    # Создание тестовых сигналов
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Сигнал для pitch shift (чистый тон)
+    test_tone = np.sin(2 * np.pi * 440 * t)
+
+    # Сигналы для вокодера
+    # Носитель - белый шум
+    carrier = np.random.normal(0, 0.5, len(t))
+    # Модулятор - речь-like сигнал (AM-модуляция)
+    modulator = np.sin(2 * np.pi * 200 * t) * (0.5 + 0.5 * np.sin(2 * np.pi * 5 * t))
+
+    print("Создание временных и спектральных эффектов:")
+
+    # Сдвиг высоты тона
+    pitch_up = pitch_shift(test_tone, sample_rate, 4)  # +4 полутона
+    pitch_down = pitch_shift(test_tone, sample_rate, -7)  # -7 полутонов (квинта)
+    print("- Pitch shift: +4 полутона и -7 полутонов")
+
+    # Изменение темпа
+    slowed = time_stretch(test_tone, 1.5)  # В 1.5 раза медленнее
+    sped_up = time_stretch(test_tone, 0.7)  # В 0.7 раза быстрее
+    print("- Time stretch: замедление 1.5x, ускорение 0.7x")
+
+    # Вокодер
+    vocoded = vocoder_effect(carrier, modulator, sample_rate, bands=20)
+    print("- Vocoder: 20 полос, шум + речь-like модуляция")
+        </pre></div>
+
+        <div class="graph-container">
+            <div class="graph-title">Архитектура вокодера</div>
+            <div class="diagram">
+                <div class="mermaid">
+                    flowchart TB
+                        A[Модулирующий сигнал<br>Речь] --> B[Анализ фильтр-банком]
+                        B --> C["Полосовые фильтры<br>n каналов"]
+                        C --> D["Детекторы огибающей<br>n каналов"]
+                        D --> E["Огибающие<br>n каналов"]
+
+                        F[Сигнал-носитель<br>Шум/Синтезатор] --> G[Анализ фильтр-банком]
+                        G --> H["Полосовые фильтры<br>n каналов"]
+                        H --> I["Фильтрованный носитель<br>n каналов"]
+
+                        E --> J[Модуляция]
+                        I --> J
+
+                        J --> K["Модулированные полосы<br>n каналов"]
+                        K --> L[Сумматор]
+                        L --> M[Выходной сигнал<br>Вокодер]
+
+                        subgraph Фильтр-банк[Структура фильтр-банка]
+                            N["Канал 1<br>80-150 Гц"] --> O["..."]
+                            P["Канал n<br>... Гц"] --> Q["Канал N<br>4000-8000 Гц"]
+                        end
+                </div>
+            </div>
+            <div class="graph-description">
+                Вокодер анализирует модулирующий сигнал (обычно речь) с помощью фильтр-банка,
+                извлекая огибающие в каждой частотной полосе. Эти огибающие затем используются
+                для модуляции сигнала-носителя (обычно шум или синтезатор) в соответствующих
+                частотных полосах. Результат суммируется, создавая характерный "роботизированный" звук.
+            </div>
+        </div>
+
+        <div class="key-points">
+            <div class="key-points-title">Практические рекомендации по использованию эффектов:</div>
+            <ul>
+                <li><strong>Порядок обработки</strong>: Обычно дисторшн → модуляционные → пространственные эффекты</li>
+                <li><strong>Параметры по умолчанию</strong>: Начинайте с умеренных значений и регулируйте по вкусу</li>
+                <li><strong>CPU нагрузка</strong>: Реверберация и вокодер наиболее ресурсоемки, учитывайте при real-time обработке</li>
+                <li><strong>Соотношение dry/wet</strong>: Используйте смешивание для сохранения естественности звука</li>
+                <li><strong>Частотная область</strong>: Некоторые эффекты (эквалайзер, вокодер) лучше работают в частотной области</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+            <!-- Раздел 7: Спектральный анализ -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Современные методы спектрального анализа</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Вейвлет-преобразование</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Непрерывное вейвлет-преобразование</div>
+                        <div class="katex-formula" id="formula14"></div>
+                        <div class="formula-explanation">
+                            <p>где \( \psi \) - материнский вейвлет, \( a \) - параметр масштаба, \( b \) - параметр сдвига. Вейвлет-преобразование обеспечивает хорошее частотно-временное разрешение.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Вейвлет-преобразование позволяет анализировать сигнал одновременно в частотной и временной областях, что особенно полезно для нестационарных сигналов, таких как речь и музыка.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Спектральные методы улучшения качества</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A["Сигнал с артефактами"] --> B["Спектральный<br>анализ"]
+                                B --> C["Выделение<br>артефактов"]
+                                C --> D["Спектральная<br>коррекция"]
+                                D --> E["Обратное<br>преобразование"]
+                                E --> F["Улучшенный<br>сигнал"]
+
+                                G["Машинное обучение<br>для классификации"] --> C
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Современные методы используют машинное обучение для идентификации и удаления артефактов в спектральной области:</p>
+                        <ul>
+                            <li><span class="highlight">Нейронные сети</span> для классификации спектральных паттернов</li>
+                            <li><span class="highlight">Глубокое обучение</span> для спектрального восстановления</li>
+                            <li><span class="highlight">Спектральная интерполяция</span> для заполнения пропущенных частот</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Современные методы -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Современные методы на основе ИИ</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Нейросетевые подходы</h3>
+
+                    <div class="format-grid">
+                        <div class="format-card">
+                            <div class="format-name">Deezer's Spleeter</div>
+                            <div class="format-type enhancement">Разделение источников</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Разделение музыки на составляющие</p>
+                                <p><strong>Архитектура:</strong> U-Net с skip-connections</p>
+                                <p><strong>Применение:</strong> Извлечение вокала, инструментов</p>
+                            </div>
+                        </div>
+
+                        <div class="format-card">
+                            <div class="format-name">Demucs</div>
+                            <div class="format-type enhancement">Разделение источников</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Высококачественное разделение источников</p>
+                                <p><strong>Архитектура:</strong> Разреженные сверточные сети</p>
+                                <p><strong>Применение:</strong> Профессиональное разделение треков</p>
+                            </div>
+                        </div>
+
+                        <div class="format-card">
+                            <div class="format-name">RNNoise</div>
+                            <div class="format-type enhancement">Шумоподавление</div>
+                            <div class="text-content">
+                                <p><strong>Назначение:</strong> Эффективное шумоподавление</p>
+                                <p><strong>Архитектура:</strong> Рекуррентные нейронные сети</p>
+                                <p><strong>Применение:</strong> Обработка речи в реальном времени</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пример использования нейросетей</h3>
+
+                    <div class="code-block"><pre>
+# Пример архитектуры нейросети для шумоподавления
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+def create_denoising_autoencoder(input_length=1024):
+    """Создание автоэнкодера для шумоподавления"""
+    # Входной слой
+    input_layer = layers.Input(shape=(input_length, 1))
+
+    # Энкодер
+    x = layers.Conv1D(32, 3, activation='relu', padding='same')(input_layer)
+    x = layers.MaxPooling1D(2)(x)
+    x = layers.Conv1D(64, 3, activation='relu', padding='same')(x)
+    x = layers.MaxPooling1D(2)(x)
+
+    # Боттлнек
+    encoded = layers.Conv1D(128, 3, activation='relu', padding='same')(x)
+
+    # Декодер
+    x = layers.Conv1D(64, 3, activation='relu', padding='same')(encoded)
+    x = layers.UpSampling1D(2)(x)
+    x = layers.Conv1D(32, 3, activation='relu', padding='same')(x)
+    x = layers.UpSampling1D(2)(x)
+
+    # Выходной слой
+    decoded = layers.Conv1D(1, 3, activation='sigmoid', padding='same')(x)
+
+    # Модель
+    autoencoder = models.Model(input_layer, decoded)
+    autoencoder.compile(optimizer='adam', loss='mse')
+
+    return autoencoder
+
+# Пример использования
+if __name__ == "__main__":
+    # Создание модели
+    model = create_denoising_autoencoder()
+
+    print("Модель автоэнкодера для шумоподавления создана")
+    print(f"Количество параметров: {model.count_params():,}")
+    model.summary()
+                    </pre></div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Практика -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Практические аспекты обработки</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Рекомендации по применению методов</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Задача</th>
+                                <th>Рекомендуемые методы</th>
+                                <th>Порядок обработки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Очистка старой записи</td>
+                                <td>Шумоподавление, фильтрация, восстановление клиппинга</td>
+                                <td>1. Шумоподавление<br>2. Фильтрация<br>3. Восстановление<br>4. Динамическая обработка</td>
+                            </tr>
+                            <tr>
+                                <td>Улучшение речи</td>
+                                <td>Эквалайзер, компрессор, шумоподавление</td>
+                                <td>1. Фильтрация<br>2. Шумоподавление<br>3. Компрессия<br>4. Нормализация</td>
+                            </tr>
+                            <tr>
+                                <td>Мастеринг музыки</td>
+                                <td>Эквалайзер, компрессор, лимитер, реверберация</td>
+                                <td>1. Эквалайзер<br>2. Компрессия<br>3. Эффекты<br>4. Лимитирование</td>
+                            </tr>
+                            <tr>
+                                <td>Обработка в реальном времени</td>
+                                <td>Адаптивные фильтры, быстрые алгоритмы</td>
+                                <td>1. Предобработка<br>2. Адаптивная фильтрация<br>3. Постобработка</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Метрики качества обработки</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">SNR (Signal-to-Noise Ratio)</div>
+                        <div class="katex-formula" id="formula15"></div>
+                        <div class="formula-explanation">
+                            <p>где \( P_{signal} \) - мощность сигнала, \( P_{noise} \) - мощность шума. SNR измеряет отношение сигнал/шум.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">PESQ (Perceptual Evaluation of Speech Quality)</div>
+                        <div class="katex-formula" id="formula16"></div>
+                        <div class="formula-explanation">
+                            <p>Стандартизированная метрика для оценки качества речи, учитывающая психоакустические особенности слуха.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">STOI (Short-Time Objective Intelligibility)</div>
+                        <div class="katex-formula" id="formula17"></div>
+                        <div class="formula-explanation">
+                            <p>Объективная метрика разборчивости речи, хорошо коррелирующая с субъективными оценками.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 10: Библиотеки -->
+            <div class="section" id="section10">
+                <h2 class="section-title">10. Программные реализации на Python</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Библиотеки для аудиообработки</h3>
+
+                    <div class="library-grid">
+                        <div class="library-card">
+                            <div class="library-name">Librosa</div>
+                            <div class="text-content">
+                                <p>Библиотека для анализа музыки и звука. Содержит реализации современных алгоритмов.</p>
+                                <p><strong>Установка:</strong> <code>pip install librosa</code></p>
+                                <p><strong>Применение:</strong> Спектральный анализ, извлечение признаков</p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">PyAudio</div>
+                            <div class="text-content">
+                                <p>Привязка к PortAudio для работы со звуком в реальном времени.</p>
+                                <p><strong>Установка:</strong> <code>pip install pyaudio</code></p>
+                                <p><strong>Применение:</strong> Запись и воспроизведение в реальном времени</p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">SoundFile</div>
+                            <div class="text-content">
+                                <p>Библиотека для чтения и записи аудиофайлов различных форматов.</p>
+                                <p><strong>Установка:</strong> <code>pip install soundfile</code></p>
+                                <p><strong>Применение:</strong> Работа с аудиофайлами</p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">Noisereduce</div>
+                            <div class="text-content">
+                                <p>Библиотека для шумоподавления на основе спектрального вычитания.</p>
+                                <p><strong>Установка:</strong> <code>pip install noisereduce</code></p>
+                                <p><strong>Применение:</strong> Быстрое шумоподавление</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пример комплексной обработки</h3>
+
+                    <div class="code-block"><pre>
+import librosa
+import noisereduce as nr
+import numpy as np
+import soundfile as sf
+
+def comprehensive_audio_enhancement(input_file, output_file):
+    """Комплексное улучшение качества аудио"""
+    # Загрузка аудиофайла
+    audio, sr = librosa.load(input_file, sr=None)
+
+    print(f"Обработка файла: {input_file}")
+    print(f"Частота дискретизации: {sr} Гц")
+    print(f"Длительность: {len(audio)/sr:.2f} сек")
+
+    # 1. Шумоподавление
+    print("Применение шумоподавления...")
+    reduced_noise = nr.reduce_noise(y=audio, sr=sr)
+
+    # 2. Фильтрация низких частот (удаление гула)
+    print("Применение ФВЧ фильтра...")
+    # Создание ФВЧ фильтра Баттерворта 80 Гц
+    from scipy import signal
+    sos = signal.butter(4, 80, 'hp', fs=sr, output='sos')
+    filtered_audio = signal.sosfilt(sos, reduced_noise)
+
+    # 3. Компрессия динамического диапазона
+    print("Применение компрессии...")
+    # Простая мягкая компрессия
+    threshold = 0.1
+    ratio = 2
+    compressed = np.where(np.abs(filtered_audio) > threshold,
+                         np.sign(filtered_audio) * (threshold + (np.abs(filtered_audio) - threshold) / ratio),
+                         filtered_audio)
+
+    # 4. Нормализация уровня
+    print("Нормализация уровня...")
+    max_val = np.max(np.abs(compressed))
+    normalized = compressed / max_val * 0.9  # -1 dBFS headroom
+
+    # Сохранение результата
+    sf.write(output_file, normalized, sr)
+
+    print(f"Обработка завершена. Результат сохранен в: {output_file}")
+    return normalized, sr
+
+# Пример использования
+if __name__ == "__main__":
+    # В реальном коде здесь были бы пути к файлам
+    print("Пример комплексной обработки аудио")
+    print("Включает: шумоподавление, фильтрацию, компрессию, нормализацию")
+                    </pre></div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какой алгоритм наиболее эффективен для шумоподавления в реальном времени с опорным сигналом шума?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">Адаптивная фильтрация (LMS)</div>
+                        <div class="quiz-option" data-correct="false">Спектральное вычитание</div>
+                        <div class="quiz-option" data-correct="false">Вейвлет-преобразование</div>
+                        <div class="quiz-option" data-correct="false">Медианная фильтрация</div>
+                    </div>
+                    <div class="quiz-feedback"> Адаптивная фильтрация с алгоритмом LMS эффективна для шумоподавления в реальном времени при наличии опорного сигнала шума.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какой тип фильтра обеспечивает линейную фазовую характеристику?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">КИХ (FIR) фильтр</div>
+                        <div class="quiz-option" data-correct="false">БИХ (IIR) фильтр</div>
+                        <div class="quiz-option" data-correct="false">Адаптивный фильтр</div>
+                        <div class="quiz-option" data-correct="false">Все перечисленные</div>
+                    </div>
+                    <div class="quiz-feedback"> Только КИХ фильтры могут обеспечить строго линейную фазовую характеристику, что важно для сохранения формы сигнала.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какой эффект создает амплитудную модуляцию сигнала с низкой частотой?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Фленджер</div>
+                        <div class="quiz-option" data-correct="false">Хорус</div>
+                        <div class="quiz-option" data-correct="true">Тремоло</div>
+                        <div class="quiz-option" data-correct="false">Реверберация</div>
+                    </div>
+                    <div class="quiz-feedback"> Тремоло создает эффект периодического изменения громкости за счет амплитудной модуляции.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой метод наиболее подходит для разделения музыки на вокал и инструменты?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Адаптивная фильтрация</div>
+                        <div class="quiz-option" data-correct="false">Спектральное вычитание</div>
+                        <div class="quiz-option" data-correct="true">Нейросетевые методы (Spleeter, Demucs)</div>
+                        <div class="quiz-option" data-correct="false">Эквалайзер</div>
+                    </div>
+                    <div class="quiz-feedback"> Современные нейросетевые методы, такие как Spleeter и Demucs, наиболее эффективны для разделения музыкальных источников.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1
+            katex.render("y[n] = x[n] * h[n] = \\sum_{k=-\\infty}^{\\infty} x[k] h[n-k]", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2
+            katex.render("X[k] = \\sum_{n=0}^{N-1} x[n] e^{-j 2\\pi k n / N}", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Формула 3
+            katex.render("x[n] = \\frac{1}{N} \\sum_{k=0}^{N-1} X[k] e^{j 2\\pi k n / N}", document.getElementById('formula3'), {
+                throwOnError: false
+            });
+
+            // Формула 4
+            katex.render("X(z) = \\sum_{n=-\\infty}^{\\infty} x[n] z^{-n}", document.getElementById('formula4'), {
+                throwOnError: false
+            });
+
+            // Формула 5
+            katex.render("H(z) = \\frac{\\sum_{k=0}^{M} b_k z^{-k}}{1 + \\sum_{k=1}^{N} a_k z^{-k}}", document.getElementById('formula5'), {
+                throwOnError: false
+            });
+
+            // Формула 6
+            katex.render("y[n] = \\sum_{k=0}^{N-1} h[k] x[n-k]", document.getElementById('formula6'), {
+                throwOnError: false
+            });
+
+            // Формула 7
+            katex.render("h[n] = h_d[n] w[n]", document.getElementById('formula7'), {
+                throwOnError: false
+            });
+
+            // Формула 8
+            katex.render("w[n+1] = w[n] + \\mu e[n] x[n]", document.getElementById('formula8'), {
+                throwOnError: false
+            });
+
+            // Формула 9
+            katex.render("w[n+1] = w[n] + \\frac{\\mu}{\\|x[n]\\|^2 + \\epsilon} e[n] x[n]", document.getElementById('formula9'), {
+                throwOnError: false
+            });
+
+            // Формула 10
+            katex.render("|\\hat{X}(\\omega)| = \\max(|Y(\\omega)| - \\alpha |N(\\omega)|, \\beta |Y(\\omega)|)", document.getElementById('formula10'), {
+                throwOnError: false
+            });
+
+            // Формула 11
+            katex.render("G = \\begin{cases} 1 & \\text{если } |x| \\leq T \\\\ \\frac{1}{R} + \\left(1 - \\frac{1}{R}\\right) \\frac{T}{|x|} & \\text{если } |x| > T \\end{cases}", document.getElementById('formula11'), {
+                throwOnError: false,
+                displayMode: true
+            });
+
+            // Формула 12
+            katex.render("|x[n]| \\geq x_{max} - \\epsilon", document.getElementById('formula12'), {
+                throwOnError: false
+            });
+
+            // Формула 13
+            katex.render("y[n] = x[n] + \\sum_{i=1}^{4} g_i x[n - m_i] + \\sum_{j=1}^{2} a_j y[n - d_j]", document.getElementById('formula13'), {
+                throwOnError: false
+            });
+
+            // Формула 14
+            katex.render("CWT(a,b) = \\frac{1}{\\sqrt{|a|}} \\int_{-\\infty}^{\\infty} x(t) \\psi^*\\left(\\frac{t-b}{a}\\right) dt", document.getElementById('formula14'), {
+                throwOnError: false
+            });
+
+            // Формула 15
+            katex.render("SNR = 10 \\log_{10}\\left(\\frac{P_{signal}}{P_{noise}}\\right)", document.getElementById('formula15'), {
+                throwOnError: false
+            });
+
+            // Формула 16
+            katex.render("PESQ = f(\\text{воспринимаемое качество})", document.getElementById('formula16'), {
+                throwOnError: false
+            });
+
+            // Формула 17
+            katex.render("STOI = \\frac{1}{M} \\sum_{m} \\text{корреляция}(X_m, Y_m)", document.getElementById('formula17'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
