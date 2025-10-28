@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Методы сжатия звука - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Python';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .complexity-chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .complexity-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .complexity-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+        }
+
+        .mermaid {
+            background: white;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .codec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .codec-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .codec-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .codec-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .codec-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .lossless {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-primary);
+        }
+
+        .lossy {
+            background: rgba(255, 46, 99, 0.2);
+            color: var(--accent-secondary);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .stereo-techniques {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stereo-technique {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .stereo-technique-title {
+            font-weight: 600;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .library-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .library-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .language-tabs {
+            display: flex;
+            margin-bottom: -1px;
+            flex-wrap: wrap;
+        }
+
+        .language-tab {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .language-tab.active {
+            background: #1e293b;
+            color: var(--accent-primary);
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .code-content {
+            display: none;
+        }
+
+        .code-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .codec-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .complexity-chart {
+                grid-template-columns: 1fr;
+            }
+
+            .stereo-techniques {
+                grid-template-columns: 1fr;
+            }
+
+            .library-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение</a>
+        <a href="#section2" class="nav-item">Классификация</a>
+        <a href="#section3" class="nav-item">Lossless</a>
+        <a href="#section4" class="nav-item">Lossy</a>
+        <a href="#section5" class="nav-item">Психоакустика</a>
+        <a href="#section6" class="nav-item">Квантование</a>
+        <a href="#section7" class="nav-item">Стерео сжатие</a>
+        <a href="#section8" class="nav-item">Форматы</a>
+        <a href="#section9" class="nav-item">Кодеки</a>
+        <a href="#section10" class="nav-item">Практика</a>
+        <a href="#section11" class="nav-item">Программные реализации</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Методы сжатия звука</h1>
+            <p class="lecture-subtitle">Подробный конспект лекции для направления "Программная инженерия"</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение: Проблема объема звуковых данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Проблема больших объемов несжатого звука</h3>
+                    <div class="text-content">
+                        <p>Цифровой звук представляет собой последовательность числовых значений (отсчетов), которые описывают амплитуду звуковой волны в дискретные моменты времени. Без сжатия эти данные занимают значительный объем, что делает их хранение и передачу неэффективной.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph LR
+                                A[Несжатый звук] --> B[10.1 МБ/минуту]
+                                B --> C[Слишком большой<br>для передачи/хранения]
+                                C --> D[Решение:<br>сжатие данных]
+
+                                subgraph CD_качество[Пример расчета CD-качества]
+                                    E[44100 Гц × 16 бит × 2 канала × 60 сек]
+                                    E --> F[10.1 МБ/минуту]
+                                end
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Детальный расчет:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Частота дискретизации 44.1 кГц</span>: 44,100 отсчетов в секунду</li>
+                            <li><span class="highlight">Разрядность 16 бит</span>: 65,536 возможных уровней квантования</li>
+                            <li><span class="highlight">Стерео (2 канала)</span>: удваивает объем данных</li>
+                        </ul>
+
+                        <div class="formula">
+                            <div class="formula-title">Расчет размера несжатого аудио</div>
+                            <div class="katex-formula" id="formula1"></div>
+                            <div class="formula-explanation">
+                                <p>где:</p>
+                                <ul>
+                                    <li><strong>Частота дискретизации</strong> - количество отсчетов в секунду (Гц)</li>
+                                    <li><strong>Разрядность</strong> - количество бит на один отсчет</li>
+                                    <li><strong>Каналы</strong> - количество аудиоканалов (моно=1, стерео=2)</li>
+                                    <li><strong>Время</strong> - длительность аудио в секундах</li>
+                                    <li><strong>Деление на 8</strong> - преобразование битов в байты</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="formula">
+                            <div class="formula-title">Пример расчета для CD-качества</div>
+                            <div class="katex-formula" id="formula2"></div>
+                            <div class="formula-explanation">
+                                <p>Для CD-качества (44.1 кГц, 16 бит, стерео) одна минута аудио занимает около 10.1 МБ. Это объясняет необходимость сжатия для эффективного хранения и передачи.</p>
+                            </div>
+                        </div>
+
+                        <p><strong>Практические последствия:</strong></p>
+                        <ul>
+                            <li>Музыкальный альбом (60 минут): 606 МБ</li>
+                            <li>1000 песен: ~100 ГБ</li>
+                            <li>Потоковое вещание: требуется пропускная способность 1.41 Мбит/с на одного слушателя</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Процесс оцифровки звука</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Аналоговый сигнал<br>непрерывная звуковая волна] --> B[Дискретизация<br>по времени<br>Sampling]
+                                B --> C[Квантование<br>по амплитуде<br>Quantization]
+                                C --> D[Цифровой PCM сигнал<br>импульсно-кодовая модуляция]
+
+                                E[Частота дискретизации<br>определяет макс. частоту<br>Теорема Котельникова] --> B
+                                F[Разрядность<br>определяет динамический диапазон<br>и уровень шума квантования] --> C
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Математические основы:</strong></p>
+
+                        <div class="formula">
+                            <div class="formula-title">Интервал дискретизации</div>
+                            <div class="katex-formula" id="formula3"></div>
+                            <div class="formula-explanation">
+                                <p>где \( f_s \) - частота дискретизации. Интервал дискретизации определяет временное разрешение цифрового сигнала.</p>
+                            </div>
+                        </div>
+
+                        <div class="formula">
+                            <div class="formula-title">Теорема Котельникова (Найквиста-Шеннона)</div>
+                            <div class="katex-formula" id="formula4"></div>
+                            <div class="formula-explanation">
+                                <p>Для точного восстановления аналогового сигнала из дискретных отсчетов частота дискретизации должна быть как минимум вдвое выше максимальной частоты в сигнале. Это предотвращает эффект наложения спектров (алиасинг).</p>
+                            </div>
+                        </div>
+
+                        <p><strong>Этапы преобразования:</strong></p>
+                        <ol>
+                            <li><span class="highlight">Дискретизация</span>: преобразование непрерывного сигнала в дискретный по времени</li>
+                            <li><span class="highlight">Квантование</span>: преобразование непрерывной амплитуды в дискретные уровни</li>
+                            <li><span class="highlight">Кодирование</span>: представление уровней в двоичной форме (PCM)</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>Несжатый звук CD-качества занимает около 10.1 МБ в минуту</li>
+                        <li>Дискретизация преобразует непрерывный сигнал в дискретный по времени</li>
+                        <li>Квантование преобразует непрерывную амплитуду в дискретные уровни</li>
+                        <li>Теорема Котельникова определяет минимальную частоту дискретизации</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Классификация -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Классификация методов сжатия</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнение методов сжатия</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Методы сжатия звука] --> B[Без потерь<br>Lossless]
+                                A --> C[С потерями<br>Lossy]
+
+                                B --> D[Принцип:<br>удаление избыточности<br>энтропийное кодирование]
+                                C --> E[Принцип:<br>психоакустическое<br>моделирование]
+
+                                D --> F[Сжатие 2:1 - 3:1<br>Качество: идентично оригиналу]
+                                E --> G[Сжатие 5:1 - 20:1<br>Качество: контролируемые потери]
+
+                                F --> H[Применение:<br>архивы, студия,<br>аудиофильское прослушивание]
+                                G --> I[Применение:<br>стриминг, мобильные<br>устройства, массовое распространение]
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Математические основы сжатия</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Энтропия Шеннона</div>
+                        <div class="katex-formula" id="formula5"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( H(X) \) - энтропия источника данных</li>
+                                <li>\( P(x_i) \) - вероятность появления символа \( x_i \)</li>
+                                <li>\( n \) - количество различных символов в алфавите</li>
+                            </ul>
+                            <p>Энтропия Шеннона определяет теоретический предел сжатия данных без потерь. Она измеряет среднее количество информации, приходящееся на один символ источника.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Энтропия источника данных определяет теоретический предел, до которого можно сжать данные без потерь. Для сжатия с потерями применяются психоакустические модели, которые учитывают особенности человеческого слуха.</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>Lossless</th>
+                                <th>Lossy</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Принцип работы</td>
+                                <td>Удаление избыточности</td>
+                                <td>Психоакустическое моделирование</td>
+                            </tr>
+                            <tr>
+                                <td>Степень сжатия</td>
+                                <td>2:1 - 3:1</td>
+                                <td>5:1 - 20:1</td>
+                            </tr>
+                            <tr>
+                                <td>Качество</td>
+                                <td>Идентично оригиналу</td>
+                                <td>Контролируемые потери</td>
+                            </tr>
+                            <tr>
+                                <td>Вычислительная сложность</td>
+                                <td>Низкая-средняя</td>
+                                <td>Высокая</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Lossless -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Методы сжатия без потерь (Lossless)</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура lossless-кодек</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[PCM входные данные<br>высокая избыточность] --> B[Линейное предсказание<br>LPC<br>сокращение динамического диапазона]
+                                B --> C[Ошибка предсказания<br>меньшая энтропия,<br>легче сжимать]
+                                C --> D[Энтропийное кодирование<br>устранение статистической избыточности]
+                                D --> E[Сжатые данные<br>50-70% от оригинала]
+
+                                F[Кодирование Хаффмана] --> D
+                                G[Арифметическое кодирование] --> D
+                                H[Кодирование длин серий] --> D
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Линейное предсказание (LPC)</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Модель линейного предсказания</div>
+                        <div class="katex-formula" id="formula6"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( \hat{x}[n] \) - предсказанное значение текущего отсчета</li>
+                                <li>\( a_i \) - коэффициенты линейного предсказания</li>
+                                <li>\( x[n-i] \) - предыдущие отсчеты сигнала</li>
+                                <li>\( p \) - порядок модели предсказания</li>
+                            </ul>
+                            <p>Линейное предсказание использует линейную комбинацию предыдущих отсчетов для предсказания текущего значения.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Ошибка предсказания</div>
+                        <div class="katex-formula" id="formula7"></div>
+                        <div class="formula-explanation">
+                            <p>Разница между фактическим значением сигнала и предсказанным значением. Ошибка предсказания обычно имеет меньшую дисперсию и энтропию, чем исходный сигнал, что делает ее более эффективной для сжатия.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Нормальные уравнения Юла-Уокера</div>
+                        <div class="katex-formula" id="formula8"></div>
+                        <div class="formula-explanation">
+                            <p>где \( R[|i-j|] \) - автокорреляционная функция сигнала. Эти уравнения используются для нахождения оптимальных коэффициентов линейного предсказания, минимизирующих дисперсию ошибки предсказания.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Линейное предсказание основано на корреляции между соседними отсчетами. Коэффициенты предсказания рассчитываются таким образом, чтобы минимизировать дисперсию ошибки предсказания.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Кодирование Хаффмана</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Анализ частот символов] --> B[Построение дерева Хаффмана]
+                                B --> C[Назначение кодов]
+                                C --> D[Кодирование данных]
+
+                                subgraph Дерево_Хаффмана[Дерево Хаффмана]
+                                    E[Root] -- 0 --> F[A: 40%]
+                                    E -- 1 --> G[Node1]
+                                    G -- 0 --> H[B: 30%]
+                                    G -- 1 --> I[Node2]
+                                    I -- 0 --> J[C: 20%]
+                                    I -- 1 --> K[D: 10%]
+                                end
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Средняя длина кода</div>
+                        <div class="katex-formula" id="formula9"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( L \) - средняя длина кода</li>
+                                <li>\( p_i \) - вероятность появления символа \( i \)</li>
+                                <li>\( l_i \) - длина кода для символа \( i \)</li>
+                            </ul>
+                            <p>Средняя длина кода Хаффмана всегда больше или равна энтропии источника и меньше энтропии плюс 1 бит.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Эффективность кодирования</div>
+                        <div class="katex-formula" id="formula10"></div>
+                        <div class="formula-explanation">
+                            <p>Эффективность кодирования Хаффмана показывает, насколько близко средняя длина кода приближается к теоретическому пределу (энтропии источника).</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Коды Хаффмана обладают свойством префиксности - ни один код не является префиксом другого. Это гарантирует однозначность декодирования.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Lossy -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Методы сжатия с потерями (Lossy)</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура MP3/AAC кодек</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[PCM аудио вход] --> B[Банк фильтров<br>32 субполосы]
+                                B --> C[MDCT преобразование]
+                                B --> D[Психоакустическая модель]
+
+                                D --> E[Расчет битрейта<br>и порогов маскирования]
+                                E --> F[Квантователь]
+                                C --> F
+
+                                F --> G[Энтропийное кодирование]
+                                G --> H[Формирование фреймов]
+                                H --> I[Битстрим на выход]
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Ключевым отличием lossy-кодеков является использование психоакустической модели, которая определяет, какие компоненты сигнала можно удалить или огрубить без заметного ухудшения воспринимаемого качества.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">MDCT преобразование</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Modified Discrete Cosine Transform</div>
+                        <div class="katex-formula" id="formula11"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( X[k] \) - k-й коэффициент MDCT</li>
+                                <li>\( x[n] \) - входной сигнал</li>
+                                <li>\( N \) - размер блока преобразования</li>
+                                <li>\( n \) - индекс временного отсчета (0 ≤ n < 2N)</li>
+                                <li>\( k \) - индекс частотного коэффициента (0 ≤ k < N)</li>
+                            </ul>
+                            <p>MDCT обеспечивает лучшее частотное разрешение по сравнению с обычным DCT и использует перекрывающиеся окна для устранения артефактов на границах блоков. Это критически важно для аудиокодеков, так как позволяет плавно переходить между блоками без слышимых искажений.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>MDCT обеспечивает лучшее частотное разрешение по сравнению с обычным DCT и использует перекрывающиеся окна для устранения артефактов на границах блоков.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Психоакустика -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Психоакустические модели</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные эффекты</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Психоакустические эффекты] --> B[Абсолютный порог слышимости]
+                                A --> C[Частотное маскирование]
+                                A --> D[Временное маскирование]
+
+                                B --> E[Звуки ниже порога<br>неслышимы]
+                                C --> F[Громкий звук маскирует<br>близкие частоты]
+                                D --> G[Громкий звук маскирует<br>предшествующие и последующие<br>звуки]
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Абсолютный порог слышимости</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Модель ISO 226:2003</div>
+                        <div class="katex-formula" id="formula12"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( L_p \) - абсолютный порог слышимости в дБ SPL</li>
+                                <li>\( f \) - частота в Гц</li>
+                            </ul>
+                            <p>Эта модель описывает минимальный уровень звукового давления, который может воспринять среднестатистическое человеческое ухо на каждой частоте. Звуки ниже этого порога могут быть удалены без ущерба для воспринимаемого качества.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Абсолютный порог слышимости описывает минимальный уровень звукового давления, который может воспринять человеческое ухо на каждой частоте. Звуки ниже этого порога могут быть удалены без ущерба для качества.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Частотное маскирование</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Шкала Барк</div>
+                        <div class="katex-formula" id="formula13"></div>
+                        <div class="formula-explanation">
+                            <p>где \( z \) - значение в барках, \( f \) - частота в Гц. Шкала Барк преобразует линейную частотную шкалу в психоакустическую шкалу, более соответствующую восприятию человека. Человеческое ухо разделяет слышимый диапазон на примерно 24 критических полосы (барков).</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Уровень маскирования</div>
+                        <div class="katex-formula" id="formula14"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( L_{\text{mask}}(f_t) \) - уровень маскирования на частоте цели \( f_t \)</li>
+                                <li>\( L_m \) - уровень маскера</li>
+                                <li>\( SF(\Delta z) \) - функция распространения маскирования</li>
+                                <li>\( \Delta z \) - расстояние между маскером и целью в барках</li>
+                            </ul>
+                            <p>Эта формула описывает, как громкий звук (маскер) повышает порог слышимости для близких частот.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Функция распространения маскирования</div>
+                        <div class="katex-formula" id="formula15"></div>
+                        <div class="formula-explanation">
+                            <p>Функция распространения описывает, как эффект маскирования уменьшается с увеличением частотного расстояния между маскером и целью. Эффект сильнее в сторону высоких частот.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Частотное маскирование возникает, когда громкий звук (маскер) делает неслышимыми более тихие звуки на близких частотах. Эффект сильнее в сторону высоких частот.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Квантование -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Процесс квантования</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Управляемое квантование</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Спектральные коэффициенты] --> B{"Важность компонента"}
+                                B --> C["Выше порога<br>маскирования"]
+                                B --> D["Ниже порога<br>маскирования"]
+
+                                C --> E["Точное квантование<br>много бит"]
+                                D --> F["Грубое квантование<br>мало бит"]
+                                D --> G["Полное удаление<br>0 бит"]
+
+                                E --> H["Сохранение качества"]
+                                F --> I["Экономия бит"]
+                                G --> I
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Распределение битрейта</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Распределение бит по полосам</div>
+                        <div class="katex-formula" id="formula17"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( B_i \) - количество бит, выделенное для i-й частотной полосы</li>
+                                <li>\( \text{MNR}_i \) - отношение маскирования к шуму (Mask-to-Noise Ratio) для i-й полосы</li>
+                                <li>\( B_{\text{total}} \) - общий доступный битрейт</li>
+                            </ul>
+                            <p>Эта формула описывает принцип распределения битрейта в lossy-кодеках: больше бит выделяется на важные (слышимые) компоненты, меньше - на маскируемые.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Битрейт распределяется неравномерно по частотным полосам - больше бит выделяется на важные (слышимые) компоненты, меньше - на маскируемые.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: Стерео сжатие -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Особенности восприятия стерео и методы сжатия</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Психоакустика стереовосприятия</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Стереовосприятие] --> B[Бинауральные cue-сигналы]
+                                A --> C[Моно-совместимость]
+
+                                B --> D[Разность интенсивностей<br>ILD]
+                                B --> E[Временная разность<br>ITD]
+                                B --> F[Спектральные cue-сигналы]
+
+                                D --> G["Локализация<br>высокочастотных<br>звуков"]
+                                E --> H["Локализация<br>низкочастотных<br>звуков"]
+                                F --> I["Распознавание<br>отражений и<br>реверберации"]
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p>Человеческий слух использует несколько механизмов для определения направления прихода звука:</p>
+                        <ul>
+                            <li><span class="highlight">ILD (Interaural Level Difference)</span> - разность интенсивностей между ушами для высокочастотных звуков (>1.5 кГц)</li>
+                            <li><span class="highlight">ITD (Interaural Time Difference)</span> - временная разность между ушами для низкочастотных звуков (<1.5 кГц)</li>
+                            <li><span class="highlight">Спектральные cue-сигналы</span> - изменения в спектре звука из-за анатомии головы и ушных раковин</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Методы стереосжатия</h3>
+
+                    <div class="stereo-techniques">
+                        <div class="stereo-technique">
+                            <div class="stereo-technique-title">Dual Mono</div>
+                            <div class="text-content">
+                                <p>Левый и правый каналы кодируются независимо. Простой подход, но неэффективный с точки зрения сжатия, так как не использует корреляцию между каналами.</p>
+                            </div>
+                        </div>
+
+                        <div class="stereo-technique">
+                            <div class="stereo-technique-title">Mid/Side (M/S) Stereo</div>
+                            <div class="text-content">
+                                <p>Преобразование стереосигнала в средний (Mid) и разностный (Side) каналы:</p>
+                                <div class="formula">
+                                    <div class="katex-formula" id="formula23"></div>
+                                </div>
+                                <div class="formula">
+                                    <div class="katex-formula" id="formula24"></div>
+                                </div>
+                                <p>Эффективно для сильно коррелированных стереосигналов, так как Side-канал обычно имеет меньшую энергию.</p>
+                            </div>
+                        </div>
+
+                        <div class="stereo-technique">
+                            <div class="stereo-technique-title">Intensity Stereo</div>
+                            <div class="text-content">
+                                <p>На высоких частотах сохраняется только моно-компонента с информацией о пространственном распределении энергии. Основано на том, что человеческое ухо не различает фазу на высоких частотах.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Коэффициент корреляции стереоканалов</div>
+                        <div class="katex-formula" id="formula25"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( L \) и \( R \) - левый и правый каналы</li>
+                                <li>\( E[\cdot] \) - математическое ожидание</li>
+                                <li>\( \sigma_L, \sigma_R \) - стандартные отклонения каналов</li>
+                            </ul>
+                            <p>Этот коэффициент показывает степень сходства между левым и правым каналами. Высокая корреляция (>0.9) указывает на эффективность M/S кодирования.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Параметрическое стерео (PS)</h3>
+
+                    <div class="text-content">
+                        <p>Параметрическое стерео - продвинутая техника, используемая в современных кодеках (AAC, Opus):</p>
+                        <ul>
+                            <li>Кодируется моно-сигнал (downmix)</li>
+                            <li>Извлекаются пространственные параметры (ILD, ITD, ICC)</li>
+                            <li>Параметры квантуются и передаются с низким битрейтом</li>
+                            <li>На стороне декодера выполняется синтез стерео на основе параметров</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Inter-Channel Coherence (ICC)</div>
+                        <div class="katex-formula" id="formula26"></div>
+                        <div class="formula-explanation">
+                            <p>ICC измеряет степень когерентности между каналами. Высокое значение ICC указывает на центральное расположение источника звука, низкое - на широкое стерео или разные источники в каналах.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Форматы -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Сравнение популярных форматов</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Характеристики форматов</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Формат</th>
+                                <th>Тип</th>
+                                <th>Сжатие</th>
+                                <th>Качество</th>
+                                <th>Применение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>FLAC</td>
+                                <td>Lossless</td>
+                                <td>50-70%</td>
+                                <td>Идентично оригиналу</td>
+                                <td>Архивы, студия</td>
+                            </tr>
+                            <tr>
+                                <td>AAC</td>
+                                <td>Lossy</td>
+                                <td>10-20%</td>
+                                <td>Отличное</td>
+                                <td>Стриминг, мобильные</td>
+                            </tr>
+                            <tr>
+                                <td>Opus</td>
+                                <td>Lossy</td>
+                                <td>5-15%</td>
+                                <td>Отличное</td>
+                                <td>VoIP, веб-приложения</td>
+                            </tr>
+                            <tr>
+                                <td>MP3</td>
+                                <td>Lossy</td>
+                                <td>10-20%</td>
+                                <td>Хорошее</td>
+                                <td>Универсальное</td>
+                            </tr>
+                            <tr>
+                                <td>Vorbis</td>
+                                <td>Lossy</td>
+                                <td>10-20%</td>
+                                <td>Хорошее</td>
+                                <td>Игры, открытые платформы</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Критерии выбора</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Формула оценки эффективности</div>
+                        <div class="katex-formula" id="formula19"></div>
+                        <div class="formula-explanation">
+                            <p>Эта формула помогает оценить общую эффективность аудиокодека, учитывая три ключевых параметра: качество звука, битрейт и совместимость с устройствами и платформами.</p>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые факторы выбора:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Качество звука</span>: требования к fidelity воспроизведения</li>
+                            <li><span class="highlight">Размер файла</span>: ограничения хранилища и пропускной способности</li>
+                            <li><span class="highlight">Совместимость</span>: поддержка целевыми устройствами и платформами</li>
+                            <li><span class="highlight">Вычислительная сложность</span>: возможности устройств для кодирования/декодирования</li>
+                            <li><span class="highlight">Лицензирование</span>: стоимость и ограничения использования</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Кодеки и области применения -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Аудиокодеки и области применения</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Популярные аудиокодеки</h3>
+
+                    <div class="codec-grid">
+                        <div class="codec-card">
+                            <div class="codec-name">MP3 (MPEG-1 Audio Layer 3)</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 128-320 кбит/с</p>
+                                <p><strong>Применение:</strong> Универсальный формат для хранения музыки, потокового вещания, подкастов</p>
+                                <p><strong>Особенности:</strong> Широкая совместимость, баланс между качеством и размером</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">AAC (Advanced Audio Coding)</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 128-256 кбит/с</p>
+                                <p><strong>Применение:</strong> iTunes, YouTube, стриминг-сервисы, телевещание (HDTV)</p>
+                                <p><strong>Особенности:</strong> Лучшее качество чем MP3 при том же битрейте, улучшенное стерео</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">Opus</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 32-256 кбит/с</p>
+                                <p><strong>Применение:</strong> Веб-стриминг, VoIP, видеоконференции, игровой чат</p>
+                                <p><strong>Особенности:</strong> Низкая задержка, адаптивный битрейт, отличное качество для речи и музыки</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">FLAC (Free Lossless Audio Codec)</div>
+                            <div class="codec-type lossless">Lossless</div>
+                            <div class="text-content">
+                                <p><strong>Сжатие:</strong> 50-70% от оригинала</p>
+                                <p><strong>Применение:</strong> Архивация музыкальных коллекций, студийная работа, аудиофильское прослушивание</p>
+                                <p><strong>Особенности:</strong> Открытый стандарт, полное сохранение качества</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">ALAC (Apple Lossless)</div>
+                            <div class="codec-type lossless">Lossless</div>
+                            <div class="text-content">
+                                <p><strong>Сжатие:</strong> 50-70% от оригинала</p>
+                                <p><strong>Применение:</strong> Экосистема Apple (iTunes, iOS, macOS)</p>
+                                <p><strong>Особенности:</strong> Аналог FLAC для устройств Apple, хорошая интеграция с экосистемой</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">Vorbis</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 96-320 кбит/с</p>
+                                <p><strong>Применение:</strong> Игры (Minecraft, Steam), открытые платформы, приложения с открытым исходным кодом</p>
+                                <p><strong>Особенности:</strong> Открытый и бесплатный, качество сравнимо с MP3</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">AC3 (Dolby Digital)</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 64-640 кбит/с</p>
+                                <p><strong>Применение:</strong> Кино, домашние кинотеатры, телевидение, DVD/Blu-ray</p>
+                                <p><strong>Особенности:</strong> Поддержка многоканального звука (5.1, 7.1), стандарт для киноиндустрии</p>
+                            </div>
+                        </div>
+
+                        <div class="codec-card">
+                            <div class="codec-name">AMR (Adaptive Multi-Rate)</div>
+                            <div class="codec-type lossy">Lossy</div>
+                            <div class="text-content">
+                                <p><strong>Битрейт:</strong> 4.75-12.2 кбит/с</p>
+                                <p><strong>Применение:</strong> Мобильная телефония, голосовые сообщения, VoIP с низкой полосой пропускания</p>
+                                <p><strong>Особенности:</strong> Оптимизирован для речи, очень низкий битрейт</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Специализированные кодеки</h3>
+
+                    <div class="complexity-chart">
+                        <div class="complexity-item">
+                            <div class="complexity-title">G.711</div>
+                            <div class="text-content">Кодек для телефонии, битрейт 64 кбит/с. Используется в традиционной телефонии и VoIP.</div>
+                        </div>
+                        <div class="complexity-item">
+                            <div class="complexity-title">G.722</div>
+                            <div class="text-content">Широкополосный аудиокодек для речевых приложений, битрейт 48-64 кбит/с.</div>
+                        </div>
+                        <div class="complexity-item">
+                            <div class="complexity-title">Speex</div>
+                            <div class="text-content">Открытый кодек для речи, оптимизированный для VoIP и видеоконференций.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 10: Практика -->
+            <div class="section" id="section10">
+                <h2 class="section-title">10. Практические аспекты для программных инженеров</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Рекомендации по применению</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Применение</th>
+                                <th>Рекомендуемый кодек</th>
+                                <th>Битрейт</th>
+                                <th>Библиотеки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Музыкальные приложения</td>
+                                <td>AAC, Opus</td>
+                                <td>128-256 кбит/с</td>
+                                <td>FFmpeg, libopus</td>
+                            </tr>
+                            <tr>
+                                <td>Голосовая связь</td>
+                                <td>Opus</td>
+                                <td>32-64 кбит/с</td>
+                                <td>libopus, WebRTC</td>
+                            </tr>
+                            <tr>
+                                <td>Архивация</td>
+                                <td>FLAC</td>
+                                <td>Переменный</td>
+                                <td>libFLAC</td>
+                            </tr>
+                            <tr>
+                                <td>Универсальное</td>
+                                <td>MP3</td>
+                                <td>192 кбит/с</td>
+                                <td>LAME, FFmpeg</td>
+                            </tr>
+                            <tr>
+                                <td>Игры</td>
+                                <td>Vorbis</td>
+                                <td>96-192 кбит/с</td>
+                                <td>libvorbis</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пример реализации на Python</h3>
+
+                    <div class="code-block"><pre>
+
+
+import numpy as np
+import math
+
+def calculate_bitrate(sample_rate, bit_depth, channels, compression_ratio=1):
+    """Расчет битрейта"""
+    uncompressed = sample_rate * bit_depth * channels
+    return uncompressed / compression_ratio
+
+def psychoacoustic_threshold(frequency):
+    """Абсолютный порог слышимости по модели ISO 226"""
+    f_khz = frequency / 1000.0
+    return (3.64 * (f_khz ** -0.8) -
+            6.5 * np.exp(-0.6 * (f_khz - 3.3) ** 2) +
+            (10 ** -3) * (f_khz ** 4))
+
+def bark_scale(frequency):
+    """Преобразование частоты в шкалу Барк"""
+    return 13 * math.atan(0.00076 * frequency) + 3.5 * math.atan((frequency / 7500) ** 2)
+
+def calculate_compression_ratio(original_size, compressed_size):
+    """Расчет степени сжатия"""
+    return original_size / compressed_size
+
+# Пример использования
+if __name__ == "__main__":
+    # Расчет для CD-качества
+    original_bitrate = calculate_bitrate(44100, 16, 2)
+    mp3_bitrate = 128000  # 128 кбит/с
+
+    compression = original_bitrate / mp3_bitrate
+    print(f"Степень сжатия MP3: {compression:.1f}:1")
+
+    # Пример психоакустического порога
+    freq = 1000  # 1 кГц
+    threshold = psychoacoustic_threshold(freq)
+    print(f"Порог слышимости на {freq} Гц: {threshold:.1f} дБ")
+    </pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Формулы для практических расчетов</h3>
+
+                    <div class="formula">
+                        <div class="formula-title">Коэффициент сжатия</div>
+                        <div class="katex-formula" id="formula20"></div>
+                        <div class="formula-explanation">
+                            <p>Показывает, во сколько раз сжатые данные меньше исходных. Например, коэффициент сжатия 10:1 означает, что сжатый файл в 10 раз меньше оригинала.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Эффективность кодирования</div>
+                        <div class="katex-formula" id="formula21"></div>
+                        <div class="formula-explanation">
+                            <p>Показывает, насколько близко фактический битрейт приближается к теоретическому пределу сжатия. Значение больше 1 указывает на неэффективное кодирование.</p>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Теоретическое отношение сигнал-шум</div>
+                        <div class="katex-formula" id="formula22"></div>
+                        <div class="formula-explanation">
+                            <p>где \( N \) - разрядность квантования в битах. Эта формула описывает максимально возможное отношение сигнал-шум для идеального N-битного квантователя. Каждый дополнительный бит увеличивает SNR примерно на 6 дБ.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Новый раздел: Программные реализации -->
+            <div class="section" id="section11">
+                <h2 class="section-title">11. Программные реализации на Python</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Библиотеки для работы с аудио</h3>
+
+                    <div class="library-grid">
+                        <div class="library-card">
+                            <div class="library-name">PyAudio</div>
+                            <div class="text-content">
+                                <p>Библиотека для работы с аудиовводом/выводом. Позволяет записывать и воспроизводить аудио в реальном времени.</p>
+                                <p><strong>Установка:</strong> <code>pip install pyaudio</code></p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">NumPy & SciPy</div>
+                            <div class="text-content">
+                                <p>Основные библиотеки для научных вычислений. Используются для обработки сигналов и реализации алгоритмов сжатия.</p>
+                                <p><strong>Установка:</strong> <code>pip install numpy scipy</code></p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">Librosa</div>
+                            <div class="text-content">
+                                <p>Библиотека для анализа аудио и музыки. Полезна для извлечения признаков и психоакустического анализа.</p>
+                                <p><strong>Установка:</strong> <code>pip install librosa</code></p>
+                            </div>
+                        </div>
+
+                        <div class="library-card">
+                            <div class="library-name">SoundFile</div>
+                            <div class="text-content">
+                                <p>Библиотека для чтения и записи аудиофайлов различных форматов.</p>
+                                <p><strong>Установка:</strong> <code>pip install soundfile</code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Реализация Алгоритмов</h3>
+                    <a href="4_ex.html">Примеры на Python</a>
+                </div>
+
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какой кодек обеспечивает полное сохранение качества звука?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">FLAC</div>
+                        <div class="quiz-option" data-correct="false">MP3</div>
+                        <div class="quiz-option" data-correct="false">AAC</div>
+                        <div class="quiz-option" data-correct="false">Opus</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! FLAC - это кодек сжатия без потерь, который сохраняет качество звука идентичным оригиналу.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какой эффект психоакустики используется в lossy-кодеках для удаления неслышимых компонентов?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Эффект Доплера</div>
+                        <div class="quiz-option" data-correct="true">Абсолютный порог слышимости</div>
+                        <div class="quiz-option" data-correct="false">Резонанс</div>
+                        <div class="quiz-option" data-correct="false">Интерференция</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Абсолютный порог слышимости описывает минимальный уровень звукового давления, который может воспринять человеческое ухо на каждой частоте.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какой кодек лучше всего подходит для VoIP-приложений?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">FLAC</div>
+                        <div class="quiz-option" data-correct="false">MP3</div>
+                        <div class="quiz-option" data-correct="true">Opus</div>
+                        <div class="quiz-option" data-correct="false">AAC</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! Opus специально разработан для VoIP-приложений и обеспечивает низкую задержку и отличное качество для речи.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой метод стереосжатия наиболее эффективен для сильно коррелированных сигналов?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Dual Mono</div>
+                        <div class="quiz-option" data-correct="true">Mid/Side Stereo</div>
+                        <div class="quiz-option" data-correct="false">Intensity Stereo</div>
+                        <div class="quiz-option" data-correct="false">Параметрическое стерео</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Mid/Side Stereo эффективно использует корреляцию между каналами, преобразуя сигнал в среднюю и разностную компоненты.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1
+            katex.render("\\text{Размер} = \\frac{\\text{Частота дискретизации} \\times \\text{Разрядность} \\times \\text{Каналы} \\times \\text{Время}}{8}", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2
+            katex.render("\\text{Размер} = \\frac{44100 \\times 16 \\times 2 \\times 60}{8 \\times 1024 \\times 1024} \\approx 10.1 \\text{ МБ}", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Формула 3
+            katex.render("\\Delta t = \\frac{1}{f_s}", document.getElementById('formula3'), {
+                throwOnError: false
+            });
+
+            // Формула 4
+            katex.render("f_s > 2 \\times f_{\\text{max}} \\quad \\text{(Теорема Котельникова)}", document.getElementById('formula4'), {
+                throwOnError: false
+            });
+
+            // Формула 5
+            katex.render("H(X) = -\\sum_{i=1}^{n} P(x_i) \\log_2 P(x_i)", document.getElementById('formula5'), {
+                throwOnError: false
+            });
+
+            // Формула 6
+            katex.render("\\hat{x}[n] = \\sum_{i=1}^{p} a_i x[n-i]", document.getElementById('formula6'), {
+                throwOnError: false
+            });
+
+            // Формула 7
+            katex.render("e[n] = x[n] - \\hat{x}[n]", document.getElementById('formula7'), {
+                throwOnError: false
+            });
+
+            // Формула 8
+            katex.render("\\sum_{i=1}^{p} R[|i-j|] a_i = R[j], \\quad j=1,2,\\ldots,p", document.getElementById('formula8'), {
+                throwOnError: false
+            });
+
+            // Формула 9
+            katex.render("L = \\sum_{i=1}^{n} p_i l_i", document.getElementById('formula9'), {
+                throwOnError: false
+            });
+
+            // Формула 10
+            katex.render("\\eta = \\frac{H(X)}{L} \\times 100\\%", document.getElementById('formula10'), {
+                throwOnError: false
+            });
+
+            // Формула 11
+            katex.render("X[k] = \\sum_{n=0}^{2N-1} x[n] \\cos\\left[\\frac{\\pi}{N}\\left(n+\\frac{1}{2}+\\frac{N}{2}\\right)\\left(k+\\frac{1}{2}\\right)\\right]", document.getElementById('formula11'), {
+                throwOnError: false
+            });
+
+            // Формула 12
+            katex.render("L_p = 3.64\\left(\\frac{f}{1000}\\right)^{-0.8} - 6.5e^{-0.6\\left(\\frac{f}{1000}-3.3\\right)^2} + 10^{-3}\\left(\\frac{f}{1000}\\right)^4", document.getElementById('formula12'), {
+                throwOnError: false
+            });
+
+            // Формула 13
+            katex.render("z = 13 \\arctan(0.00076f) + 3.5 \\arctan\\left(\\left(\\frac{f}{7500}\\right)^2\\right)", document.getElementById('formula13'), {
+                throwOnError: false
+            });
+
+            // Формула 14
+            katex.render("L_{\\text{mask}}(f_t) = L_m + SF(\\Delta z)", document.getElementById('formula14'), {
+                throwOnError: false
+            });
+
+            // Формула 15
+            katex.render("SF(\\Delta z) = 15.81 + 7.5(\\Delta z + 0.474) - 17.5\\sqrt{1 + (\\Delta z + 0.474)^2}", document.getElementById('formula15'), {
+                throwOnError: false
+            });
+
+            // Формула 17
+            katex.render("B_i \\propto \\frac{\\text{MNR}_i}{\\sum \\text{MNR}_j} \\times B_{\\text{total}}", document.getElementById('formula17'), {
+                throwOnError: false
+            });
+
+            // Формула 19
+            katex.render("\\text{Efficiency} = \\frac{\\text{Quality}}{\\text{Bitrate}} \\times \\text{Compatibility}", document.getElementById('formula19'), {
+                throwOnError: false
+            });
+
+            // Формула 20
+            katex.render("\\text{Compression Ratio} = \\frac{\\text{Original Size}}{\\text{Compressed Size}}", document.getElementById('formula20'), {
+                throwOnError: false
+            });
+
+            // Формула 21
+            katex.render("\\text{Coding Efficiency} = \\frac{\\text{Theoretical Limit}}{\\text{Actual Bitrate}}", document.getElementById('formula21'), {
+                throwOnError: false
+            });
+
+            // Формула 22
+            katex.render("\\text{SNR} = 6.02 \\times N + 1.76 \\quad \\text{[дБ]}", document.getElementById('formula22'), {
+                throwOnError: false
+            });
+
+            // Формула 23 (Mid/Side)
+            katex.render("M = \\frac{L + R}{2}", document.getElementById('formula23'), {
+                throwOnError: false
+            });
+
+            // Формула 24 (Mid/Side)
+            katex.render("S = \\frac{L - R}{2}", document.getElementById('formula24'), {
+                throwOnError: false
+            });
+
+            // Формула 25 (Коэффициент корреляции)
+            katex.render("\\rho_{LR} = \\frac{E[(L - \\mu_L)(R - \\mu_R)]}{\\sigma_L \\sigma_R}", document.getElementById('formula25'), {
+                throwOnError: false
+            });
+
+            // Формула 26 (ICC)
+            katex.render("\\text{ICC} = \\frac{|E[L \\cdot R]|}{\\sqrt{E[L^2] \\cdot E[R^2]}}", document.getElementById('formula26'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>

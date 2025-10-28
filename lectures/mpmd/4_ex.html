@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Методы сжатия звука - Программные реализации</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Python';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .language-tabs {
+            display: flex;
+            margin-bottom: -1px;
+            flex-wrap: wrap;
+        }
+
+        .language-tab {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .language-tab.active {
+            background: #1e293b;
+            color: var(--accent-primary);
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .code-content {
+            display: none;
+        }
+
+        .code-content.active {
+            display: block;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .library-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .library-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .library-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="navigation">
+        <a href="#section1" class="nav-item">Библиотеки</a>
+        <a href="#section2" class="nav-item">Lossless</a>
+        <a href="#section3" class="nav-item">Lossy</a>
+        <a href="#section4" class="nav-item">Психоакустика</a>
+        <a href="#section5" class="nav-item">Стерео</a>
+        <a href="#section6" class="nav-item">Обработка</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Программные реализации сжатия аудио</h1>
+            <p class="lecture-subtitle">Практические примеры на Python с использованием современных библиотек</p>
+        </div>
+
+        <!-- Раздел 1: Библиотеки -->
+        <div class="section" id="section1">
+            <h2 class="section-title">1. Библиотеки для работы с аудио в Python</h2>
+
+            <div class="library-grid">
+                <div class="library-card">
+                    <div class="library-name">PyAudio</div>
+                    <div class="text-content">
+                        <p>Библиотека для работы с аудиовводом/выводом. Позволяет записывать и воспроизводить аудио в реальном времени.</p>
+                        <p><strong>Установка:</strong> <code>pip install pyaudio</code></p>
+                    </div>
+                </div>
+
+                <div class="library-card">
+                    <div class="library-name">NumPy & SciPy</div>
+                    <div class="text-content">
+                        <p>Основные библиотеки для научных вычислений. Используются для обработки сигналов и реализации алгоритмов сжатия.</p>
+                        <p><strong>Установка:</strong> <code>pip install numpy scipy</code></p>
+                    </div>
+                </div>
+
+                <div class="library-card">
+                    <div class="library-name">Librosa</div>
+                    <div class="text-content">
+                        <p>Библиотека для анализа аудио и музыки. Полезна для извлечения признаков и психоакустического анализа.</p>
+                        <p><strong>Установка:</strong> <code>pip install librosa</code></p>
+                    </div>
+                </div>
+
+                <div class="library-card">
+                    <div class="library-name">SoundFile</div>
+                    <div class="text-content">
+                        <p>Библиотека для чтения и записи аудиофайлов различных форматов.</p>
+                        <p><strong>Установка:</strong> <code>pip install soundfile</code></p>
+                    </div>
+                </div>
+
+                <div class="library-card">
+                    <div class="library-name">PyAV</div>
+                    <div class="text-content">
+                        <p>Python-биндинги для FFmpeg. Позволяют работать с кодеками напрямую.</p>
+                        <p><strong>Установка:</strong> <code>pip install av</code></p>
+                    </div>
+                </div>
+
+                <div class="library-card">
+                    <div class="library-name">Pydub</div>
+                    <div class="text-content">
+                        <p>Простая библиотека для работы с аудио. Поддерживает основные операции и преобразования форматов.</p>
+                        <p><strong>Установка:</strong> <code>pip install pydub</code></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 2: Lossless сжатие -->
+        <div class="section" id="section2">
+            <h2 class="section-title">2. Реализация Lossless сжатия</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Алгоритм Хаффмана</h3>
+
+                <div class="code-block">
+                    <pre>
+
+
+import heapq
+import collections
+import numpy as np
+
+class HuffmanNode:
+    def __init__(self, symbol, freq):
+        self.symbol = symbol
+        self.freq = freq
+        self.left = None
+        self.right = None
+
+    def __lt__(self, other):
+        return self.freq < other.freq
+
+class HuffmanCoder:
+    def __init__(self):
+        self.codes = {}
+        self.reverse_mapping = {}
+
+    def build_frequency_dict(self, data):
+        """Построение частотного словаря"""
+        if isinstance(data, np.ndarray):
+            # Для аудиоданных преобразуем в целые числа
+            data = data.astype(np.int16)
+
+        return dict(collections.Counter(data))
+
+    def build_heap(self, freq_dict):
+        """Построение кучи (min-heap)"""
+        heap = []
+        for symbol, freq in freq_dict.items():
+            node = HuffmanNode(symbol, freq)
+            heapq.heappush(heap, node)
+        return heap
+
+    def build_tree(self, heap):
+        """Построение дерева Хаффмана"""
+        while len(heap) > 1:
+            node1 = heapq.heappop(heap)
+            node2 = heapq.heappop(heap)
+
+            merged = HuffmanNode(None, node1.freq + node2.freq)
+            merged.left = node1
+            merged.right = node2
+
+            heapq.heappush(heap, merged)
+
+        return heap[0]
+
+    def build_codes(self, node, current_code):
+        """Рекурсивное построение кодов"""
+        if node is None:
+            return
+
+        if node.symbol is not None:
+            self.codes[node.symbol] = current_code
+            self.reverse_mapping[current_code] = node.symbol
+            return
+
+        self.build_codes(node.left, current_code + "0")
+        self.build_codes(node.right, current_code + "1")
+
+    def encode_audio(self, audio_data):
+        """Кодирование аудиоданных"""
+        # Анализ частот
+        freq_dict = self.build_frequency_dict(audio_data)
+
+        # Построение дерева Хаффмана
+        heap = self.build_heap(freq_dict)
+        root = self.build_tree(heap)
+
+        # Построение кодов
+        self.build_codes(root, "")
+
+        # Кодирование данных
+        encoded_data = ""
+        for sample in audio_data:
+            encoded_data += self.codes[sample]
+
+        return encoded_data, freq_dict
+
+    def decode_audio(self, encoded_data, freq_dict):
+        """Декодирование аудиоданных"""
+        # Восстановление дерева
+        heap = self.build_heap(freq_dict)
+        root = self.build_tree(heap)
+        self.build_codes(root, "")
+
+        # Декодирование
+        current_code = ""
+        decoded_data = []
+        current_node = root
+
+        for bit in encoded_data:
+            current_code += bit
+            if bit == '0':
+                current_node = current_node.left
+            else:
+                current_node = current_node.right
+
+            if current_node.symbol is not None:
+                decoded_data.append(current_node.symbol)
+                current_node = root
+                current_code = ""
+
+        return np.array(decoded_data, dtype=np.int16)
+
+# Пример использования
+def huffman_example():
+    # Генерация тестовых аудиоданных
+    sample_rate = 44100
+    duration = 1.0  # секунда
+    t = np.linspace(0, duration, int(sample_rate * duration))
+    audio_data = np.int16(32767 * 0.5 * np.sin(2 * np.pi * 440 * t))  # Синус 440 Гц
+
+    # Кодирование
+    coder = HuffmanCoder()
+    encoded, freq_dict = coder.encode_audio(audio_data)
+
+    print(f"Исходный размер: {len(audio_data) * 2} байт")  # 2 байта на сэмпл
+    print(f"Закодированный размер: {len(encoded) // 8} байт")
+    print(f"Коэффициент сжатия: {(len(audio_data) * 2) / (len(encoded) // 8):.2f}:1")
+
+    # Декодирование
+    decoded = coder.decode_audio(encoded, freq_dict)
+
+    return audio_data, decoded
+                     </pre>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Линейное предсказание (LPC)</h3>
+
+                <div class="code-block">
+                    <pre>
+import numpy as np
+from scipy import signal
+import matplotlib.pyplot as plt
+
+class LinearPredictiveCoding:
+    def __init__(self, order=10):
+        self.order = order  # Порядок предсказания
+
+    def levinson_durbin(self, r):
+        """Алгоритм Левинсона-Дурбина для решения уравнений Юла-Уокера"""
+        a = np.zeros(self.order + 1)
+        a[0] = 1.0
+        e = r[0]
+
+        for k in range(1, self.order + 1):
+            # Вычисление коэффициента отражения
+            lambda_val = 0.0
+            for j in range(1, k):
+                lambda_val += a[j] * r[k - j]
+            lambda_val = (r[k] - lambda_val) / e
+
+            # Обновление коэффициентов
+            a_temp = a.copy()
+            for i in range(1, k):
+                a[i] = a_temp[i] - lambda_val * a_temp[k - i]
+            a[k] = lambda_val
+
+            # Обновление ошибки
+            e = e * (1 - lambda_val ** 2)
+
+        return a[1:], e
+
+    def encode(self, audio_data):
+        """Кодирование с использованием линейного предсказания"""
+        # Вычисление автокорреляции
+        r = np.correlate(audio_data, audio_data, mode='full')
+        r = r[len(r)//2:len(r)//2 + self.order + 1]
+
+        # Решение уравнений Юла-Уокера
+        coefficients, error = self.levinson_durbin(r)
+
+        # Вычисление остатка (ошибки предсказания)
+        residual = signal.lfilter([1] + [-coef for coef in coefficients], 1, audio_data)
+
+        return coefficients, residual, error
+
+    def decode(self, coefficients, residual):
+        """Декодирование сигнала"""
+        # Восстановление сигнала из остатка и коэффициентов
+        reconstructed = signal.lfilter([1], [1] + [-coef for coef in coefficients], residual)
+
+        return reconstructed
+
+def lpc_example():
+    # Генерация тестового сигнала
+    sample_rate = 8000
+    t = np.linspace(0, 1.0, sample_rate)
+
+    # Создание сложного сигнала
+    signal_orig = (0.5 * np.sin(2 * np.pi * 200 * t) +
+                   0.3 * np.sin(2 * np.pi * 400 * t) +
+                   0.2 * np.sin(2 * np.pi * 600 * t))
+
+    # Добавление небольшого шума
+    signal_orig += 0.05 * np.random.normal(size=len(t))
+
+    # Нормализация
+    signal_orig = signal_orig / np.max(np.abs(signal_orig))
+
+    # Кодирование
+    lpc = LinearPredictiveCoding(order=12)
+    coefficients, residual, error = lpc.encode(signal_orig)
+
+    print(f"Коэффициенты LPC: {coefficients}")
+    print(f"Энергия ошибки: {error}")
+
+    # Декодирование
+    reconstructed = lpc.decode(coefficients, residual)
+
+    # Вычисление SNR
+    mse = np.mean((signal_orig - reconstructed) ** 2)
+    snr = 10 * np.log10(np.mean(signal_orig ** 2) / mse)
+    print(f"SNR: {snr:.2f} дБ")
+
+    return signal_orig, reconstructed, residual
+                </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 3: Lossy сжатие -->
+        <div class="section" id="section3">
+            <h2 class="section-title">3. Реализация Lossy сжатия</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title">MDCT преобразование</h3>
+
+                <div class="code-block">
+                    <pre>
+import numpy as np
+import math
+
+class MDCTProcessor:
+    def __init__(self, window_size=1024):
+        self.window_size = window_size
+        self.hop_size = window_size // 2
+
+        # Оконная функция (синусоидальное окно)
+        self.window = np.sin(np.pi * (np.arange(window_size) + 0.5) / window_size)
+
+    def mdct(self, signal):
+        """Modified Discrete Cosine Transform"""
+        n = len(signal)
+        num_blocks = (n - self.window_size) // self.hop_size + 1
+        mdct_coeffs = []
+
+        for i in range(num_blocks):
+            # Выделение блока с применением окна
+            start = i * self.hop_size
+            block = signal[start:start + self.window_size] * self.window
+
+            # Вычисление MDCT коэффициентов
+            coeffs = np.zeros(self.hop_size)
+            for k in range(self.hop_size):
+                sum_val = 0.0
+                for n in range(self.window_size):
+                    sum_val += block[n] * math.cos(
+                        math.pi / self.hop_size * (n + 0.5 + self.hop_size/2) * (k + 0.5)
+                    )
+                coeffs[k] = sum_val
+
+            mdct_coeffs.append(coeffs)
+
+        return np.array(mdct_coeffs)
+
+    def imdct(self, mdct_coeffs):
+        """Inverse Modified Discrete Cosine Transform"""
+        num_blocks, hop_size = mdct_coeffs.shape
+        window_size = hop_size * 2
+        output_length = num_blocks * hop_size + hop_size
+        reconstructed = np.zeros(output_length)
+
+        for i in range(num_blocks):
+            # Обратное MDCT преобразование
+            block = np.zeros(window_size)
+            for n in range(window_size):
+                sum_val = 0.0
+                for k in range(hop_size):
+                    sum_val += mdct_coeffs[i, k] * math.cos(
+                        math.pi / hop_size * (n + 0.5 + hop_size/2) * (k + 0.5)
+                    )
+                block[n] = sum_val * 2.0 / hop_size
+
+            # Применение окна и перекрытие-суммирование
+            start = i * hop_size
+            reconstructed[start:start + window_size] += block * self.window
+
+        return reconstructed
+
+def mdct_example():
+    # Генерация тестового сигнала
+    sample_rate = 44100
+    duration = 0.1  # 100 мс
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание аудиосигнала с несколькими частотами
+    signal = (0.7 * np.sin(2 * np.pi * 440 * t) +
+              0.5 * np.sin(2 * np.pi * 880 * t) +
+              0.3 * np.sin(2 * np.pi * 1320 * t))
+
+    # MDCT обработка
+    processor = MDCTProcessor(window_size=2048)
+    mdct_coeffs = processor.mdct(signal)
+
+    print(f"Размер исходного сигнала: {len(signal)} сэмплов")
+    print(f"Размер MDCT коэффициентов: {mdct_coeffs.shape}")
+
+    # Обратное преобразование
+    reconstructed = processor.imdct(mdct_coeffs)
+
+    # Обрезка до исходной длины
+    reconstructed = reconstructed[:len(signal)]
+
+    # Вычисление ошибки
+    error = np.sqrt(np.mean((signal - reconstructed) ** 2))
+    print(f"Среднеквадратичная ошибка: {error:.6f}")
+
+    return signal, reconstructed, mdct_coeffs
+                </pre>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Психоакустическое кодирование</h3>
+
+                <div class="code-block">
+                    <pre>
+
+import numpy as np
+import librosa
+
+class PsychoacousticModel:
+    def __init__(self, sample_rate=44100):
+        self.sample_rate = sample_rate
+        self.bark_bands = self._calculate_bark_bands()
+
+    def _calculate_bark_bands(self):
+        """Вычисление границ полос Барка"""
+        # Преобразование частот в Барки
+        def hz_to_bark(f):
+            return 13 * np.arctan(0.00076 * f) + 3.5 * np.arctan((f / 7500) ** 2)
+
+        # Критические полосы слуха (примерно 24 полосы)
+        bark_edges = []
+        for bark in np.arange(0, 24, 1):
+            # Обратное преобразование Барк -> Гц
+            f_low = self._bark_to_hz(bark)
+            f_high = self._bark_to_hz(bark + 1)
+            bark_edges.append((f_low, f_high))
+
+        return bark_edges
+
+    def _bark_to_hz(self, bark):
+        """Преобразование из шкалы Барка в Герцы"""
+        return 52548 / (bark**2 - 52.56 * bark + 690.39)
+
+    def absolute_threshold(self, frequencies):
+        """Абсолютный порог слышимости"""
+        # Упрощенная модель ISO 226
+        f_khz = frequencies / 1000.0
+        threshold = (3.64 * (f_khz ** -0.8) -
+                    6.5 * np.exp(-0.6 * (f_khz - 3.3) ** 2) +
+                    (10 ** -3) * (f_khz ** 4))
+        return threshold
+
+    def frequency_masking(self, masker_freq, masker_level, target_freq):
+        """Модель частотного маскирования"""
+        delta_z = self._hz_to_bark(target_freq) - self._hz_to_bark(masker_freq)
+
+        # Функция распространения маскирования
+        if delta_z < 0:
+            # Маскирование в сторону низких частот
+            sf = 27 * delta_z
+        else:
+            # Маскирование в сторону высоких частот
+            sf = (-27 + 0.37 * max(masker_level - 40, 0)) * delta_z
+
+        masking_threshold = masker_level + sf
+        return masking_threshold
+
+    def _hz_to_bark(self, f):
+        """Преобразование из Герц в Барки"""
+        return 13 * np.arctan(0.00076 * f) + 3.5 * np.arctan((f / 7500) ** 2)
+
+    def calculate_masking_threshold(self, spectrum, frequencies):
+        """Вычисление общего порога маскирования"""
+        absolute_thresh = self.absolute_threshold(frequencies)
+        masking_thresh = absolute_thresh.copy()
+
+        # Находим маскеры (локальные максимумы в спектре)
+        peaks = []
+        for i in range(1, len(spectrum) - 1):
+            if spectrum[i] > spectrum[i-1] and spectrum[i] > spectrum[i+1]:
+                peaks.append((frequencies[i], spectrum[i]))
+
+        # Применяем маскирование от каждого пика
+        for masker_freq, masker_level in peaks:
+            for i, target_freq in enumerate(frequencies):
+                mask_thresh = self.frequency_masking(masker_freq, masker_level, target_freq)
+                masking_thresh[i] = max(masking_thresh[i], mask_thresh)
+
+        return masking_thresh
+
+class SimplePsychoacousticEncoder:
+    def __init__(self, sample_rate=44100, bitrate=128000):
+        self.sample_rate = sample_rate
+        self.target_bitrate = bitrate
+        self.psycho_model = PsychoacousticModel(sample_rate)
+
+    def encode(self, audio_data):
+        """Упрощенное психоакустическое кодирование"""
+        # Преобразование в частотную область
+        spectrum = np.fft.rfft(audio_data)
+        frequencies = np.fft.rfftfreq(len(audio_data), 1/self.sample_rate)
+        magnitude = 20 * np.log10(np.abs(spectrum) + 1e-10)
+
+        # Вычисление порога маскирования
+        masking_threshold = self.psycho_model.calculate_masking_threshold(
+            magnitude, frequencies
+        )
+
+        # Квантование с учетом порога маскирования
+        quantized_spectrum = self._psychoacoustic_quantization(
+            spectrum, magnitude, masking_threshold
+        )
+
+        return quantized_spectrum, masking_threshold
+
+    def _psychoacoustic_quantization(self, spectrum, magnitude, masking_threshold):
+        """Психоакустическое квантование"""
+        quantized = spectrum.copy()
+
+        for i in range(len(spectrum)):
+            # Если компонента ниже порога маскирования, удаляем ее
+            if magnitude[i] < masking_threshold[i]:
+                quantized[i] = 0
+            else:
+                # Иначе квантуем с разной точностью в зависимости от отношения сигнал-маскирование
+                snr_ratio = magnitude[i] - masking_threshold[i]
+                quantization_bits = max(4, min(16, int(8 + snr_ratio / 6)))
+
+                # Упрощенное квантование
+                scale = 2 ** (quantization_bits - 1)
+                quantized[i] = np.round(np.real(spectrum[i]) * scale) / scale + \
+                              1j * np.round(np.imag(spectrum[i]) * scale) / scale
+
+        return quantized
+
+def psychoacoustic_example():
+    # Загрузка или генерация аудио
+    duration = 2.0
+    sample_rate = 44100
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание тестового сигнала
+    signal = (0.8 * np.sin(2 * np.pi * 1000 * t) +
+              0.3 * np.sin(2 * np.pi * 3000 * t) +
+              0.1 * np.sin(2 * np.pi * 5000 * t))
+
+    # Добавление шума
+    signal += 0.05 * np.random.normal(size=len(t))
+
+    # Психоакустическое кодирование
+    encoder = SimplePsychoacousticEncoder(sample_rate, bitrate=128000)
+    quantized_spectrum, masking_threshold = encoder.encode(signal)
+
+    # Обратное преобразование
+    reconstructed = np.fft.irfft(quantized_spectrum)
+
+    # Обрезка до исходной длины
+    reconstructed = reconstructed[:len(signal)]
+
+    # Расчет сжатия
+    original_size = len(signal) * 2  # 16-битные сэмплы
+    compressed_size = np.sum(quantized_spectrum != 0) * 4  # комплексные числа
+
+    print(f"Исходный размер: {original_size} байт")
+    print(f"Сжатый размер: {compressed_size} байт")
+    print(f"Коэффициент сжатия: {original_size/compressed_size:.2f}:1")
+
+    return signal, reconstructed, masking_threshold
+                        </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 4: Психоакустические модели -->
+        <div class="section" id="section4">
+            <h2 class="section-title">4. Психоакустические модели в коде</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Модель маскирования</h3>
+
+                <div class="code-block">
+                    <pre>
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+class AdvancedPsychoacousticModel:
+    def __init__(self, sample_rate=44100, fft_size=2048):
+        self.sample_rate = sample_rate
+        self.fft_size = fft_size
+        self.bark_scale = self._create_bark_scale()
+
+    def _create_bark_scale(self):
+        """Создание шкалы Барка для FFT бинов"""
+        freqs = np.fft.fftfreq(self.fft_size, 1/self.sample_rate)[:self.fft_size//2]
+        bark_scale = 13 * np.arctan(0.00076 * freqs) + 3.5 * np.arctan((freqs/7500)**2)
+        return bark_scale
+
+    def temporal_masking(self, previous_frame, current_frame, next_frame):
+        """Модель временного маскирования"""
+        # Пред-маскирование (заднее во времени)
+        pre_mask_threshold = self._pre_masking(previous_frame, current_frame)
+
+        # Пост-маскирование (вперед во времени)
+        post_mask_threshold = self._post_masking(current_frame, next_frame)
+
+        return np.maximum(pre_mask_threshold, post_mask_threshold)
+
+    def _pre_masking(self, previous_frame, current_frame):
+        """Пред-маскирование"""
+        # Маскирование перед громким звуком
+        if previous_frame is None:
+            return np.zeros_like(current_frame)
+
+        # Экспоненциальное затухание вперед во времени
+        decay = np.exp(-np.arange(len(current_frame)) / 10)
+        pre_mask = np.convolve(previous_frame, decay, mode='same')
+        return pre_mask
+
+    def _post_masking(self, current_frame, next_frame):
+        """Пост-маскирование"""
+        # Маскирование после громкого звука
+        if next_frame is None:
+            return np.zeros_like(current_frame)
+
+        # Экспоненциальное затухание назад во времени
+        decay = np.exp(-np.arange(len(current_frame)) / 5)
+        post_mask = np.convolve(next_frame, decay[::-1], mode='same')
+        return post_mask
+
+    def calculate_global_masking_threshold(self, audio_frames):
+        """Вычисление глобального порога маскирования"""
+        num_frames = len(audio_frames)
+        global_threshold = np.zeros(self.fft_size//2)
+
+        for i in range(num_frames):
+            current_frame = audio_frames[i]
+            previous_frame = audio_frames[i-1] if i > 0 else None
+            next_frame = audio_frames[i+1] if i < num_frames-1 else None
+
+            # Частотное маскирование для текущего кадра
+            freq_spectrum = np.abs(np.fft.fft(current_frame)[:self.fft_size//2])
+            freq_threshold = self._frequency_masking_threshold(freq_spectrum)
+
+            # Временное маскирование
+            temp_threshold = self.temporal_masking(previous_frame, current_frame, next_frame)
+
+            # Комбинирование порогов
+            frame_threshold = np.maximum(freq_threshold, temp_threshold)
+            global_threshold = np.maximum(global_threshold, frame_threshold)
+
+        return global_threshold
+
+    def _frequency_masking_threshold(self, spectrum):
+        """Порог частотного маскирования для одного кадра"""
+        # Находим локальные максимумы (маскеры)
+        maskers = self._find_maskers(spectrum)
+
+        # Вычисляем порог маскирования для каждого маскера
+        masking_threshold = np.zeros_like(spectrum)
+
+        for masker_freq, masker_level in maskers:
+            for target_bin, target_freq in enumerate(self.bark_scale):
+                delta_bark = target_freq - masker_freq
+                masking_effect = self._spreading_function(delta_bark, masker_level)
+                masking_threshold[target_bin] = max(
+                    masking_threshold[target_bin],
+                    masker_level + masking_effect
+                )
+
+        return masking_threshold
+
+    def _find_maskers(self, spectrum):
+        """Нахождение маскеров в спектре"""
+        maskers = []
+
+        for i in range(1, len(spectrum)-1):
+            if spectrum[i] > spectrum[i-1] and spectrum[i] > spectrum[i+1]:
+                # Локальный максимум - потенциальный маскер
+                if spectrum[i] > self.absolute_threshold(self.bark_scale[i]):
+                    maskers.append((self.bark_scale[i], spectrum[i]))
+
+        return maskers
+
+    def _spreading_function(self, delta_bark, masker_level):
+        """Функция распространения маскирования"""
+        # Упрощенная модель распространения
+        if delta_bark < -0.5:
+            return 17 * delta_bark + 0.15 * masker_level * (-delta_bark - 0.5)
+        elif delta_bark < 0.5:
+            return 0.0
+        else:
+            return (-17 * delta_bank) + 0.15 * masker_level * (delta_bark - 0.5)
+
+    def absolute_threshold(self, bark_freq):
+        """Абсолютный порог слышимости в дБ"""
+        # Упрощенная модель
+        if bark_freq < 2:
+            return 60
+        elif bark_freq < 5:
+            return 30
+        elif bark_freq < 10:
+            return 15
+        else:
+            return 10
+
+def advanced_psychoacoustic_example():
+    # Генерация тестового аудио с временными характеристиками
+    sample_rate = 44100
+    duration = 0.5
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание сигнала с резким переходом
+    signal = np.zeros_like(t)
+
+    # Тихий сегмент
+    signal[:len(t)//4] = 0.1 * np.sin(2 * np.pi * 500 * t[:len(t)//4])
+
+    # Громкий импульс
+    signal[len(t)//4:len(t)//4+100] = 0.9
+
+    # Тихий сегмент после импульса
+    signal[len(t)//4+100:] = 0.1 * np.sin(2 * np.pi * 1000 * t[len(t)//4+100:])
+
+    # Разбиение на кадры
+    frame_size = 1024
+    hop_size = 512
+    frames = []
+
+    for i in range(0, len(signal) - frame_size, hop_size):
+        frames.append(signal[i:i+frame_size])
+
+    # Применение психоакустической модели
+    model = AdvancedPsychoacousticModel(sample_rate, frame_size)
+    global_threshold = model.calculate_global_masking_threshold(frames)
+
+    print("Глобальный порог маскирования рассчитан")
+    print(f"Размер порога: {len(global_threshold)} бинов")
+
+    return signal, frames, global_threshold
+    </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 5: Стерео кодирование -->
+        <div class="section" id="section5">
+            <h2 class="section-title">5. Стерео кодирование</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Mid/Side стерео кодирование</h3>
+
+                <div class="code-block">
+                    <pre>
+import numpy as np
+import soundfile as sf
+
+class StereoProcessor:
+    def __init__(self):
+        self.encoder_type = 'ms'  # mid/side кодирование
+
+    def ms_encode(self, left_channel, right_channel):
+        """Mid/Side кодирование стерео сигнала"""
+        # M = (L + R) / 2, S = (L - R) / 2
+        mid_channel = (left_channel + right_channel) / 2
+        side_channel = (left_channel - right_channel) / 2
+
+        return mid_channel, side_channel
+
+    def ms_decode(self, mid_channel, side_channel):
+        """Mid/Side декодирование"""
+        # L = M + S, R = M - S
+        left_channel = mid_channel + side_channel
+        right_channel = mid_channel - side_channel
+
+        return left_channel, right_channel
+
+    def calculate_stereo_correlation(self, left_channel, right_channel):
+        """Вычисление корреляции между каналами"""
+        correlation = np.corrcoef(left_channel, right_channel)[0, 1]
+        return correlation
+
+    def intensity_stereo_encode(self, left_channel, right_channel, crossover_freq=2000, sample_rate=44100):
+        """Intensity Stereo кодирование"""
+        # Преобразование в частотную область
+        left_spectrum = np.fft.rfft(left_channel)
+        right_spectrum = np.fft.rfft(right_channel)
+        freqs = np.fft.rfftfreq(len(left_channel), 1/sample_rate)
+
+        # Создание моно-сигнала (сумма каналов)
+        mono_spectrum = (left_spectrum + right_spectrum) / 2
+
+        # Вычисление интенсивностных параметров
+        intensity_params = []
+        for i, freq in enumerate(freqs):
+            if freq > crossover_freq:
+                # Для высоких частот сохраняем только интенсивностную информацию
+                left_power = np.abs(left_spectrum[i])
+                right_power = np.abs(right_spectrum[i])
+                total_power = left_power + right_power
+
+                if total_power > 0:
+                    panning = (left_power - right_power) / total_power
+                else:
+                    panning = 0
+
+                intensity_params.append((freq, panning))
+            else:
+                # Для низких частот сохраняем полную стерео информацию
+                intensity_params.append((freq, None))
+
+        return mono_spectrum, intensity_params, freqs
+
+    def intensity_stereo_decode(self, mono_spectrum, intensity_params, freqs, crossover_freq=2000):
+        """Intensity Stereo декодирование"""
+        left_spectrum = np.zeros_like(mono_spectrum, dtype=complex)
+        right_spectrum = np.zeros_like(mono_spectrum, dtype=complex)
+
+        for i, (freq, panning) in enumerate(intensity_params):
+            if freq <= crossover_freq or panning is None:
+                # Для низких частот используем моно (или исходные данные если доступны)
+                left_spectrum[i] = mono_spectrum[i]
+                right_spectrum[i] = mono_spectrum[i]
+            else:
+                # Для высоких частот восстанавливаем стерео на основе панорамирования
+                left_gain = np.sqrt((1 + panning) / 2)
+                right_gain = np.sqrt((1 - panning) / 2)
+
+                left_spectrum[i] = mono_spectrum[i] * left_gain
+                right_spectrum[i] = mono_spectrum[i] * right_gain
+
+        # Обратное преобразование
+        left_channel = np.fft.irfft(left_spectrum)
+        right_channel = np.fft.irfft(right_spectrum)
+
+        return left_channel, right_channel
+
+def stereo_encoding_example():
+    # Загрузка или создание стерео сигнала
+    duration = 2.0
+    sample_rate = 44100
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание тестового стерео сигнала
+    left_channel = (0.8 * np.sin(2 * np.pi * 440 * t) +
+                    0.3 * np.sin(2 * np.pi * 880 * t))
+
+    right_channel = (0.7 * np.sin(2 * np.pi * 440 * t) +
+                     0.4 * np.sin(2 * np.pi * 1320 * t))
+
+    # Нормализация
+    max_val = max(np.max(np.abs(left_channel)), np.max(np.abs(right_channel)))
+    left_channel /= max_val
+    right_channel /= max_val
+
+    # Обработка стерео
+    processor = StereoProcessor()
+
+    # Вычисление корреляции
+    correlation = processor.calculate_stereo_correlation(left_channel, right_channel)
+    print(f"Корреляция между каналами: {correlation:.3f}")
+
+    # Mid/Side кодирование
+    if correlation > 0.7:
+        print("Используется Mid/Side кодирование (высокая корреляция)")
+        mid, side = processor.ms_encode(left_channel, right_channel)
+
+        # Декодирование
+        left_decoded, right_decoded = processor.ms_decode(mid, side)
+
+        # Проверка точности
+        mse_left = np.mean((left_channel - left_decoded) ** 2)
+        mse_right = np.mean((right_channel - right_decoded) ** 2)
+        print(f"MSE Left: {mse_left:.6f}, MSE Right: {mse_right:.6f}")
+
+        return left_channel, right_channel, left_decoded, right_decoded
+
+    else:
+        print("Используется Intensity Stereo (низкая корреляция)")
+        mono_spectrum, intensity_params, freqs = processor.intensity_stereo_encode(
+            left_channel, right_channel
+        )
+
+        # Декодирование
+        left_decoded, right_decoded = processor.intensity_stereo_decode(
+            mono_spectrum, intensity_params, freqs
+        )
+
+        return left_channel, right_channel, left_decoded, right_decoded
+        </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Раздел 6: Практическая обработка -->
+        <div class="section" id="section6">
+            <h2 class="section-title">6. Практическая обработка аудио</h2>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Полный пайплайн обработки</h3>
+
+                <div class="code-block">
+                    <pre>
+
+import numpy as np
+import soundfile as sf
+import librosa
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+class AudioCompressionPipeline:
+    def __init__(self, compression_type='psychoacoustic', target_bitrate=128000):
+        self.compression_type = compression_type
+        self.target_bitrate = target_bitrate
+        self.sample_rate = None
+
+    def load_audio(self, file_path):
+        """Загрузка аудиофайла"""
+        audio, sr = librosa.load(file_path, sr=None, mono=False)
+        self.sample_rate = sr
+
+        if audio.ndim == 1:
+            # Моно аудио
+            return audio, None
+        else:
+            # Стерео аудио
+            return audio[0], audio[1]
+
+    def save_audio(self, left_channel, right_channel, output_path):
+        """Сохранение аудиофайла"""
+        if right_channel is None:
+            # Моно
+            sf.write(output_path, left_channel, self.sample_rate)
+        else:
+            # Стерео
+            audio_stereo = np.vstack([left_channel, right_channel]).T
+            sf.write(output_path, audio_stereo, self.sample_rate)
+
+    def compress_audio(self, left_channel, right_channel=None):
+        """Основной метод сжатия аудио"""
+        print(f"Начало сжатия аудио ({self.compression_type})")
+        print(f"Целевой битрейт: {self.target_bitrate} bps")
+        print(f"Частота дискретизации: {self.sample_rate} Hz")
+
+        if right_channel is not None:
+            print("Обработка стерео аудио")
+            # Стерео обработка
+            processor = StereoProcessor()
+
+            # Проверка корреляции для выбора метода
+            correlation = processor.calculate_stereo_correlation(left_channel, right_channel)
+
+            if correlation > 0.8:
+                # High correlation - use M/S coding
+                mid, side = processor.ms_encode(left_channel, right_channel)
+                compressed_mid = self._compress_mono_audio(mid)
+                compressed_side = self._compress_mono_audio(side)
+                left_compressed, right_compressed = processor.ms_decode(compressed_mid, compressed_side)
+            else:
+                # Low correlation - process channels independently
+                left_compressed = self._compress_mono_audio(left_channel)
+                right_compressed = self._compress_mono_audio(right_channel)
+
+            return left_compressed, right_compressed
+
+        else:
+            print("Обработка моно аудио")
+            # Моно обработка
+            compressed_mono = self._compress_mono_audio(left_channel)
+            return compressed_mono, None
+
+    def _compress_mono_audio(self, audio_data):
+        """Сжатие моно аудио в зависимости от выбранного метода"""
+        if self.compression_type == 'psychoacoustic':
+            return self._psychoacoustic_compression(audio_data)
+        elif self.compression_type == 'mdct':
+            return self._mdct_compression(audio_data)
+        elif self.compression_type == 'lpc':
+            return self._lpc_compression(audio_data)
+        else:
+            # По умолчанию - психоакустическое сжатие
+            return self._psychoacoustic_compression(audio_data)
+
+    def _psychoacoustic_compression(self, audio_data):
+        """Психоакустическое сжатие"""
+        encoder = SimplePsychoacousticEncoder(self.sample_rate, self.target_bitrate)
+        quantized_spectrum, _ = encoder.encode(audio_data)
+        reconstructed = np.fft.irfft(quantized_spectrum)
+        return reconstructed[:len(audio_data)]
+
+    def _mdct_compression(self, audio_data):
+        """MDCT сжатие"""
+        processor = MDCTProcessor(window_size=2048)
+        mdct_coeffs = processor.mdct(audio_data)
+
+        # Применение простого квантования
+        quantized_coeffs = self._quantize_mdct(mdct_coeffs)
+
+        reconstructed = processor.imdct(quantized_coeffs)
+        return reconstructed[:len(audio_data)]
+
+    def _lpc_compression(self, audio_data):
+        """LPC сжатие"""
+        lpc = LinearPredictiveCoding(order=12)
+        coefficients, residual, _ = lpc.encode(audio_data)
+        reconstructed = lpc.decode(coefficients, residual)
+        return reconstructed
+
+    def _quantize_mdct(self, mdct_coeffs, bits=8):
+        """Простое квантование MDCT коэффициентов"""
+        # Масштабирование и квантование
+        max_val = np.max(np.abs(mdct_coeffs))
+        scale = (2 ** (bits - 1) - 1) / max_val if max_val > 0 else 1
+
+        quantized = np.round(mdct_coeffs * scale) / scale
+        return quantized
+
+    def calculate_compression_stats(self, original, compressed):
+        """Расчет статистики сжатия"""
+        # Вычисление MSE и PSNR
+        mse = np.mean((original - compressed) ** 2)
+        max_val = np.max(np.abs(original))
+        psnr = 20 * np.log10(max_val / np.sqrt(mse)) if mse > 0 else float('inf')
+
+        # Расчет битрейта (упрощенный)
+        original_size = len(original) * 16  # 16-bit samples
+        compressed_size = original_size / 4  # Примерный коэффициент сжатия
+
+        actual_bitrate = (compressed_size * 8) / (len(original) / self.sample_rate)
+
+        print(f"Статистика сжатия:")
+        print(f"MSE: {mse:.6f}")
+        print(f"PSNR: {psnr:.2f} dB")
+        print(f"Коэффициент сжатия: {original_size/compressed_size:.2f}:1")
+        print(f"Фактический битрейт: {actual_bitrate:.0f} bps")
+
+        return {
+            'mse': mse,
+            'psnr': psnr,
+            'compression_ratio': original_size/compressed_size,
+            'actual_bitrate': actual_bitrate
+        }
+
+def full_pipeline_example():
+    """Пример полного пайплайна обработки"""
+    # Создание тестового аудио
+    duration = 3.0
+    sample_rate = 44100
+    t = np.linspace(0, duration, int(sample_rate * duration))
+
+    # Создание стерео сигнала
+    left_channel = (0.7 * np.sin(2 * np.pi * 440 * t) +
+                    0.3 * np.sin(2 * np.pi * 880 * t) +
+                    0.1 * np.sin(2 * np.pi * 1320 * t))
+
+    right_channel = (0.6 * np.sin(2 * np.pi * 440 * t) +
+                     0.4 * np.sin(2 * np.pi * 1100 * t) +
+                     0.2 * np.sin(2 * np.pi * 1540 * t))
+
+    # Нормализация
+    max_val = max(np.max(np.abs(left_channel)), np.max(np.abs(right_channel)))
+    left_channel /= max_val
+    right_channel /= max_val
+
+    # Инициализация пайплайна
+    pipeline = AudioCompressionPipeline(
+        compression_type='psychoacoustic',
+        target_bitrate=128000
+    )
+    pipeline.sample_rate = sample_rate
+
+    # Сжатие аудио
+    left_compressed, right_compressed = pipeline.compress_audio(left_channel, right_channel)
+
+    # Расчет статистики
+    stats_left = pipeline.calculate_compression_stats(left_channel, left_compressed)
+    stats_right = pipeline.calculate_compression_stats(right_channel, right_compressed)
+
+    print("\nОбщая статистика:")
+    print(f"Средний PSNR: {(stats_left['psnr'] + stats_right['psnr']) / 2:.2f} dB")
+    print(f"Средний коэффициент сжатия: {(stats_left['compression_ratio'] + stats_right['compression_ratio']) / 2:.2f}:1")
+
+    return left_channel, right_channel, left_compressed, right_compressed, stats_left, stats_right
+
+# Запуск примера
+if __name__ == "__main__":
+    print("Запуск демонстрации методов сжатия аудио...")
+
+    # Примеры различных методов
+    print("\n1. Демонстрация кодирования Хаффмана:")
+    huffman_example()
+
+    print("\n2. Демонстрация LPC:")
+    lpc_example()
+
+    print("\n3. Демонстрация MDCT:")
+    mdct_example()
+
+    print("\n4. Демонстрация психоакустического кодирования:")
+    psychoacoustic_example()
+
+    print("\n5. Демонстрация стерео кодирования:")
+    stereo_encoding_example()
+
+    print("\n6. Полный пайплайн сжатия:")
+    full_pipeline_example()
+
+    print("\nВсе демонстрации завершены!")
+
+                    </pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose'
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+
+        // Переключение вкладок с кодом
+        document.querySelectorAll('.language-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const parent = this.parentElement.parentElement;
+
+                // Убираем активный класс у всех вкладок
+                parent.querySelectorAll('.language-tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+
+                // Убираем активный класс у всего контента
+                parent.querySelectorAll('.code-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+
+                // Добавляем активный класс текущей вкладке и контенту
+                this.classList.add('active');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
