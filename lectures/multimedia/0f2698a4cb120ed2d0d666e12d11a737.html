@@ -1,0 +1,2273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Методы передачи мультимедиа данных - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Пример кода';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .architecture-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .architecture-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .architecture-title {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-name {
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .use-case-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .use-case-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .use-case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение в мультимедиа</a>
+        <a href="#section2" class="nav-item">Классификация методов</a>
+        <a href="#section3" class="nav-item">Потоковые протоколы</a>
+        <a href="#section4" class="nav-item">Протоколы реального времени</a>
+        <a href="#section5" class="nav-item">Кодеки и контейнеры</a>
+        <a href="#section6" class="nav-item">Адаптивная потоковая передача</a>
+        <a href="#section7" class="nav-item">WebRTC</a>
+        <a href="#section8" class="nav-item">Оптимизация QoS</a>
+        <a href="#section9" class="nav-item">Будущее технологии</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Методы передачи мультимедиа данных</h1>
+            <p class="lecture-subtitle">Протоколы и технологии передачи аудио и видео через сети</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в передачу мультимедиа данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Что такое мультимедиа и его характеристики</h3>
+                    <div class="text-content">
+                        <p>Мультимедиа - это контент, использующий комбинацию различных форм информации (аудио, видео, текст, изображения) и часто требующий передачи в реальном времени или с минимальной задержкой.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph LR
+                                A[Аудио данные] --> D[Мультимедиа<br>поток]
+                                B[Видео данные] --> D
+                                C[Метаданные<br>и синхронизация] --> D
+                                D --> E[Сеть передачи]
+                                E --> F[Пользователь]
+
+                                style A fill:#4ecdc4
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#ff6b6b
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые характеристики мультимедиа данных:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Высокий объем данных</span>: видео и аудио требуют значительной пропускной способности</li>
+                            <li><span class="highlight">Требования к реальному времени</span>: низкая задержка для интерактивных приложений</li>
+                            <li><span class="highlight">Изохронность</span>: постоянная скорость передачи для плавного воспроизведения</li>
+                            <li><span class="highlight">Синхронизация</span>: точное совмещение аудио и видео потоков</li>
+                            <li><span class="highlight">Устойчивость к ошибкам</span>: способность работать с потерями пакетов</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">1-50 Мбит/с</div>
+                            <div class="metric-label">Битрейт видео</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">&lt; 150 мс</div>
+                            <div class="metric-label">Задержка RTT</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">30-60 FPS</div>
+                            <div class="metric-label">Частота кадров</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">&lt; 1%</div>
+                            <div class="metric-label">Потери пакетов</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция передачи мультимедиа</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Эволюция передачи мультимедиа
+                                section 1990-е
+                                    Проблема латентности : Рост интернета<br>выявил проблемы задержки
+                                    Первые решения : Кэширующие прокси<br>и зеркалирование
+                                section 1998-1999
+                                    Akamai Technologies : Первая коммерческая CDN
+                                    Sandpiper Networks : Конкурирующая платформа
+                                section 2000-2005
+                                    Расширение функционала : Поддержка streaming<br>и динамического контента
+                                    Limelight Networks : Новый игрок<br>на рынке
+                                section 2006-2010
+                                    Cloud CDN : Интеграция с облачными<br>платформами
+                                    Amazon CloudFront : CDN как сервис
+                                section 2011-2015
+                                    Mobile CDN : Оптимизация для<br>мобильных устройств
+                                    Edge Computing : Вычисления на границе<br>сети
+                                section 2016-2024
+                                    Security Focus : Защита от DDoS<br>и бот-атак
+                                    Serverless CDN : Бессерверные<br>архитектуры
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>Мультимедиа данные характеризуются высоким объемом и требованиями к реальному времени</li>
+                        <li>Эволюция передачи мультимедиа прошла путь от аналоговых систем до immersive media</li>
+                        <li>Современные требования включают задержку менее 150 мс и потери пакетов менее 1%</li>
+                        <li>Технологии постоянно развиваются для поддержки более высокого качества и интерактивности</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Классификация методов -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Классификация методов передачи мультимедиа</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные подходы к передаче</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Методы передачи<br>мультимедиа] --> B[По времени доставки]
+                                A --> C[По типу соединения]
+                                A --> D[По способу кодирования]
+
+                                B --> B1[Реальное время<br>RTP, WebRTC]
+                                B --> B2[Потоковое с буферизацией<br>HLS, DASH]
+                                B --> B3[Прогрессивная загрузка<br>HTTP]
+
+                                C --> C1[Униcast<br>Один-к-одному]
+                                C --> C2[Multicast<br>Один-ко-многим]
+                                C --> C3[Broadcast<br>Один-ко-всем]
+
+                                D --> D1[С потерями<br>JPEG, MP3]
+                                D --> D2[Без потерь<br>FLAC, PNG]
+                                D --> D3[Гибридное<br>MPEG, H.26x]
+
+                                style B1 fill:#4ecdc4
+                                style B2 fill:#4ecdc4
+                                style B3 fill:#4ecdc4
+                                style C1 fill:#4ecdc4
+                                style C2 fill:#4ecdc4
+                                style C3 fill:#4ecdc4
+                                style D1 fill:#4ecdc4
+                                style D2 fill:#4ecdc4
+                                style D3 fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнение методов передачи</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Метод</th>
+                                <th>Задержка</th>
+                                <th>Требования к сети</th>
+                                <th>Типичные применения</th>
+                                <th>Примеры протоколов</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Реальное время</td>
+                                <td>&lt; 150 мс</td>
+                                <td>Низкие потери пакетов, стабильная полоса</td>
+                                <td>Видеозвонки, игры, удаленные рабочие столы</td>
+                                <td>RTP, WebRTC, RTSP</td>
+                            </tr>
+                            <tr>
+                                <td>Потоковое с буферизацией</td>
+                                <td>2-30 сек</td>
+                                <td>Высокая пропускная способность</td>
+                                <td>Видео по запросу, онлайн-ТВ</td>
+                                <td>HLS, DASH, Smooth Streaming</td>
+                            </tr>
+                            <tr>
+                                <td>Прогрессивная загрузка</td>
+                                <td>Зависит от файла</td>
+                                <td>Любая, но влияет на время загрузки</td>
+                                <td>Короткие видео, аудиофайлы</td>
+                                <td>HTTP, FTP</td>
+                            </tr>
+                            <tr>
+                                <td>Многоадресная рассылка</td>
+                                <td>&lt; 500 мс</td>
+                                <td>Поддержка multicast сетью</td>
+                                <td>IP-TV, корпоративные вещания</td>
+                                <td>RTP over Multicast</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Выбор метода передачи</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Интерактивные приложения</div>
+                            <div class="text-content">
+                                <p>Требуют минимальной задержки для обеспечения отзывчивости.</p>
+                                <ul>
+                                    <li>Видеоконференции</li>
+                                    <li>Облачные игры</li>
+                                    <li>Удаленные рабочие столы</li>
+                                    <li>AR/VR приложения</li>
+                                </ul>
+                                <p><strong>Рекомендуемые технологии:</strong> WebRTC, RTP, специализированные UDP-протоколы</p>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Потоковое вещание</div>
+                            <div class="text-content">
+                                <p>Требуют надежной доставки с возможностью адаптации к сетевым условиям.</p>
+                                <ul>
+                                    <li>Видео по запросу</li>
+                                    <li>Прямые трансляции</li>
+                                    <li>Онлайн-курсы</li>
+                                    <li>Музыкальные сервисы</li>
+                                </ul>
+                                <p><strong>Рекомендуемые технологии:</strong> HLS, DASH, CMAF</p>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Массовые рассылки</div>
+                            <div class="text-content">
+                                <p>Эффективная доставка контента большой аудитории.</p>
+                                <ul>
+                                    <li>Корпоративные трансляции</li>
+                                    <li>Образовательные программы</li>
+                                    <li>IP-телевидение</li>
+                                    <li>Экстренные оповещения</li>
+                                </ul>
+                                <p><strong>Рекомендуемые технологии:</strong> Multicast, CDN, P2P сети</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Формула качества восприятия (QoE)</div>
+                        <div class="katex-formula" id="formula1"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( Q_{video} \) - качество видео (разрешение, битрейт)</li>
+                                <li>\( Q_{audio} \) - качество аудио</li>
+                                <li>\( T_{latency} \) - задержка доставки</li>
+                                <li>\( R_{reliability} \) - надежность доставки</li>
+                                <li>\( S_{synchronization} \) - синхронизация аудио и видео</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Потоковые протоколы -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Потоковые протоколы передачи</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">RTP (Real-time Transport Protocol)</h3>
+
+                    <div class="text-content">
+                        <p>RTP - это протокол для передачи аудио и видео данных в реальном времени по IP-сетям. Он работает поверх UDP и предоставляет механизмы для временных меток, нумерации последовательностей и идентификации типа полезной нагрузки.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Аудио/Видео данные] --> B[Кодирование]
+                                B --> C[Разбиение на пакеты RTP]
+                                C --> D[Добавление заголовка RTP]
+                                D --> E[Передача по UDP/IP]
+                                E --> F[Сеть]
+                                F --> G[Получатель]
+                                G --> H[Восстановление последовательности]
+                                H --> I[Буферизация и jitter compensation]
+                                I --> J[Декодирование]
+                                J --> K[Воспроизведение]
+
+                                style B fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style H fill:#4ecdc4
+                                style I fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Структура заголовка RTP пакета
+typedef struct {
+    unsigned int version:2;     // Версия протокола (2)
+    unsigned int padding:1;     // Флаг заполнения
+    unsigned int extension:1;   // Флаг расширения
+    unsigned int csrc_count:4;  // Количество CSRC идентификаторов
+    unsigned int marker:1;      // Маркерный бит
+    unsigned int payload_type:7; // Тип полезной нагрузки
+    unsigned int sequence_number:16; // Номер последовательности
+    unsigned int timestamp:32;  // Временная метка
+    unsigned int ssrc:32;       // Идентификатор синхронизации
+    unsigned int csrc[16];      // Идентификаторы источников
+} rtp_header_t;
+
+// Пример использования RTP с библиотекой JRTPLIB
+#include &lt;jrtplib3/rtpsession.h&gt;
+#include &lt;jrtplib3/rtpudpv4transmitter.h&gt;
+#include &lt;jrtplib3/rtpsessionparams.h&gt;
+#include &lt;jrtplib3/rtppacket.h&gt;
+
+using namespace jrtplib;
+
+void SendRTPPacket() {
+    RTPSession session;
+    RTPUDPv4TransmissionParams transparams;
+    RTPSessionParams sessparams;
+
+    // Настройка параметров сессии
+    sessparams.SetOwnTimestampUnit(1.0/90000.0); // 90 kHz для видео
+    sessparams.SetAcceptOwnPackets(true);
+    transparams.SetPortbase(8000);
+
+    // Создание сессии
+    int status = session.Create(sessparams, &amp;transparams);
+    if (status &lt; 0) {
+        std::cerr &lt;&lt; "Ошибка создания RTP сессии: " &lt;&lt; RTPGetErrorString(status) &lt;&lt; std::endl;
+        return;
+    }
+
+    // Настройка адреса назначения
+    RTPIPv4Address addr(ntohl(inet_addr("192.168.1.100")), 8000);
+    status = session.AddDestination(addr);
+
+    // Отправка RTP пакета с видео данными
+    uint8_t videodata[1400]; // Максимальный размер для избежания фрагментации
+    // ... заполнение видеоданных ...
+
+    status = session.SendPacket(videodata, sizeof(videodata),
+                               96, // H.264 payload type
+                               false, // No marker
+                               90000); // Timestamp unit
+}</pre>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые особенности RTP:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Временные метки</span>: для синхронизации и восстановления временных отношений</li>
+                            <li><span class="highlight">Номера последовательностей</span>: для обнаружения потерь пакетов</li>
+                            <li><span class="highlight">Идентификация типа полезной нагрузки</span>: указание формата кодирования</li>
+                            <li><span class="highlight">Маркерный бит</span>: обозначение значимых событий (например, конец кадра)</li>
+                            <li><span class="highlight">Расширяемость</span>: поддержка дополнительных заголовков</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">RTCP (RTP Control Protocol)</h3>
+
+                    <div class="text-content">
+                        <p>RTCP - это протокол управления, работающий совместно с RTP. Он предоставляет механизмы обратной связи о качестве передачи, синхронизации и идентификации участников.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant S as Отправитель
+                                participant R as Получатель
+                                participant N as Сеть
+
+                                S-&gt;&gt;N: RTP пакеты с медиаданными
+                                N-&gt;&gt;R: RTP пакеты (возможны потери)
+                                R-&gt;&gt;S: RTCP Receiver Report
+                                Note over R,S: Отчет о полученных пакетах,<br>потерях, jitter
+                                S-&gt;&gt;S: Анализ отчетов и адаптация<br>параметров передачи
+
+                                S-&gt;&gt;R: RTCP Sender Report
+                                Note over S,R: Информация о отправителе,<br>временные метки
+                                R-&gt;&gt;R: Синхронизация аудио и видео<br>на основе sender reports
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Типы RTCP пакетов:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Sender Report (SR)</span>: статистика от активных отправителей</li>
+                            <li><span class="highlight">Receiver Report (RR)</span>: статистика от получателей</li>
+                            <li><span class="highlight">Source Description (SDES)</span>: информация об участниках</li>
+                            <li><span class="highlight">BYE</span>: уведомление о завершении участия</li>
+                            <li><span class="highlight">Application-Defined (APP)</span>: специфичные для приложения данные</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Расчет потерь пакетов в RTCP</div>
+                        <div class="katex-formula" id="formula2"></div>
+                        <div class="formula-explanation">
+                            <p>где \( EHL \) - расширенный наибольший номер последовательности, \( C \) - кумулятивное количество потерянных пакетов. Эта информация передается в RTCP Receiver Reports для мониторинга качества передачи.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Протоколы реального времени -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Протоколы реального времени</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">RTSP (Real Time Streaming Protocol)</h3>
+
+                    <div class="text-content">
+                        <p>RTSP - это протокол уровня приложений для управления доставкой данных в реальном времени. Он обеспечивает управление воспроизведением (пауза, воспроизведение, запись) но не занимается непосредственной передачей данных.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant C as Клиент
+                                participant S as RTSP Сервер
+
+                                C-&gt;&gt;S: OPTIONS - запрос поддерживаемых методов
+                                S-&gt;&gt;C: 200 OK - список методов
+
+                                C-&gt;&gt;S: DESCRIBE - запрос описания медиа
+                                S-&gt;&gt;C: 200 OK - SDP описание сессии
+
+                                C-&gt;&gt;S: SETUP - настройка транспортного канала
+                                S-&gt;&gt;C: 200 OK - параметры RTP/RTCP
+
+                                C-&gt;&gt;S: PLAY - начало воспроизведения
+                                S-&gt;&gt;C: 200 OK
+                                Note over S: Начало передачи RTP пакетов
+
+                                C-&gt;&gt;S: PAUSE - приостановка воспроизведения
+                                S-&gt;&gt;C: 200 OK
+                                Note over S: Прекращение передачи RTP пакетов
+
+                                C-&gt;&gt;S: TEARDOWN - завершение сессии
+                                S-&gt;&gt;C: 200 OK
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример RTSP клиента на Python
+import socket
+import base64
+
+class RTSPClient:
+    def __init__(self, server_ip, server_port=554):
+        self.server_ip = server_ip
+        self.server_port = server_port
+        self.sequence = 1
+        self.session_id = None
+        self.socket = None
+
+    def connect(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.server_ip, self.server_port))
+
+    def send_request(self, method, url, headers=None):
+        if headers is None:
+            headers = {}
+
+        # Базовая RTSP структура запроса
+        request = f"{method} {url} RTSP/1.0\r\n"
+        request += f"CSeq: {self.sequence}\r\n"
+
+        # Добавление заголовков авторизации если необходимо
+        if 'authorization' in headers:
+            request += f"Authorization: {headers['authorization']}\r\n"
+
+        # Добавление других заголовков
+        for key, value in headers.items():
+            if key != 'authorization':
+                request += f"{key}: {value}\r\n"
+
+        request += "\r\n"
+        self.sequence += 1
+
+        self.socket.send(request.encode())
+        response = self.recv_response()
+        return response
+
+    def recv_response(self):
+        response = b""
+        while b"\r\n\r\n" not in response:
+            response += self.socket.recv(1024)
+
+        # Парсинг ответа
+        headers, _, body = response.partition(b"\r\n\r\n")
+        status_line = headers.split(b"\r\n")[0]
+        status_code = int(status_line.split(b" ")[1])
+
+        # Извлечение session_id если есть
+        for line in headers.split(b"\r\n"):
+            if line.startswith(b"Session:"):
+                self.session_id = line.split(b":")[1].strip().decode()
+
+        return status_code, headers.decode(), body.decode()
+
+    def describe(self, url):
+        return self.send_request("DESCRIBE", url, {
+            "Accept": "application/sdp"
+        })
+
+    def setup(self, url, transport):
+        headers = {"Transport": transport}
+        if self.session_id:
+            headers["Session"] = self.session_id
+        return self.send_request("SETUP", url, headers)
+
+    def play(self, url):
+        headers = {}
+        if self.session_id:
+            headers["Session"] = self.session_id
+        return self.send_request("PLAY", url, headers)
+
+    def teardown(self, url):
+        headers = {}
+        if self.session_id:
+            headers["Session"] = self.session_id
+        return self.send_request("TEARDOWN", url, headers)
+
+# Использование клиента
+client = RTSPClient("192.168.1.100")
+client.connect()
+client.describe("rtsp://192.168.1.100/media/video")
+client.setup("rtsp://192.168.1.100/media/video",
+            "RTP/AVP;unicast;client_port=8000-8001")
+client.play("rtsp://192.168.1.100/media/video")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">SIP (Session Initiation Protocol)</h3>
+
+                    <div class="text-content">
+                        <p>SIP - это протокол сигнализации для создания, изменения и завершения сессий, включая голосовые и видеозвонки через IP-сети. Он работает совместно с другими протоколами, такими как SDP для описания медиа и RTP для передачи медиаданных.</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Метод SIP</th>
+                                <th>Назначение</th>
+                                <th>Типичное использование</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INVITE</td>
+                                <td>Инициация сессии</td>
+                                <td>Начало голосового или видеозвонка</td>
+                            </tr>
+                            <tr>
+                                <td>ACK</td>
+                                <td>Подтверждение установки сессии</td>
+                                <td>Подтверждение ответа на INVITE</td>
+                            </tr>
+                            <tr>
+                                <td>BYE</td>
+                                <td>Завершение сессии</td>
+                                <td>Завершение активного звонка</td>
+                            </tr>
+                            <tr>
+                                <td>CANCEL</td>
+                                <td>Отмена ожидающей сессии</td>
+                                <td>Отмена звонка до установления</td>
+                            </tr>
+                            <tr>
+                                <td>OPTIONS</td>
+                                <td>Запрос возможностей</td>
+                                <td>Определение поддерживаемых методов</td>
+                            </tr>
+                            <tr>
+                                <td>REGISTER</td>
+                                <td>Регистрация местоположения</td>
+                                <td>Уведомление сервера о текущем адресе</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block"><pre>// Пример SIP INVITE сообщения
+INVITE sip:bob@biloxi.example.com SIP/2.0
+Via: SIP/2.0/UDP pc33.atlanta.example.com;branch=z9hG4bK776asdhds
+Max-Forwards: 70
+To: Bob &lt;sip:bob@biloxi.example.com&gt;
+From: Alice &lt;sip:alice@atlanta.example.com&gt;;tag=1928301774
+Call-ID: a84b4c76e66710@pc33.atlanta.example.com
+CSeq: 314159 INVITE
+Contact: &lt;sip:alice@pc33.atlanta.example.com&gt;
+Content-Type: application/sdp
+Content-Length: 142
+
+v=0
+o=alice 2890844526 2890844526 IN IP4 pc33.atlanta.example.com
+s=-
+c=IN IP4 pc33.atlanta.example.com
+t=0 0
+m=audio 49170 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+m=video 51372 RTP/AVP 31
+a=rtpmap:31 H261/90000
+
+// Пример ответа 200 OK
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP pc33.atlanta.example.com;branch=z9hG4bK776asdhds
+To: Bob &lt;sip:bob@biloxi.example.com&gt;;tag=a6c85cf
+From: Alice &lt;sip:alice@atlanta.example.com&gt;;tag=1928301774
+Call-ID: a84b4c76e66710@pc33.atlanta.example.com
+CSeq: 314159 INVITE
+Contact: &lt;sip:bob@192.0.2.4&gt;
+Content-Type: application/sdp
+Content-Length: 131
+
+v=0
+o=bob 2808844564 2808844564 IN IP4 pc34.biloxi.example.com
+s=-
+c=IN IP4 192.0.2.4
+t=0 0
+m=audio 49172 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+m=video 51374 RTP/AVP 31
+a=rtpmap:31 H261/90000</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Кодеки и контейнеры -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Кодеки и медиаконтейнеры</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Видеокодеки: сравнение и применение</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Кодек</th>
+                                <th>Год выпуска</th>
+                                <th>Сжатие</th>
+                                <th>Качество при одинаковом битрейте</th>
+                                <th>Типичные применения</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>H.264/AVC</td>
+                                <td>2003</td>
+                                <td>~50% от MPEG-2</td>
+                                <td>Базовое (100%)</td>
+                                <td>Видеонаблюдение, потоковое видео, Blu-ray</td>
+                            </tr>
+                            <tr>
+                                <td>H.265/HEVC</td>
+                                <td>2013</td>
+                                <td>~50% от H.264</td>
+                                <td>~150% от H.264</td>
+                                <td>4K видео, медицинская визуализация</td>
+                            </tr>
+                            <tr>
+                                <td>VP9</td>
+                                <td>2013</td>
+                                <td>~45% от H.264</td>
+                                <td>~140% от H.264</td>
+                                <td>YouTube, веб-видео</td>
+                            </tr>
+                            <tr>
+                                <td>AV1</td>
+                                <td>2018</td>
+                                <td>~30% от H.264</td>
+                                <td>~180% от H.264</td>
+                                <td>Стриминг 4K/8K, видеоконференции</td>
+                            </tr>
+                            <tr>
+                                <td>H.266/VVC</td>
+                                <td>2020</td>
+                                <td>~50% от H.265</td>
+                                <td>~200% от H.264</td>
+                                <td>8K видео, иммерсивные медиа</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="text-content">
+                        <p><strong>Эволюция видеокодеков:</strong></p>
+                        <ul>
+                            <li><span class="highlight">MPEG-2</span>: цифровое телевидение и DVD</li>
+                            <li><span class="highlight">H.264/AVC</span>: революция в онлайн-видео и мобильных устройствах</li>
+                            <li><span class="highlight">H.265/HEVC</span>: поддержка 4K и HDR контента</li>
+                            <li><span class="highlight">AV1</span>: открытый кодек следующего поколения</li>
+                            <li><span class="highlight">H.266/VVC</span>: фокус на иммерсивные и AR/VR приложения</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Формула Rate-Distortion оптимизации</div>
+                        <div class="katex-formula" id="formula3"></div>
+                        <div class="formula-explanation">
+                            <p>где \( D \) - искажение (потеря качества), \( R \) - битрейт, \( \lambda \) - параметр Лагранжа. Современные кодеки минимизируют эту функцию для оптимального баланса между качеством и размером.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Медиаконтейнеры</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">MP4 (MPEG-4 Part 14)</div>
+                            <div class="text-content">
+                                <p>Универсальный контейнер для видео, аудио, субтитров и метаданных.</p>
+                                <ul>
+                                    <li><strong>Преимущества:</strong> Широкая поддержка, хорошее сжатие</li>
+                                    <li><strong>Недостатки:</strong> Ограниченная поддержка живого потокового вещания</li>
+                                    <li><strong>Использование:</strong> Видео по запросу, мобильные устройства</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">WebM</div>
+                            <div class="text-content">
+                                <p>Открытый медиаконтейнер, ориентированный на веб.</p>
+                                <ul>
+                                    <li><strong>Преимущества:</strong> Открытый стандарт, оптимизирован для веба</li>
+                                    <li><strong>Недостатки:</strong> Ограниченная поддержка в некоторых устройствах</li>
+                                    <li><strong>Использование:</strong> HTML5 видео, YouTube</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">MKV (Matroska)</div>
+                            <div class="text-content">
+                                <p>Гибкий открытый контейнер с поддержкой практически любых кодеков.</p>
+                                <ul>
+                                    <li><strong>Преимущества:</strong> Высокая гибкость, поддержка множества дорожек</li>
+                                    <li><strong>Недостатки:</strong> Ограниченная поддержка в некоторых плеерах</li>
+                                    <li><strong>Использование:</strong> Хранение видео высокого качества, архивирование</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Структура MP4 контейнера (упрощенная)
+// MP4 состоит из атомов (atoms) или боксов (boxes)
+
+// Типичная структура MP4 файла:
+// ftyp - тип файла и совместимость
+// moov - метаданные (информация о дорожках, временные шкалы)
+//  ├── mvhd - заголовок видео
+//  ├── trak - дорожка (трек)
+//  │   ├── tkhd - заголовок трека
+//  │   ├── mdia - медиа информация
+//  │   │   ├── mdhd - заголовок медиа
+//  │   │   ├── hdlr - обработчик медиа
+//  │   │   └── minf - информация о медиа
+//  │   │       ├── smhd - заголовок звука
+//  │   │       ├── vmhd - заголовок видео
+//  │   │       ├── dinf - информация о данных
+//  │   │       └── stbl - таблица сэмплов
+// mdat - медиаданные (сжатые аудио и видео сэмплы)
+
+// Пример создания MP4 с помощью библиотеки MP4v2
+#include &lt;mp4v2/mp4v2.h&gt;
+
+int main() {
+    // Создание MP4 файла
+    MP4FileHandle mp4File = MP4Create("output.mp4");
+
+    // Установка временной шкалы (90kHz для видео)
+    MP4SetTimeScale(mp4File, 90000);
+
+    // Создание видео дорожки H.264
+    MP4TrackId videoTrack = MP4AddH264VideoTrack(
+        mp4File,
+        90000,                           // timescale
+        MP4_INVALID_DURATION,           // default duration
+        1920,                           // width
+        1080,                           // height
+        sps,                            // SPS данные
+        spsSize,                        // размер SPS
+        pps,                            // PPS данные
+        ppsSize,                        // размер PPS
+        0                               // default isomp4
+    );
+
+    // Создание аудио дорожки AAC
+    MP4TrackId audioTrack = MP4AddAudioTrack(
+        mp4File,
+        44100,                          // sample rate
+        1024,                           // sample duration
+        MP4_MPEG4_AUDIO_TYPE            // audio type
+    );
+
+    // Запись видео сэмплов
+    MP4WriteSample(mp4File, videoTrack, videoData, videoSize,
+                   MP4_INVALID_DURATION, 0, 1);
+
+    // Запись аудио сэмплов
+    MP4WriteSample(mp4File, audioTrack, audioData, audioSize);
+
+    // Закрытие файла
+    MP4Close(mp4File);
+    return 0;
+}</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Адаптивная потоковая передача -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Адаптивная потоковая передача</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">HLS (HTTP Live Streaming)</h3>
+
+                    <div class="text-content">
+                        <p>HLS - это протокол адаптивного потокового вещания, разработанный Apple. Он разбивает поток на небольшие сегменты, которые доставляются через HTTP, что позволяет адаптировать качество видео к сетевым условиям.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TB
+                                A[Исходное видео] --> B[Кодирование в<br>несколько битрейтов]
+                                B --> C[Сегментация на<br>chunk файлы .ts]
+                                C --> D[Создание плейлистов .m3u8]
+                                D --> E[Размещение на<br>HTTP сервере]
+                                E --> F[Клиент запрашивает<br>master плейлист]
+                                F --> G{Анализ сети<br>и устройства}
+                                G --> H[Выбор подходящего<br>варианта качества]
+                                H --> I[Загрузка сегментов<br>выбранного качества]
+                                I --> J[Воспроизведение]
+                                J --> K{Изменение<br>сетевых условий?}
+                                K -->|Ухудшение| H
+                                K -->|Улучшение| H
+
+                                style B fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style G fill:#4ecdc4
+                                style H fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Пример master плейлиста HLS (.m3u8)
+#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-INDEPENDENT-SEGMENTS
+
+# Вариант потока 1: 1080p
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=5600000,RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2"
+video_1080p.m3u8
+
+# Вариант потока 2: 720p
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=3000000,RESOLUTION=1280x720,CODECS="avc1.640028,mp4a.40.2"
+video_720p.m3u8
+
+# Вариант потока 3: 480p
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1500000,RESOLUTION=854x480,CODECS="avc1.640028,mp4a.40.2"
+video_480p.m3u8
+
+# Вариант потока 4: 360p
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=800000,RESOLUTION=640x360,CODECS="avc1.640028,mp4a.40.2"
+video_360p.m3u8
+
+# Вариант потока 5: Аудио только
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=128000,CODECS="mp4a.40.2"
+audio_only.m3u8
+
+# Пример медиа плейлиста для 720p варианта
+#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-TARGETDURATION:10
+#EXT-X-MEDIA-SEQUENCE:1
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-INDEPENDENT-SEGMENTS
+#EXT-X-MAP:URI="init.mp4"
+
+#EXTINF:10.0,
+segment1.ts
+#EXTINF:10.0,
+segment2.ts
+#EXTINF:10.0,
+segment3.ts
+#EXTINF:10.0,
+segment4.ts
+#EXTINF:10.0,
+segment5.ts
+#EXT-X-ENDLIST
+
+# Генерация HLS с помощью FFmpeg
+ffmpeg -i input.mp4 \
+  -map 0:v:0 -map 0:a:0 \
+  -c:v libx264 -crf 22 -preset medium \
+  -c:a aac -b:a 128k \
+  -sc_threshold 0 -g 60 -keyint_min 60 \
+  -hls_time 10 -hls_playlist_type vod \
+  -hls_segment_filename "video_%03d.ts" \
+  -var_stream_map "v:0,a:0" \
+  -master_pl_name "master.m3u8" \
+  -f hls output_%v.m3u8</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">MPEG-DASH (Dynamic Adaptive Streaming over HTTP)</h3>
+
+                    <div class="text-content">
+                        <p>MPEG-DASH - это международный стандарт адаптивного потокового вещания, который не зависит от конкретных кодеков и может работать с любыми медиаформатами.</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>HLS</th>
+                                <th>MPEG-DASH</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Разработчик</td>
+                                <td>Apple</td>
+                                <td>MPEG (стандарт ISO)</td>
+                            </tr>
+                            <tr>
+                                <td>Формат сегментов</td>
+                                <td>MPEG-TS или fMP4</td>
+                                <td>Любой (обычно fMP4)</td>
+                            </tr>
+                            <tr>
+                                <td>Формат плейлиста</td>
+                                <td>M3U8</td>
+                                <td>MPD (XML)</td>
+                            </tr>
+                            <tr>
+                                <td>Поддержка кодеков</td>
+                                <td>H.264, H.265, AAC</td>
+                                <td>Любые кодеки</td>
+                            </tr>
+                            <tr>
+                                <td>DRM поддержка</td>
+                                <td>FairPlay</td>
+                                <td>Любые системы (CENC)</td>
+                            </tr>
+                            <tr>
+                                <td>Поддержка платформ</td>
+                                <td>Apple устройства, большинство платформ</td>
+                                <td>Все основные платформы</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block"><pre>&lt;!-- Пример MPD (Media Presentation Description) для MPEG-DASH --&gt;
+&lt;MPD xmlns="urn:mpeg:dash:schema:mpd:2011" profiles="urn:mpeg:dash:profile:isoff-on-demand:2011"
+     type="static" mediaPresentationDuration="PT1H30M15S" minBufferTime="PT2S"&gt;
+  &lt;Period id="1" start="PT0S"&gt;
+
+    &lt;!-- Адаптационный набор для видео --&gt;
+    &lt;AdaptationSet id="1" contentType="video" segmentAlignment="true"
+                   startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1"&gt;
+
+      &lt;!-- Представление 1: 1080p --&gt;
+      &lt;Representation id="1" bandwidth="5600000" codecs="avc1.640028"
+                      mimeType="video/mp4" sar="1:1" width="1920" height="1080"&gt;
+        &lt;SegmentTemplate timescale="90000" initialization="video_1080p_init.mp4"
+                         media="video_1080p_$Number$.m4s" startNumber="1"&gt;
+          &lt;SegmentTimeline&gt;
+            &lt;S d="900000" r="5"/&gt; &lt;!-- 5 сегментов по 10 секунд --&gt;
+          &lt;/SegmentTimeline&gt;
+        &lt;/SegmentTemplate&gt;
+      &lt;/Representation&gt;
+
+      &lt;!-- Представление 2: 720p --&gt;
+      &lt;Representation id="2" bandwidth="3000000" codecs="avc1.640028"
+                      mimeType="video/mp4" sar="1:1" width="1280" height="720"&gt;
+        &lt;SegmentTemplate timescale="90000" initialization="video_720p_init.mp4"
+                         media="video_720p_$Number$.m4s" startNumber="1"&gt;
+          &lt;SegmentTimeline&gt;
+            &lt;S d="900000" r="5"/&gt;
+          &lt;/SegmentTimeline&gt;
+        &lt;/SegmentTemplate&gt;
+      &lt;/Representation&gt;
+
+    &lt;/AdaptationSet&gt;
+
+    &lt;!-- Адаптационный набор для аудио --&gt;
+    &lt;AdaptationSet id="2" contentType="audio" segmentAlignment="true"
+                   startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1"&gt;
+
+      &lt;Representation id="3" bandwidth="128000" codecs="mp4a.40.2"
+                      mimeType="audio/mp4" audioSamplingRate="44100"&gt;
+        &lt;AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2"/&gt;
+        &lt;SegmentTemplate timescale="44100" initialization="audio_init.mp4"
+                         media="audio_$Number$.m4s" startNumber="1"&gt;
+          &lt;SegmentTimeline&gt;
+            &lt;S d="441000" r="5"/&gt;
+          &lt;/SegmentTimeline&gt;
+        &lt;/SegmentTemplate&gt;
+      &lt;/Representation&gt;
+
+    &lt;/AdaptationSet&gt;
+
+  &lt;/Period&gt;
+&lt;/MPD&gt;
+
+// JavaScript код для инициализации DASH плеера
+var video = document.getElementById('videoPlayer');
+var player = dashjs.MediaPlayer().create();
+player.initialize(video, 'manifest.mpd', true);
+
+// Обработчики событий для мониторинга качества
+player.on('qualityChangeRequested', function(e) {
+    console.log('Запрос изменения качества: ' + e.mediaType + ' -> ' + e.newQuality);
+});
+
+player.on('bufferLevelUpdated', function(e) {
+    console.log('Уровень буфера: ' + e.bufferLevel + ' секунд');
+});
+
+player.on('playbackError', function(e) {
+    console.error('Ошибка воспроизведения: ', e);
+});</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: WebRTC -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. WebRTC: Коммуникации в реальном времени в браузере</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура WebRTC</h3>
+
+                    <div class="text-content">
+                        <p>WebRTC (Web Real-Time Communication) - это открытая платформа для добавления возможностей реального времени в веб-приложения и мобильные приложения через простые API.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TB
+                                A[Веб-приложение] --> B[WebRTC API JavaScript]
+                                B --> C[Получение медиапотоков<br>getUserMedia]
+                                C --> D[Обработка сигнализации<br>через сервер приложений]
+                                D --> E[Установка соединения<br>через ICE]
+                                E --> F[Прямая передача<br>медиаданных P2P]
+
+                                subgraph WebRTC Stack
+                                    G[SRTP/SRTCP<br>Безопасная передача]
+                                    H[DTLS<br>Шифрование]
+                                    I[SCTP<br>Передача данных]
+                                    J[ICE/STUN/TURN<br>NAT traversal]
+                                end
+
+                                F --> G
+                                F --> H
+                                F --> I
+                                F --> J
+
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style E fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример простого WebRTC приложения для видеозвонка
+class WebRTCApp {
+    constructor() {
+        this.localStream = null;
+        this.remoteStream = null;
+        this.peerConnection = null;
+        this.signalingChannel = new SignalingChannel();
+
+        this.localVideo = document.getElementById('localVideo');
+        this.remoteVideo = document.getElementById('remoteVideo');
+
+        this.init();
+    }
+
+    async init() {
+        // Получение доступа к камере и микрофону
+        try {
+            this.localStream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            });
+            this.localVideo.srcObject = this.localStream;
+        } catch (error) {
+            console.error('Ошибка доступа к медиаустройствам:', error);
+        }
+
+        // Настройка обработчиков сигнализации
+        this.signalingChannel.on('offer', this.handleOffer.bind(this));
+        this.signalingChannel.on('answer', this.handleAnswer.bind(this));
+        this.signalingChannel.on('ice-candidate', this.handleICECandidate.bind(this));
+    }
+
+    createPeerConnection() {
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                {
+                    urls: 'turn:turn.example.com:3478',
+                    username: 'username',
+                    credential: 'credential'
+                }
+            ]
+        };
+
+        this.peerConnection = new RTCPeerConnection(configuration);
+
+        // Обработчики событий соединения
+        this.peerConnection.onicecandidate = this.handleICECandidateEvent.bind(this);
+        this.peerConnection.ontrack = this.handleTrackEvent.bind(this);
+        this.peerConnection.onconnectionstatechange = this.handleConnectionStateChange.bind(this);
+
+        // Добавление локальных потоков
+        this.localStream.getTracks().forEach(track => {
+            this.peerConnection.addTrack(track, this.localStream);
+        });
+    }
+
+    async createOffer() {
+        this.createPeerConnection();
+
+        const offer = await this.peerConnection.createOffer();
+        await this.peerConnection.setLocalDescription(offer);
+
+        // Отправка offer через сигнальный канал
+        this.signalingChannel.send('offer', offer);
+    }
+
+    async handleOffer(offer) {
+        this.createPeerConnection();
+
+        await this.peerConnection.setRemoteDescription(offer);
+
+        const answer = await this.peerConnection.createAnswer();
+        await this.peerConnection.setLocalDescription(answer);
+
+        this.signalingChannel.send('answer', answer);
+    }
+
+    async handleAnswer(answer) {
+        await this.peerConnection.setRemoteDescription(answer);
+    }
+
+    handleICECandidate(candidate) {
+        this.peerConnection.addIceCandidate(candidate);
+    }
+
+    handleICECandidateEvent(event) {
+        if (event.candidate) {
+            this.signalingChannel.send('ice-candidate', event.candidate);
+        }
+    }
+
+    handleTrackEvent(event) {
+        this.remoteStream = event.streams[0];
+        this.remoteVideo.srcObject = this.remoteStream;
+    }
+
+    handleConnectionStateChange() {
+        console.log('Состояние соединения:', this.peerConnection.connectionState);
+    }
+}
+
+// Сигнальный канал (пример с WebSocket)
+class SignalingChannel {
+    constructor() {
+        this.socket = new WebSocket('wss://example.com/signaling');
+        this.listeners = {};
+
+        this.socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            this.emit(message.type, message.data);
+        };
+    }
+
+    on(event, callback) {
+        if (!this.listeners[event]) {
+            this.listeners[event] = [];
+        }
+        this.listeners[event].push(callback);
+    }
+
+    emit(event, data) {
+        if (this.listeners[event]) {
+            this.listeners[event].forEach(callback => callback(data));
+        }
+    }
+
+    send(type, data) {
+        this.socket.send(JSON.stringify({ type, data }));
+    }
+}
+
+// Инициализация приложения
+const app = new WebRTCApp();</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Кодеки и качество в WebRTC</h3>
+
+                    <div class="text-content">
+                        <p>WebRTC поддерживает различные кодеки для баланса между качеством, задержкой и совместимостью. Выбор кодека зависит от возможностей браузера и требований приложения.</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Кодек</th>
+                                <th>Тип</th>
+                                <th>Качество</th>
+                                <th>Задержка</th>
+                                <th>Поддержка в браузерах</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>VP8</td>
+                                <td>Видео</td>
+                                <td>Хорошее</td>
+                                <td>Низкая</td>
+                                <td>Все основные</td>
+                            </tr>
+                            <tr>
+                                <td>VP9</td>
+                                <td>Видео</td>
+                                <td>Отличное</td>
+                                <td>Средняя</td>
+                                <td>Chrome, Firefox, Edge</td>
+                            </tr>
+                            <tr>
+                                <td>H.264</td>
+                                <td>Видео</td>
+                                <td>Хорошее</td>
+                                <td>Низкая</td>
+                                <td>Все основные</td>
+                            </tr>
+                            <tr>
+                                <td>AV1</td>
+                                <td>Видео</td>
+                                <td>Превосходное</td>
+                                <td>Высокая</td>
+                                <td>Новые версии</td>
+                            </tr>
+                            <tr>
+                                <td>Opus</td>
+                                <td>Аудио</td>
+                                <td>Отличное</td>
+                                <td>Очень низкая</td>
+                                <td>Все основные</td>
+                            </tr>
+                            <tr>
+                                <td>G.711</td>
+                                <td>Аудио</td>
+                                <td>Хорошее</td>
+                                <td>Низкая</td>
+                                <td>Все основные</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="formula">
+                        <div class="formula-title">Адаптация битрейта в WebRTC</div>
+                        <div class="katex-formula" id="formula4"></div>
+                        <div class="formula-explanation">
+                            <p>где \( R_{target} \) - целевой битрейт, \( L \) - потеря пакетов, \( D \) - задержка, \( J \) - джиттер. WebRTC автоматически адаптирует битрейт на основе этих метрик для оптимального качества при текущих сетевых условиях.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Оптимизация QoS -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Оптимизация качества обслуживания (QoS)</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Техники улучшения качества мультимедиа</h3>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">FEC</div>
+                            <div class="metric-label">Forward Error Correction<br>Коррекция ошибок</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">ARQ</div>
+                            <div class="metric-label">Automatic Repeat Request<br>Повторная передача</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Jitter Buffer</div>
+                            <div class="metric-label">Буферизация<br>Компенсация джиттера</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">PLC</div>
+                            <div class="metric-label">Packet Loss Concealment<br>Сокрытие потерь</div>
+                        </div>
+                    </div>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Forward Error Correction (FEC)</div>
+                            <div class="text-content">
+                                <p>Добавление избыточных данных для восстановления потерянных пакетов без повторной передачи.</p>
+                                <ul>
+                                    <li><strong>Reed-Solomon codes</strong>: для восстановления блоков данных</li>
+                                    <li><strong>XOR-based FEC</strong>: простое восстановление одиночных потерь</li>
+                                    <li><strong>Raptor codes</strong>: эффективное восстановление при множественных потерях</li>
+                                    <li><strong>Применение</strong>: VoIP, видеоконференции, вещание</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Adaptive Jitter Buffer</div>
+                            <div class="text-content">
+                                <p>Динамическая буферизация для компенсации изменений в сетевой задержке.</p>
+                                <ul>
+                                    <li><strong>Static buffer</strong>: фиксированный размер буфера</li>
+                                    <li><strong>Dynamic buffer</strong>: адаптация к текущим сетевым условиям</li>
+                                    <li><strong>Algorithms</strong>: наименьшая квадратичная ошибка, фильтр Калмана</li>
+                                    <li><strong>Оптимизация</strong>: баланс между задержкой и плавностью</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Packet Loss Concealment (PLC)</div>
+                            <div class="text-content">
+                                <p>Алгоритмы для маскировки последствий потери пакетов.</p>
+                                <ul>
+                                    <li><strong>Audio PLC</strong>: повторение предыдущих сэмплов, интерполяция</li>
+                                    <li><strong>Video PLC</strong>: копирование предыдущих макроблоков, временная интерполяция</li>
+                                    <li><strong>Advanced techniques</strong>: машинное обучение для предсказания потерянных данных</li>
+                                    <li><strong>Эффективность</strong>: зависит от типа контента и степени потерь</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сетевые механизмы QoS</h3>
+
+                    <div class="text-content">
+                        <p>Сетевые технологии QoS обеспечивают приоритизацию мультимедиа трафика для гарантированного качества обслуживания.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Мультимедиа приложение] --> B[Маркировка трафика<br>DSCP/TOS]
+                                B --> C[Сетевое оборудование]
+                                C --> D{Классификация<br>и приоритизация}
+                                D --> E[Очереди с приоритетом]
+                                E --> F[Политика полосы<br>пропускания]
+                                F --> G[Управление перегрузками]
+                                G --> H[Доставка получателю]
+
+                                style B fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style E fill:#4ecdc4
+                                style F fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример настройки QoS в Linux с использованием tc
+#!/bin/bash
+
+# Создание корневой очереди HTB
+tc qdisc add dev eth0 root handle 1: htb default 30
+
+# Создание классов для разных типов трафика
+# Класс 1: VoIP (EF - Expedited Forwarding)
+tc class add dev eth0 parent 1: classid 1:1 htb rate 100kbps ceil 100kbps
+tc qdisc add dev eth0 parent 1:1 pfifo limit 10
+
+# Класс 2: Видео (AF41 - Assured Forwarding)
+tc class add dev eth0 parent 1: classid 1:2 htb rate 2mbps ceil 5mbps
+tc qdisc add dev eth0 parent 1:2 pfifo limit 50
+
+# Класс 3: Лучшее усилие (по умолчанию)
+tc class add dev eth0 parent 1: classid 1:3 htb rate 5mbps ceil 10mbps
+tc qdisc add dev eth0 parent 1:3 pfifo limit 100
+
+# Фильтрация трафика по портам и протоколам
+# VoIP (SIP и RTP)
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 \
+  match ip dport 5060 0xffff flowid 1:1
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 \
+  match ip protocol 17 0xff match ip dport 10000 0xff00 flowid 1:1
+
+# Видео поток (RTP)
+tc filter add dev eth0 protocol ip parent 1:0 prio 2 u32 \
+  match ip protocol 17 0xff match ip dport 20000 0xff00 flowid 1:2
+
+# Маркировка пакетов с помощью iptables
+# VoIP - EF (DSCP 46)
+iptables -t mangle -A OUTPUT -p udp --dport 10000:20000 -j DSCP --set-dscp 46
+
+# Видео - AF41 (DSCP 34)
+iptables -t mangle -A OUTPUT -p udp --dport 20000:30000 -j DSCP --set-dscp 34
+
+# Пример настройки QoS в Cisco IOS
+interface FastEthernet0/1
+ description Uplink to Internet
+ bandwidth 10000
+!
+class-map match-any VOICE
+ match ip dscp ef
+ match ip dscp cs5
+!
+class-map match-any VIDEO
+ match ip dscp af41
+ match ip dscp af42
+ match ip dscp af43
+!
+policy-map WAN-QOS
+ class VOICE
+  priority percent 10
+ class VIDEO
+  bandwidth percent 30
+  random-detect dscp-based
+ class class-default
+  bandwidth percent 60
+  random-detect
+!
+interface FastEthernet0/1
+ service-policy output WAN-QOS</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Будущее технологии -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Будущее передачи мультимедиа данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Перспективные технологии и тренды</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Immersive Media</div>
+                            <div class="text-content">
+                                <p>VR/AR и 360° видео требуют новых подходов к передаче и рендерингу.</p>
+                                <ul>
+                                    <li><strong>6DoF видео</strong>: 6 степеней свободы для полного погружения</li>
+                                    <li><strong>Foveated rendering</strong>: передача только области фокуса в высоком качестве</li>
+                                    <li><strong>Light fields</strong>: представление полного светового поля сцены</li>
+                                    <li><strong>Challenges</strong>: огромные объемы данных, требования к задержке</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">AI-Enhanced Streaming</div>
+                            <div class="text-content">
+                                <p>Искусственный интеллект для улучшения качества и эффективности.</p>
+                                <ul>
+                                    <li><strong>Content-aware encoding</strong>: оптимизация параметров кодирования для конкретного контента</li>
+                                    <li><strong>Super-resolution</strong>: улучшение разрешения с помощью нейросетей</li>
+                                    <li><strong>Network prediction</strong>: предсказание сетевых условий для проактивной адаптации</li>
+                                    <li><strong>Personalized streaming</strong>: адаптация к предпочтениям конкретного пользователя</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Next-Gen Codecs</div>
+                            <div class="text-content">
+                                <p>Кодеки следующего поколения для более эффективного сжатия.</p>
+                                <ul>
+                                    <li><strong>AV1</strong>: открытый кодек с эффективностью на 30% лучше H.265</li>
+                                    <li><strong>VVC (H.266)</strong>: дальнейшее улучшение сжатия на 50% относительно H.265</li>
+                                    <li><strong>LCEVC</strong>: гибридный подход с базовым слоем и enhancement слоем</li>
+                                    <li><strong>EVC</strong>: кодек с минимальными лицензионными отчислениями</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Будущие требования к сетям</div>
+                        <div class="katex-formula" id="formula5"></div>
+                        <div class="formula-explanation">
+                            <p>где \( R_{8K} \) - битрейт для 8K видео, \( R_{VR} \) - требования для VR, \( R_{holographic} \) - голографические дисплеи. Будущие сети должны будут поддерживать многократно возросшие требования к пропускной способности и задержке.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">5G и мультимедиа</h3>
+
+                    <div class="text-content">
+                        <p>Технология 5G предоставляет новые возможности для передачи мультимедиа с улучшенными характеристиками.</p>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">1-10 Гбит/с</div>
+                            <div class="metric-label">Скорость 5G</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">&lt; 1 мс</div>
+                            <div class="metric-label">Задержка 5G</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">1 млн/км²</div>
+                            <div class="metric-label">Плотность устройств</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">99.999%</div>
+                            <div class="metric-label">Надежность</div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Возможности 5G для мультимедиа:</div>
+                        <ul>
+                            <li><strong>Enhanced Mobile Broadband (eMBB)</strong>: поддержка 8K видео и immersive media</li>
+                            <li><strong>Ultra-Reliable Low-Latency Communications (URLLC)</strong>: критически важные приложения (AR/VR, облачные игры)</li>
+                            <li><strong>Massive Machine-Type Communications (mMTC)</strong>: подключение огромного количества IoT устройств</li>
+                            <li><strong>Network Slicing</strong>: выделенные виртуальные сети для разных типов трафика</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний по передаче мультимедиа данных</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какой протокол используется для передачи медиаданных в реальном времени поверх UDP и предоставляет временные метки для синхронизации?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">RTSP</div>
+                        <div class="quiz-option" data-correct="true">RTP</div>
+                        <div class="quiz-option" data-correct="false">HTTP</div>
+                        <div class="quiz-option" data-correct="false">FTP</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! RTP (Real-time Transport Protocol) предназначен для передачи аудио и видео в реальном времени и предоставляет временные метки, номера последовательностей и идентификацию типа полезной нагрузки.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какой адаптивный потоковый протокол использует плейлисты в формате M3U8 и сегменты в формате MPEG-TS?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">HLS (HTTP Live Streaming)</div>
+                        <div class="quiz-option" data-correct="false">MPEG-DASH</div>
+                        <div class="quiz-option" data-correct="false">RTMP</div>
+                        <div class="quiz-option" data-correct="false">WebRTC</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! HLS, разработанный Apple, использует плейлисты в формате M3U8 и обычно сегменты в формате MPEG-TS (хотя современные реализации также поддерживают fMP4).</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какой механизм в WebRTC используется для установки прямого соединения между клиентами за NAT?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">SIP</div>
+                        <div class="quiz-option" data-correct="false">RTCP</div>
+                        <div class="quiz-option" data-correct="true">ICE</div>
+                        <div class="quiz-option" data-correct="false">TLS</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! ICE (Interactive Connectivity Establishment) - это framework для установки прямых соединений между клиентами, использующий STUN и TURN серверы для обхода NAT.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой открытый видеокодек следующего поколения разработан Alliance for Open Media и обеспечивает на 30% лучшее сжатие по сравнению с H.265?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">VP9</div>
+                        <div class="quiz-option" data-correct="false">H.266/VVC</div>
+                        <div class="quiz-option" data-correct="true">AV1</div>
+                        <div class="quiz-option" data-correct="false">EVC</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! AV1 - это открытый и бесплатный видеокодек, разработанный Alliance for Open Media (включая Google, Mozilla, Cisco, Netflix и других), который обеспечивает значительно лучшее сжатие по сравнению с предыдущими кодеками.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1
+            katex.render("QoE = f(Q_{video}, Q_{audio}, T_{latency}, R_{reliability}, S_{synchronization})", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2
+            katex.render("Fraction\\,Lost = \\frac{C}{EHL - FirstSeq + 1} \\times 100\\%", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Формула 3
+            katex.render("J = D + \\lambda R", document.getElementById('formula3'), {
+                throwOnError: false
+            });
+
+            // Формула 4
+            katex.render("R_{target} = f(L, D, J)", document.getElementById('formula4'), {
+                throwOnError: false
+            });
+
+            // Формула 5
+            katex.render("R_{future} = R_{8K} + R_{VR} + R_{holographic} + \\cdots", document.getElementById('formula5'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
