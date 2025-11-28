@@ -559,7 +559,7 @@
                 <div class="subsection">
                     <h3 class="subsection-title">Что такое бессерверная архитектура</h3>
                     <div class="text-content">
-                        <p>Бессерверные вычисления (Serverless) — это облачная модель выполнения, в которой провайдер автоматически управляет выделением и масштабированием вычислительных ресурсов. Разработчики сосредотачиваются на написании кода, в то время как провайдер отвечает за инфраструктуру, масштабирование и обслуживание [citation:1].</p>
+                        <p>Бессерверные вычисления (Serverless) — это облачная модель выполнения, в которой провайдер автоматически управляет выделением и масштабированием вычислительных ресурсов. Разработчики сосредотачиваются на написании кода, в то время как провайдер отвечает за инфраструктуру, масштабирование и обслуживание.</p>
                     </div>
 
                     <div class="diagram">
@@ -855,7 +855,7 @@ resources:
                         <div class="architecture-card">
                             <div class="architecture-title">Экономическая эффективность</div>
                             <div class="text-content">
-                                <p>Оплата только за фактическое время выполнения кода без платы за простой серверов [citation:1].</p>
+                                <p>Оплата только за фактическое время выполнения кода без платы за простой серверов.</p>
                                 <ul>
                                     <li><strong>Отсутствие затрат на простой</strong>: нет оплаты, когда код не выполняется</li>
                                     <li><strong>Экономия на администрировании</strong>: не нужны системные администраторы</li>
@@ -868,7 +868,7 @@ resources:
                         <div class="architecture-card">
                             <div class="architecture-title">Автоматическое масштабирование</div>
                             <div class="text-content">
-                                <p>Провайдер автоматически управляет масштабированием в зависимости от нагрузки [citation:7].</p>
+                                <p>Провайдер автоматически управляет масштабированием в зависимости от нагрузки.</p>
                                 <ul>
                                     <li><strong>Горизонтальное масштабирование</strong>: автоматическое создание экземпляров</li>
                                     <li><strong>Обработка пиковых нагрузок</strong>: возможность обрабатывать внезапные всплески трафика</li>
@@ -881,7 +881,7 @@ resources:
                         <div class="architecture-card">
                             <div class="architecture-title">Повышение производительности разработки</div>
                             <div class="text-content">
-                                <p>Разработчики сосредотачиваются на коде, а не на инфраструктуре [citation:1].</p>
+                                <p>Разработчики сосредотачиваются на коде, а не на инфраструктуре.</p>
                                 <ul>
                                     <li><strong>Быстрое развертывание</strong>: минуты вместо дней или недель</li>
                                     <li><strong>Независимость команд</strong>: разные команды могут работать над отдельными функциями</li>
@@ -900,7 +900,7 @@ resources:
                         <div class="architecture-card">
                             <div class="architecture-title">Холодный старт (Cold Start)</div>
                             <div class="text-content">
-                                <p>Задержка при первом запуске функции после периода бездействия [citation:7].</p>
+                                <p>Задержка при первом запуске функции после периода бездействия.</p>
                                 <ul>
                                     <li><strong>Инициализация среды</strong>: загрузка кода и зависимостей</li>
                                     <li><strong>Влияние на latency</strong>: увеличение времени отклика</li>
@@ -926,7 +926,7 @@ resources:
                         <div class="architecture-card">
                             <div class="architecture-title">Сложности отладки и мониторинга</div>
                             <div class="text-content">
-                                <p>Распределенная природа serverless усложняет отладку [citation:7].</p>
+                                <p>Распределенная природа serverless усложняет отладку.</p>
                                 <ul>
                                     <li><strong>Распределенная трассировка</strong>: сложность отслеживания запросов через несколько функций</li>
                                     <li><strong>Логирование</strong>: логи распределены по разным сервисам</li>
@@ -1053,7 +1053,7 @@ resources:
                     <h3 class="subsection-title">BaaS-платформы (Backend as a Service)</h3>
 
                     <div class="text-content">
-                        <p>BaaS-платформы предоставляют готовые бэкенд-компоненты, позволяющие разработчикам сосредоточиться на фронтенде [citation:3].</p>
+                        <p>BaaS-платформы предоставляют готовые бэкенд-компоненты, позволяющие разработчикам сосредоточиться на фронтенде.</p>
                     </div>
 
                     <table class="comparison-table">
@@ -1093,7 +1093,7 @@ resources:
                         </tbody>
                     </table>
 
-                    <div class="code-block"><pre>// Пример использования Firebase Functions
+                    <div class="code-block"  style="display:none" ><pre>// Пример использования Firebase Functions
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
@@ -1208,7 +1208,7 @@ exports.generateThumbnail = functions.storage
                 <div class="subsection">
                     <h3 class="subsection-title">Что такое Database as a Service</h3>
                     <div class="text-content">
-                        <p>DBaaS (Database as a Service) — это облачная служба, где провайдер управляет операционными задачами базы данных, включая развертывание, настройку, патчинг, резервное копирование и мониторинг [citation:8].</p>
+                        <p>DBaaS (Database as a Service) — это облачная служба, где провайдер управляет операционными задачами базы данных, включая развертывание, настройку, патчинг, резервное копирование и мониторинг.</p>
                     </div>
 
                     <div class="diagram">
@@ -1269,7 +1269,7 @@ exports.generateThumbnail = functions.storage
                         <div class="architecture-card">
                             <div class="architecture-title">Снижение операционных затрат</div>
                             <div class="text-content">
-                                <p>Устранение необходимости в команде администраторов баз данных [citation:8].</p>
+                                <p>Устранение необходимости в команде администраторов баз данных.</p>
                                 <ul>
                                     <li><strong>Экономия на персонале</strong>: не нужны высокооплачиваемые DBA</li>
                                     <li><strong>Оптимизация ресурсов</strong>: оплата только за используемые мощности</li>
