@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бессерверные вычисления и DBaaS - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Пример кода';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .architecture-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .architecture-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .architecture-title {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-name {
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .use-case-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .use-case-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .use-case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение в Serverless</a>
+        <a href="#section2" class="nav-item">Архитектура Serverless</a>
+        <a href="#section3" class="nav-item">Преимущества и ограничения</a>
+        <a href="#section4" class="nav-item">Обзор платформ Serverless</a>
+        <a href="#section5" class="nav-item">Введение в DBaaS</a>
+        <a href="#section6" class="nav-item">Архитектура DBaaS</a>
+        <a href="#section7" class="nav-item">Обзор решений DBaaS</a>
+        <a href="#section8" class="nav-item">Сравнительный анализ</a>
+        <a href="#section9" class="nav-item">Будущее технологий</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Бессерверные вычисления и управляемые сервисы баз данных</h1>
+            <p class="lecture-subtitle">Serverless и DBaaS: архитектура, платформы и применение</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение в Serverless -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в бессерверные вычисления</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Что такое бессерверная архитектура</h3>
+                    <div class="text-content">
+                        <p>Бессерверные вычисления (Serverless) — это облачная модель выполнения, в которой провайдер автоматически управляет выделением и масштабированием вычислительных ресурсов. Разработчики сосредотачиваются на написании кода, в то время как провайдер отвечает за инфраструктуру, масштабирование и обслуживание [citation:1].</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Разработчик] --> B[Написание кода функции]
+                                B --> C[Загрузка в облако]
+                                C --> D[Cloud Provider]
+                                D --> E[Автоматическое масштабирование]
+                                D --> F[Управление инфраструктурой]
+                                D --> G[Обработка событий]
+                                E --> H[Готовая к работе функция]
+                                F --> H
+                                G --> H
+                                
+                                style A fill:#4ecdc4
+                                style B fill:#4ecdc4
+                                style D fill:#ff6b6b
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые характеристики бессерверных вычислений:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Отсутствие управления серверами</span>: провайдер полностью управляет инфраструктурой</li>
+                            <li><span class="highlight">Автоматическое масштабирование</span>: ресурсы масштабируются от нуля до тысяч параллельных выполнений</li>
+                            <li><span class="highlight">Оплата по использованию</span>: плата взимается только за время выполнения кода</li>
+                            <li><span class="highlight">Event-driven архитектура</span>: функции запускаются событиями, а не постоянно работающими процессами</li>
+                            <li><span class="highlight">Высокая доступность</span>: встроенная отказоустойчивость и репликация</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">0 → 1000+</div>
+                            <div class="metric-label">Масштабирование экземпляров</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">100 мс</div>
+                            <div class="metric-label">Средняя задержка</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Посукундно</div>
+                            <div class="metric-label">Тарификация</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">99.95%</div>
+                            <div class="metric-label">Доступность</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция облачных вычислений</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Эволюция облачных вычислений
+                                section 2000-2005
+                                    Выделенные серверы : Компании покупали<br>и обслуживали собственное железо
+                                    Виртуализация : Появление VMware<br>и гипервизоров
+                                section 2006-2010
+                                    IaaS : AWS EC2 и S3<br>виртуальная инфраструктура
+                                    PaaS : Heroku, Google App Engine<br>платформы для развертывания
+                                section 2012-2014
+                                    Контейнеризация : Docker<br>стандартизация среды выполнения
+                                    Оркестрация : Kubernetes<br>управление контейнерами
+                                section 2014-2016
+                                    AWS Lambda : Первые бессерверные<br>вычисления
+                                    Serverless Framework : Инструменты<br>для разработки
+                                section 2017-2020
+                                    Мультиклауд : Функции на разных<br>облачных платформах
+                                    Гибридные решения : Сочетание serverless<br>и традиционных архитектур
+                                section 2021-2025
+                                    AI-интеграция : Встроенная поддержка<br>машинного обучения
+                                    Edge computing : Serverless<br>на граничных устройствах
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>Бессерверные вычисления позволяют разработчикам сосредоточиться на бизнес-логике, а не на инфраструктуре</li>
+                        <li>Модель оплаты "pay-per-use" значительно снижает затраты для приложений с переменной нагрузкой</li>
+                        <li>Автоматическое масштабирование обеспечивает обработку пиковых нагрузок без вмешательства человека</li>
+                        <li>Serverless архитектура идеально подходит для event-driven и микросервисных приложений</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Архитектура Serverless -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Архитектура бессерверных приложений</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Компоненты Serverless-архитектуры</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Бессерверное приложение] --> B[Функции как сервис FaaS]
+                                A --> C[Бэкенд как сервис BaaS]
+                                A --> D[Сервисы событий и очередей]
+                                
+                                B --> B1[AWS Lambda]
+                                B --> B2[Azure Functions]
+                                B --> B3[Google Cloud Functions]
+                                
+                                C --> C1[Базы данных]
+                                C --> C2[Аутентификация]
+                                C --> C3[Хранилища]
+                                
+                                D --> D1[API Gateway]
+                                D --> D2[Очереди сообщений]
+                                D --> D3[Стриминговые сервисы]
+                                
+                                B1 --> E[Обработка HTTP запросов]
+                                B2 --> F[Фоновые задачи]
+                                B3 --> G[Обработка файлов]
+                                
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style E fill:#4ecdc4
+                                style F fill:#4ecdc4
+                                style G fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типичные паттерны Serverless-архитектуры</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Паттерн</th>
+                                <th>Описание</th>
+                                <th>Использование</th>
+                                <th>Преимущества</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>API Backend</td>
+                                <td>Функции обрабатывают HTTP-запросы через API Gateway</td>
+                                <td>Мобильные приложения, веб-сервисы</td>
+                                <td>Автоматическое масштабирование, низкие затраты</td>
+                            </tr>
+                            <tr>
+                                <td>Event Processing</td>
+                                <td>Обработка событий из очередей или стримов</td>
+                                <td>Обработка данных, уведомления</td>
+                                <td>Высокая параллельность, отказоустойчивость</td>
+                            </tr>
+                            <tr>
+                                <td>File Processing</td>
+                                <td>Обработка файлов при загрузке в хранилище</td>
+                                <td>Конвертация медиа, анализ данных</td>
+                                <td>Эффективность для пакетной обработки</td>
+                            </tr>
+                            <tr>
+                                <td>Cron Jobs</td>
+                                <td>Запуск функций по расписанию</td>
+                                <td>Резервное копирование, отчеты</td>
+                                <td>Точное выполнение по расписанию</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Жизненный цикл бессерверной функции</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant C as Клиент
+                                participant G as API Gateway
+                                participant F как Функция
+                                participant S как Сервисы
+                                
+                                C->>G: HTTP запрос
+                                G->>F: Запуск функции
+                                активировать F
+                                F->>S: Вызов внешних сервисов
+                                S-->>F: Ответ от сервисов
+                                F-->>G: Ответ функции
+                                деактивировать F
+                                G-->>C: HTTP ответ
+                                Note over F: Холодный старт<br>при первом вызове
+                                Note over F: Горячий запуск<br>при повторных вызовах
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример AWS Lambda функции на Node.js
+exports.handler = async (event, context) => {
+    // Парсинг входящих данных
+    const { name, email } = JSON.parse(event.body);
+    
+    try {
+        // Валидация данных
+        if (!name || !email) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({
+                    error: 'Name and email are required'
+                })
+            };
+        }
+        
+        // Сохранение в базу данных (DynamoDB)
+        const AWS = require('aws-sdk');
+        const dynamodb = new AWS.DynamoDB.DocumentClient();
+        
+        const params = {
+            TableName: process.env.USERS_TABLE,
+            Item: {
+                userId: context.awsRequestId,
+                name,
+                email,
+                createdAt: new Date().toISOString()
+            }
+        };
+        
+        await dynamodb.put(params).promise();
+        
+        // Возврат успешного ответа
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'User created successfully',
+                userId: context.awsRequestId
+            })
+        };
+    } catch (error) {
+        console.error('Error:', error);
+        
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                error: 'Internal server error'
+            })
+        };
+    }
+};
+
+// Пример конфигурации serverless.yml
+service: user-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-1
+  environment:
+    USERS_TABLE: ${self:service}-users-${sls:stage}
+
+functions:
+  createUser:
+    handler: handler.createUser
+    events:
+      - http:
+          path: /users
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USERS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Преимущества и ограничения -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Преимущества и ограничения бессерверной архитектуры</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Преимущества Serverless</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Экономическая эффективность</div>
+                            <div class="text-content">
+                                <p>Оплата только за фактическое время выполнения кода без платы за простой серверов [citation:1].</p>
+                                <ul>
+                                    <li><strong>Отсутствие затрат на простой</strong>: нет оплаты, когда код не выполняется</li>
+                                    <li><strong>Экономия на администрировании</strong>: не нужны системные администраторы</li>
+                                    <li><strong>Пропорциональное масштабирование</strong>: затраты растут пропорционально нагрузке</li>
+                                    <li><strong>Предсказуемость расходов</strong>: легко прогнозировать затраты на основе метрик</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Автоматическое масштабирование</div>
+                            <div class="text-content">
+                                <p>Провайдер автоматически управляет масштабированием в зависимости от нагрузки [citation:7].</p>
+                                <ul>
+                                    <li><strong>Горизонтальное масштабирование</strong>: автоматическое создание экземпляров</li>
+                                    <li><strong>Обработка пиковых нагрузок</strong>: возможность обрабатывать внезапные всплески трафика</li>
+                                    <li><strong>Глобальная доступность</strong>: развертывание в нескольких регионах</li>
+                                    <li><strong>Балансировка нагрузки</strong>: автоматическое распределение запросов</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Повышение производительности разработки</div>
+                            <div class="text-content">
+                                <p>Разработчики сосредотачиваются на коде, а не на инфраструктуре [citation:1].</p>
+                                <ul>
+                                    <li><strong>Быстрое развертывание</strong>: минуты вместо дней или недель</li>
+                                    <li><strong>Независимость команд</strong>: разные команды могут работать над отдельными функциями</li>
+                                    <li><strong>Упрощенный DevOps</strong>: меньше сложностей с развертыванием и мониторингом</li>
+                                    <li><strong>Легкое тестирование</strong>: функции можно тестировать изолированно</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Ограничения и проблемы</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Холодный старт (Cold Start)</div>
+                            <div class="text-content">
+                                <p>Задержка при первом запуске функции после периода бездействия [citation:7].</p>
+                                <ul>
+                                    <li><strong>Инициализация среды</strong>: загрузка кода и зависимостей</li>
+                                    <li><strong>Влияние на latency</strong>: увеличение времени отклика</li>
+                                    <li><strong>Методы оптимизации</strong>: provisioned concurrency, оптимизация кода</li>
+                                    <li><strong>Критичность для real-time</strong>: проблема для приложений реального времени</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Ограничения выполнения</div>
+                            <div class="text-content">
+                                <p>Платформы накладывают ограничения на время выполнения и ресурсы.</p>
+                                <ul>
+                                    <li><strong>Таймауты</strong>: обычно 5-15 минут максимального времени выполнения</li>
+                                    <li><strong>Ограничения памяти</strong>: от 128 МБ до 10 ГБ на разных платформах</li>
+                                    <li><strong>Ограничения CPU</strong>: пропорционально выделенной памяти</li>
+                                    <li><strong>Лицензирование</strong>: ограничения на использование коммерческого ПО</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Сложности отладки и мониторинга</div>
+                            <div class="text-content">
+                                <p>Распределенная природа serverless усложняет отладку [citation:7].</p>
+                                <ul>
+                                    <li><strong>Распределенная трассировка</strong>: сложность отслеживания запросов через несколько функций</li>
+                                    <li><strong>Логирование</strong>: логи распределены по разным сервисам</li>
+                                    <li><strong>Локальная отладка</strong>: сложность воспроизведения среды выполнения</li>
+                                    <li><strong>Мониторинг производительности</strong>: необходимость специализированных инструментов</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Формула стоимости Serverless</div>
+                        <div class="katex-formula" id="formula1"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( N \) - количество выполнений</li>
+                                <li>\( T_{exec} \) - время выполнения (в мс)</li>
+                                <li>\( M \) - объем памяти (в ГБ)</li>
+                                <li>\( C_{invoke} \) - стоимость вызова</li>
+                                <li>\( C_{compute} \) - стоимость вычислений</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Обзор платформ Serverless -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Обзор платформ бессерверных вычислений</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Международные платформы</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Платформа</th>
+                                <th>Провайдер</th>
+                                <th>Поддерживаемые языки</th>
+                                <th>Особенности</th>
+                                <th>Стоимость (за 1M вызовов)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AWS Lambda</td>
+                                <td>Amazon</td>
+                                <td>Node.js, Python, Java, C#, Go, Ruby</td>
+                                <td>Интеграция с AWS сервисами, наибольшая экосистема</td>
+                                <td>$0.20</td>
+                            </tr>
+                            <tr>
+                                <td>Azure Functions</td>
+                                <td>Microsoft</td>
+                                <td>C#, F#, Java, JavaScript, Python, PowerShell</td>
+                                <td>Глубокая интеграция с Microsoft экосистемой</td>
+                                <td>$0.20</td>
+                            </tr>
+                            <tr>
+                                <td>Google Cloud Functions</td>
+                                <td>Google</td>
+                                <td>Node.js, Python, Go, Java, .NET, Ruby, PHP</td>
+                                <td>AI/ML возможности, интеграция с Firebase</td>
+                                <td>$0.40</td>
+                            </tr>
+                            <tr>
+                                <td>Cloudflare Workers</td>
+                                <td>Cloudflare</td>
+                                <td>JavaScript, TypeScript, Rust, C, C++</td>
+                                <td>Выполнение на edge, очень низкая задержка</td>
+                                <td>$0.50</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Российские платформы</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Yandex Cloud Functions</div>
+                            <div class="text-content">
+                                <p>Бессерверные вычисления от российского провайдера с интеграцией в экосистему Яндекс.Облака.</p>
+                                <ul>
+                                    <li><strong>Поддерживаемые языки</strong>: Node.js, Python, Java, Go, Bash, PHP</li>
+                                    <li><strong>Интеграции</strong>: Yandex Message Queue, Object Storage, IoT Core</li>
+                                    <li><strong>Особенности</strong>: Поддержка российского законодательства, низкая латентность в регионах СНГ</li>
+                                    <li><strong>Использование</strong>: Государственные проекты, финансовый сектор, ритейл</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">SberCloud Serverless</div>
+                            <div class="text-content">
+                                <p>Платформа бессерверных вычислений от СберОблака с акцентом на безопасность и соответствие требованиям.</p>
+                                <ul>
+                                    <li><strong>Поддерживаемые языки</strong>: Python, Java, Node.js, Go</li>
+                                    <li><strong>Интеграции</strong>: Собственные сервисы СберОблака, совместимость с AWS API</li>
+                                    <li><strong>Особенности</strong>: Сертификация ФСТЭК, поддержка импортозамещения</li>
+                                    <li><strong>Использование</strong>: Государственные организации, банки, крупный бизнес</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Timeweb Cloud Functions</div>
+                            <div class="text-content">
+                                <p>Бессерверная платформа от российского хостинг-провайдера с простой интеграцией.</p>
+                                <ul>
+                                    <li><strong>Поддерживаемые языки</strong>: Node.js, Python, PHP</li>
+                                    <li><strong>Интеграции</strong>: Базы данных, хранилища, API Gateway</li>
+                                    <li><strong>Особенности</strong>: Простота использования, competitive pricing</li>
+                                    <li><strong>Использование</strong>: Стартапы, малый и средний бизнес</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">BaaS-платформы (Backend as a Service)</h3>
+
+                    <div class="text-content">
+                        <p>BaaS-платформы предоставляют готовые бэкенд-компоненты, позволяющие разработчикам сосредоточиться на фронтенде [citation:3].</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Платформа</th>
+                                <th>Тип</th>
+                                <th>Основные возможности</th>
+                                <th>Целевая аудитория</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Firebase</td>
+                                <td>Google</td>
+                                <td>База данных, аутентификация, хостинг, аналитика</td>
+                                <td>Мобильные и веб-приложения</td>
+                            </tr>
+                            <tr>
+                                <td>AWS Amplify</td>
+                                <td>Amazon</td>
+                                <td>Готовые UI компоненты, CLI, хостинг</td>
+                                <td>Фронтенд-разработчики</td>
+                            </tr>
+                            <tr>
+                                <td>Back4app</td>
+                                <td>Parse-based</td>
+                                <td>Open-source бэкенд, реальное время, низкий код</td>
+                                <td>Разработчики приложений</td>
+                            </tr>
+                            <tr>
+                                <td>Backendless</td>
+                                <td>Universal</td>
+                                <td>Визуальная разработка, API-кэширование, messaging</td>
+                                <td>Бизнес-приложения</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block"><pre>// Пример использования Firebase Functions
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
+// Функция для отправки уведомлений при новом сообщении
+exports.sendMessageNotification = functions.firestore
+    .document('chats/{chatId}/messages/{messageId}')
+    .onCreate(async (snapshot, context) => {
+        const messageData = snapshot.data();
+        const chatId = context.params.chatId;
+        
+        // Получение данных о чате
+        const chatDoc = await admin.firestore()
+            .collection('chats')
+            .doc(chatId)
+            .get();
+        const chatData = chatDoc.data();
+        
+        // Получение токенов устройств участников
+        const participants = chatData.participants;
+        const tokens = [];
+        
+        for (const userId of participants) {
+            if (userId !== messageData.senderId) {
+                const userDoc = await admin.firestore()
+                    .collection('users')
+                    .doc(userId)
+                    .get();
+                const userData = userDoc.data();
+                
+                if (userData && userData.fcmToken) {
+                    tokens.push(userData.fcmToken);
+                }
+            }
+        }
+        
+        if (tokens.length > 0) {
+            const payload = {
+                notification: {
+                    title: `Новое сообщение от ${messageData.senderName}`,
+                    body: messageData.text,
+                    icon: 'default',
+                    click_action: 'FLUTTER_NOTIFICATION_CLICK'
+                }
+            };
+            
+            // Отправка уведомлений
+            try {
+                await admin.messaging().sendToDevice(tokens, payload);
+                console.log('Уведомления отправлены успешно');
+            } catch (error) {
+                console.error('Ошибка отправки уведомлений:', error);
+            }
+        }
+        
+        return null;
+    });
+
+// Функция для ресайза изображений
+exports.generateThumbnail = functions.storage
+    .object()
+    .onFinalize(async (object) => {
+        const filePath = object.name;
+        const contentType = object.contentType;
+        
+        // Проверка что файл - изображение
+        if (!contentType.startsWith('image/')) {
+            return console.log('Это не изображение.');
+        }
+        
+        // Путь к файлу
+        const fileDir = path.dirname(filePath);
+        const fileName = path.basename(filePath);
+        const thumbFilePath = path.normalize(
+            path.join(fileDir, 'thumbs', fileName)
+        );
+        
+        const bucket = admin.storage().bucket(object.bucket);
+        const tempFilePath = path.join('/tmp', fileName);
+        
+        // Скачивание файла
+        await bucket.file(filePath).download({destination: tempFilePath});
+        
+        // Генерация thumbnail
+        await sharp(tempFilePath)
+            .resize(200, 200)
+            .toFile(`/tmp/thumb_${fileName}`);
+        
+        // Загрузка thumbnail в Storage
+        await bucket.upload(`/tmp/thumb_${fileName}`, {
+            destination: thumbFilePath,
+            metadata: {
+                contentType: contentType
+            }
+        });
+        
+        // Очистка временных файлов
+        fs.unlinkSync(tempFilePath);
+        fs.unlinkSync(`/tmp/thumb_${fileName}`);
+        
+        return console.log('Thumbnail создан успешно');
+    });
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Введение в DBaaS -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Введение в управляемые сервисы баз данных (DBaaS)</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Что такое Database as a Service</h3>
+                    <div class="text-content">
+                        <p>DBaaS (Database as a Service) — это облачная служба, где провайдер управляет операционными задачами базы данных, включая развертывание, настройку, патчинг, резервное копирование и мониторинг [citation:8].</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Пользователь DBaaS] --> B[Управление данными<br>и запросы]
+                                B --> C[DBaaS Провайдер]
+                                C --> D[Автоматическое<br>масштабирование]
+                                C --> E[Резервное копирование<br>и восстановление]
+                                C --> F[Мониторинг<br>и обслуживание]
+                                C --> G[Безопасность<br>и обновления]
+                                D --> H[Высокодоступная<br>база данных]
+                                E --> H
+                                F --> H
+                                G --> H
+                                
+                                style A fill:#4ecdc4
+                                style B fill:#4ecdc4
+                                style C fill:#ff6b6b
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые характеристики DBaaS:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Управляемая инфраструктура</span>: провайдер управляет серверами, сетью и хранилищем</li>
+                            <li><span class="highlight">Автоматическое масштабирование</span>: вертикальное и горизонтальное масштабирование по требованию</li>
+                            <li><span class="highlight">Высокая доступность</span>: встроенная репликация и отказоустойчивость</li>
+                            <li><span class="highlight">Безопасность</span>: автоматические обновления, шифрование, контроль доступа</li>
+                            <li><span class="highlight">Резервное копирование</span>: автоматические бэкапы и point-in-time восстановление</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">99.95-99.99%</div>
+                            <div class="metric-label">Доступность SLA</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Автоматическое</div>
+                            <div class="metric-label">Масштабирование</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Минуты</div>
+                            <div class="metric-label">Время развертывания</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">$20-5000/мес</div>
+                            <div class="metric-label">Стоимость</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Преимущества DBaaS</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Снижение операционных затрат</div>
+                            <div class="text-content">
+                                <p>Устранение необходимости в команде администраторов баз данных [citation:8].</p>
+                                <ul>
+                                    <li><strong>Экономия на персонале</strong>: не нужны высокооплачиваемые DBA</li>
+                                    <li><strong>Оптимизация ресурсов</strong>: оплата только за используемые мощности</li>
+                                    <li><strong>Снижение простоев</strong>: автоматическое восстановление при сбоях</li>
+                                    <li><strong>Предсказуемые расходы</strong>: четкая структура ценообразования</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Повышение производительности</div>
+                            <div class="text-content">
+                                <p>Автоматическая оптимизация и мониторинг производительности.</p>
+                                <ul>
+                                    <li><strong>Автоматическое индексирование</strong>: интеллектуальное создание индексов</li>
+                                    <li><strong>Query optimization</strong>: анализ и оптимизация медленных запросов</li>
+                                    <li><strong>Кэширование</strong>: автоматическое кэширование часто используемых данных</li>
+                                    <li><strong>Load balancing</strong>: распределение нагрузки между репликами</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Безопасность и соответствие</div>
+                            <div class="text-content">
+                                <p>Встроенные механизмы безопасности и соответствия стандартам.</p>
+                                <ul>
+                                    <li><strong>Автоматические обновления</strong>: своевременное применение патчей безопасности</li>
+                                    <li><strong>Шифрование</strong>: данных в покое и при передаче</li>
+                                    <li><strong>Аудит и мониторинг</strong>: детальное логирование всех операций</li>
+                                    <li><strong>Соответствие стандартам</strong>: GDPR, HIPAA, PCI DSS и другим</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>DBaaS позволяет организациям сосредоточиться на разработке приложений, а не на управлении базами данных</li>
+                        <li>Автоматическое масштабирование обеспечивает производительность при переменных нагрузках</li>
+                        <li>Встроенные механизмы безопасности снижают риски утечки данных</li>
+                        <li>Снижение TCO (Total Cost of Ownership) за счет устранения затрат на администрирование</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Архитектура DBaaS -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Архитектура управляемых сервисов баз данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Компоненты DBaaS-архитектуры</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[DBaaS Архитектура] --> B[Слой управления]
+                                A --> C[Слой данных]
+                                A --> D[Слой мониторинга]
+                                
+                                B --> B1[Orchestrator]
+                                B --> B2[Provisioning Engine]
+                                B --> B3[Backup Manager]
+                                
+                                C --> C1[Database Instances]
+                                C --> C2[Storage Engine]
+                                C --> C3[Replication Manager]
+                                
+                                D --> D1[Metrics Collector]
+                                D --> D2[Alerting System]
+                                D --> D3[Performance Analyzer]
+                                
+                                B1 --> E[Автоматическое масштабирование]
+                                B2 --> F[Развертывание инстансов]
+                                B3 --> G[Резервное копирование]
+                                
+                                C1 --> H[Обработка запросов]
+                                C2 --> I[Хранение данных]
+                                C3 --> J[Синхронизация реплик]
+                                
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типы баз данных в DBaaS</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Тип БД</th>
+                                <th>Модель данных</th>
+                                <th>Преимущества</th>
+                                <th>Использование</th>
+                                <th>Примеры DBaaS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Реляционные</td>
+                                <td>Таблицы, SQL</td>
+                                <td>ACID, сложные запросы, согласованность</td>
+                                <td>Транзакционные системы, отчетность</td>
+                                <td>Amazon RDS, Azure SQL, Yandex Managed PostgreSQL</td>
+                            </tr>
+                            <tr>
+                                <td>NoSQL</td>
+                                <td>Документы, ключ-значение</td>
+                                <td>Горизонтальное масштабирование, гибкая схема</td>
+                                <td>Веб-приложения, IoT, каталоги продуктов</td>
+                                <td>MongoDB Atlas, Amazon DynamoDB, Azure Cosmos DB</td>
+                            </tr>
+                            <tr>
+                                <td>In-Memory</td>
+                                <td>Ключ-значение в памяти</td>
+                                <td>Низкая задержка, высокая пропускная способность</td>
+                                <td>Кэширование, сессии, реальное время</td>
+                                <td>Amazon ElastiCache, Redis Labs, Google Memorystore</td>
+                            </tr>
+                            <tr>
+                                <td>Векторные</td>
+                                <td>Векторные embedding</td>
+                                <td>Похожесть, семантический поиск</td>
+                                <td>AI/ML, рекомендации, поиск</td>
+                                <td>Pinecone, Weaviate, Qdrant</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Автоматическое управление жизненным циклом</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant U as Пользователь
+                                participant D как DBaaS API
+                                participant O как Orchestrator
+                                participant I как Database Instance
+                                participant M как Monitoring
+                                
+                                U->>D: Запрос на создание БД
+                                D->>O: Создать инстанс
+                                O->>I: Развернуть БД
+                                I-->>O: Инстанс готов
+                                O-->>D: Подтверждение
+                                D-->>U: Данные подключения
+                                
+                                loop Мониторинг
+                                    M->>I: Сбор метрик
+                                    I-->>M: CPU, память, IOPS
+                                    M->>O: Анализ метрик
+                                    O->>I: Масштабирование при необходимости
+                                end
+                                
+                                U->>D: Запрос на удаление
+                                D->>O: Удалить инстанс
+                                O->>I: Остановить БД
+                                O->>O: Создать финальный бэкап
+                                O->>I: Освободить ресурсы
+                                O-->>D: Подтверждение удаления
+                                D-->>U: Результат операции
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример использования Amazon RDS через AWS SDK
+const AWS = require('aws-sdk');
+
+// Создание клиента RDS
+const rds = new AWS.RDS();
+
+// Создание инстанса базы данных
+async function createDatabaseInstance() {
+    const params = {
+        DBInstanceIdentifier: 'my-production-db',
+        DBInstanceClass: 'db.t3.large',
+        Engine: 'mysql',
+        MasterUsername: 'admin',
+        MasterUserPassword: 'secure-password-123',
+        AllocatedStorage: 100,
+        MultiAZ: true, // Высокая доступность
+        BackupRetentionPeriod: 7, // Бэкапы на 7 дней
+        PubliclyAccessible: false,
+        VpcSecurityGroupIds: ['sg-12345678'],
+        DBSubnetGroupName: 'my-db-subnet-group',
+        StorageEncrypted: true,
+        MonitoringInterval: 60, // Enhanced Monitoring
+        AutoMinorVersionUpgrade: true,
+        CopyTagsToSnapshot: true
+    };
+
+    try {
+        const result = await rds.createDBInstance(params).promise();
+        console.log('Database instance created:', result.DBInstance);
+        return result;
+    } catch (error) {
+        console.error('Error creating database:', error);
+        throw error;
+    }
+}
+
+// Создание read replica
+async function createReadReplica() {
+    const params = {
+        DBInstanceIdentifier: 'my-production-db-replica',
+        SourceDBInstanceIdentifier: 'my-production-db',
+        DBInstanceClass: 'db.t3.medium',
+        PubliclyAccessible: false
+    };
+
+    try {
+        const result = await rds.createDBInstanceReadReplica(params).promise();
+        console.log('Read replica created:', result.DBInstance);
+        return result;
+    } catch (error) {
+        console.error('Error creating read replica:', error);
+        throw error;
+    }
+}
+
+// Автоматическое создание снапшотов
+async function createDBSnapshot() {
+    const params = {
+        DBInstanceIdentifier: 'my-production-db',
+        DBSnapshotIdentifier: `manual-snapshot-${Date.now()}`
+    };
+
+    try {
+        const result = await rds.createDBSnapshot(params).promise();
+        console.log('Snapshot created:', result.DBSnapshot);
+        return result;
+    } catch (error) {
+        console.error('Error creating snapshot:', error);
+        throw error;
+    }
+}
+
+// Мониторинг метрик БД
+async function getDatabaseMetrics() {
+    const cloudwatch = new AWS.CloudWatch();
+    
+    const params = {
+        MetricName: 'CPUUtilization',
+        Namespace: 'AWS/RDS',
+        Dimensions: [
+            {
+                Name: 'DBInstanceIdentifier',
+                Value: 'my-production-db'
+            }
+        ],
+        StartTime: new Date(Date.now() - 3600000), // 1 час назад
+        EndTime: new Date(),
+        Period: 300, // 5 минут
+        Statistics: ['Average', 'Maximum']
+    };
+
+    try {
+        const result = await cloudwatch.getMetricStatistics(params).promise();
+        console.log('Database metrics:', result.Datapoints);
+        return result;
+    } catch (error) {
+        console.error('Error getting metrics:', error);
+        throw error;
+    }
+}
+
+// Пример использования в приложении
+const mysql = require('mysql2/promise');
+
+async function connectToDatabase() {
+    const connection = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        ssl: 'Amazon RDS'
+    });
+
+    return connection;
+}
+
+// Выполнение запроса
+async function getUsers() {
+    const connection = await connectToDatabase();
+    
+    try {
+        const [rows] = await connection.execute(
+            'SELECT * FROM users WHERE active = ?',
+            [true]
+        );
+        return rows;
+    } finally {
+        await connection.end();
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: Обзор решений DBaaS -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Обзор решений управляемых баз данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Международные DBaaS-решения</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Провайдер</th>
+                                <th>Реляционные БД</th>
+                                <th>NoSQL БД</th>
+                                <th>In-Memory БД</th>
+                                <th>Особенности</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AWS</td>
+                                <td>RDS (MySQL, PostgreSQL, MariaDB, Oracle, SQL Server)</td>
+                                <td>DynamoDB, DocumentDB</td>
+                                <td>ElastiCache (Redis, Memcached)</td>
+                                <td>Наибольший выбор, интеграция с AWS сервисами</td>
+                            </tr>
+                            <tr>
+                                <td>Google Cloud</td>
+                                <td>Cloud SQL, Cloud Spanner</td>
+                                <td>Firestore, Bigtable</td>
+                                <td>Memorystore (Redis, Memcached)</td>
+                                <td>Глобальная распределенность, AI/ML интеграция</td>
+                            </tr>
+                            <tr>
+                                <td>Microsoft Azure</td>
+                                <td>Azure SQL Database, Azure Database</td>
+                                <td>Cosmos DB, Cache for Redis</td>
+                                <td>Azure Cache</td>
+                                <td>Гибридные решения, enterprise-фокус</td>
+                            </tr>
+                            <tr>
+                                <td>MongoDB Atlas</td>
+                                <td>-</td>
+                                <td>MongoDB</td>
+                                <td>-</td>
+                                <td>Глобальная распределенность, автоматическое масштабирование</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Российские DBaaS-решения</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Yandex Managed Services for PostgreSQL</div>
+                            <div class="text-content">
+                                <p>Управляемый PostgreSQL с автоматическим масштабированием и репликацией от Яндекс.Облака.</p>
+                                <ul>
+                                    <li><strong>Возможности</strong>: Автоматические бэкапы, репликация, мониторинг</li>
+                                    <li><strong>Масштабирование</strong>: Вертикальное и горизонтальное через Citus</li>
+                                    <li><strong>Безопасность</strong>: Шифрование, VPC, управление доступом</li>
+                                    <li><strong>Использование</strong>: Веб-приложения, мобильные приложения, геосервисы</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Yandex Managed Services for ClickHouse</div>
+                            <div class="text-content">
+                                <p>Управляемый ClickHouse для аналитических рабочих нагрузок и больших данных.</p>
+                                <ul>
+                                    <li><strong>Возможности</strong>: Column-oriented storage, распределенные запросы</li>
+                                    <li><strong>Производительность</strong>: Оптимизирован для аналитических запросов</li>
+                                    <li><strong>Интеграции</strong>: Yandex Object Storage, DataLens</li>
+                                    <li><strong>Использование</strong>: Аналитика, IoT, логи, бизнес-метрики</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Postgres Pro</div>
+                            <div class="text-content">
+                                <p>Российская управляемая СУБД на основе PostgreSQL с дополнительными возможностями.</p>
+                                <ul>
+                                    <li><strong>Особенности</strong>: Улучшенная производительность, дополнительные модули</li>
+                                    <li><strong>Безопасность</strong>: Сертификация ФСТЭК, дополнительные механизмы защиты</li>
+                                    <li><strong>Поддержка</strong>: Российская техническая поддержка</li>
+                                    <li><strong>Использование</strong>: Государственные системы, банки, телеком</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Тенденции на российском рынке DBaaS:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Импортозамещение</span>: активный переход с зарубежных решений на российские</li>
+                            <li><span class="highlight">Сертификация</span>: соответствие требованиям ФСТЭК и ФСБ</li>
+                            <li><span class="highlight">Локализация</span>: развитие региональных дата-центров</li>
+                            <li><span class="highlight">Совместимость</span>: обеспечение совместимости с международными стандартами</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнение производительности и стоимости</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph LR
+                                A[Выбор DBaaS] --> B{Тип нагрузки}
+                                B -->|OLTP| C[Реляционные БД<br>Amazon RDS, Yandex Managed PostgreSQL]
+                                B -->|OLAP| D[Аналитические БД<br>ClickHouse, Amazon Redshift]
+                                B -->|Кэширование| E[In-Memory БД<br>Redis, Memcached]
+                                
+                                C --> F{Требования}
+                                D --> F
+                                E --> F
+                                
+                                F -->|Высокая доступность| G[Multi-AZ<br>Автоматическая репликация]
+                                F -->|Масштабирование| H[Горизонтальное шардирование]
+                                F -->|Безопасность| I[Шифрование, VPC, IAM]
+                                
+                                G --> J[Стоимость: $$]
+                                H --> K[Стоимость: $$$]
+                                I --> L[Стоимость: $$]
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Формула стоимости DBaaS</div>
+                        <div class="katex-formula" id="formula2"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( C_{instance} \) - стоимость инстанса БД</li>
+                                <li>\( C_{storage} \) - стоимость хранилища</li>
+                                <li>\( C_{backup} \) - стоимость резервного копирования</li>
+                                <li>\( C_{transfer} \) - стоимость передачи данных</li>
+                                <li>\( C_{support} \) - стоимость поддержки</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Сравнительный анализ -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Сравнительный анализ Serverless и DBaaS</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектурные различия</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>Serverless (FaaS)</th>
+                                <th>DBaaS</th>
+                                <th>Традиционная архитектура</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Управление инфраструктурой</td>
+                                <td>Полностью провайдер</td>
+                                <td>Провайдер</td>
+                                <td>Клиент</td>
+                            </tr>
+                            <tr>
+                                <td>Масштабирование</td>
+                                <td>Автоматическое, мгновенное</td>
+                                <td>Автоматическое, минуты</td>
+                                <td>Ручное, часы/дни</td>
+                            </tr>
+                            <tr>
+                                <td>Тарификация</td>
+                                <td>За выполнение (время + память)</td>
+                                <td>За ресурсы (время работы)</td>
+                                <td>За выделенные ресурсы</td>
+                            </tr>
+                            <tr>
+                                <td>Время инициализации</td>
+                                <td>Милисекунды (холодный старт)</td>
+                                <td>Минуты</td>
+                                <td>Часы/дни</td>
+                            </tr>
+                            <tr>
+                                <td>Максимальное время выполнения</td>
+                                <td>Минуты (15-30 мин)</td>
+                                <td>Неограниченно</td>
+                                <td>Неограниченно</td>
+                            </tr>
+                            <tr>
+                                <td>Идеальное использование</td>
+                                <td>Event-driven, переменная нагрузка</td>
+                                <td>Постоянная нагрузка, данные</td>
+                                <td>Специфические требования</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Совместное использование Serverless и DBaaS</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TB
+                                A[Клиент] --> B[API Gateway]
+                                B --> C[AWS Lambda]
+                                B --> D[Azure Functions]
+                                B --> E[Google Cloud Functions]
+                                
+                                C --> F[Amazon DynamoDB]
+                                C --> G[Amazon RDS]
+                                
+                                D --> H[Azure Cosmos DB]
+                                D --> I[Azure SQL Database]
+                                
+                                E --> J[Firestore]
+                                E --> K[Cloud SQL]
+                                
+                                F --> L[Масштабируемое хранение]
+                                G --> M[Реляционные данные]
+                                H --> N[Глобально распределенная БД]
+                                I --> O[Enterprise данные]
+                                J --> P[Реальное время]
+                                K --> Q[MySQL/PostgreSQL]
+                                
+                                style C fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style E fill:#4ecdc4
+                                style F fill:#ff6b6b
+                                style G fill:#ff6b6b
+                                style H fill:#ff6b6b
+                                style I fill:#ff6b6b
+                                style J fill:#ff6b6b
+                                style K fill:#ff6b6b
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Паттерны совместного использования:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Serverless API + DBaaS</span>: бессерверные функции обращаются к управляемой БД</li>
+                            <li><span class="highlight">Event-driven обработка</span>: функции обрабатывают события из БД (например, изменения в таблицах)</li>
+                            <li><span class="highlight">Микросервисная архитектура</span>: каждый микросервис использует свою БД с автоматическим масштабированием</li>
+                            <li><span class="highlight">Гибридные решения</span>: комбинация serverless функций и традиционных приложений с общей DBaaS</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Критерии выбора архитектуры</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Выбор Serverless</div>
+                            <div class="text-content">
+                                <p>Когда Serverless архитектура является оптимальным выбором:</p>
+                                <ul>
+                                    <li><strong>Переменная нагрузка</strong>: пиковые нагрузки сменяются периодами простоя</li>
+                                    <li><strong>Event-driven сценарии</strong>: обработка файлов, сообщений, webhooks</li>
+                                    <li><strong>Прототипирование</strong>: быстрая разработка и развертывание MVP</li>
+                                    <li><strong>Микросервисы</strong>: независимое масштабирование компонентов</li>
+                                    <li><strong>Ограниченный бюджет</strong>: оплата только за фактическое использование</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Выбор DBaaS</div>
+                            <div class="text-content">
+                                <p>Когда управляемые базы данных предпочтительнее:</p>
+                                <ul>
+                                    <li><strong>Постоянная нагрузка</strong>: стабильный трафик без резких колебаний</li>
+                                    <li><strong>Сложные запросы</strong>: необходимость выполнения сложных SQL-запросов</li>
+                                    <li><strong>Транзакционность</strong>: требования ACID и согласованности данных</li>
+                                    <li><strong>Комплаенс</strong>: строгие требования к безопасности и аудиту</li>
+                                    <li><strong>Отсутствие DBA</strong>: нет возможности содержать команду администраторов</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Комбинированный подход</div>
+                            <div class="text-content">
+                                <p>Совместное использование Serverless и DBaaS:</p>
+                                <ul>
+                                    <li><strong>API бэкенд</strong>: Serverless функции + управляемая БД</li>
+                                    <li><strong>Обработка данных</strong>: Функции для ETL + DBaaS для хранения</li>
+                                    <li><strong>Real-time приложения</strong>: Serverless для бизнес-логики + DBaaS для данных</li>
+                                    <li><strong>Гибридные системы</strong>: комбинация различных подходов для разных компонентов</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Будущее технологий -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Будущее бессерверных вычислений и DBaaS</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Тенденции развития</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Serverless 2.0</div>
+                            <div class="text-content">
+                                <p>Следующее поколение бессерверных технологий с улучшенными характеристиками.</p>
+                                <ul>
+                                    <li><strong>Устранение cold start</strong>: практически мгновенный запуск функций</li>
+                                    <li><strong>Гибридные выполнения</strong>: комбинация serverless и традиционных workload</li>
+                                    <li><strong>Stateful функции</strong>: возможность сохранения состояния между вызовами</li>
+                                    <li><strong>Улучшенная оркестрация</strong>: сложные workflow и координация функций</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">AI-интеграция</div>
+                            <div class="text-content">
+                                <p>Интеграция искусственного интеллекта в управляемые сервисы.</p>
+                                <ul>
+                                    <li><strong>Автоматическая оптимизация</strong>: AI для настройки параметров БД</li>
+                                    <li><strong>Predictive scaling</strong>: предсказание нагрузки и проактивное масштабирование</li>
+                                    <li><strong>Умный мониторинг</strong>: автоматическое обнаружение аномалий и проблем</li>
+                                    <li><strong>Natural language queries</strong>: возможность запросов на естественном языке</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Edge Computing</div>
+                            <div class="text-content">
+                                <p>Распределенные вычисления на границе сети.</p>
+                                <ul>
+                                    <li><strong>Serverless на edge</strong>: выполнение функций ближе к пользователям</li>
+                                    <li><strong>Распределенные БД</strong>: глобально распределенные managed базы данных</li>
+                                    <li><strong>Low-latency</strong>: минимальная задержка для real-time приложений</li>
+                                    <li><strong>5G интеграция</strong>: использование возможностей сетей 5G</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Развитие российского рынка</h3>
+
+                    <div class="text-content">
+                        <p>Особенности развития Serverless и DBaaS в России:</p>
+                        <ul>
+                            <li><span class="highlight">Импортозамещение</span>: активное развитие отечественных решений</li>
+                            <li><span class="highlight">Сертификация</span>: соответствие требованиям регуляторов</li>
+                            <li><span class="highlight">Локализация</span>: развитие региональных дата-центров</li>
+                            <li><span class="highlight">Экосистема</span>: интеграция с российскими разработками</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">+35%</div>
+                            <div class="metric-label">Рост рынка в год</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">64%</div>
+                            <div class="metric-label">Компаний используют облака</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">46.5%</div>
+                            <div class="metric-label">Гибридные облака</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">21.1%</div>
+                            <div class="metric-label">Частные облака</div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Перспективы развития:</div>
+                        <ul>
+                            <li>Увеличение доли российских облачных провайдеров на рынке</li>
+                            <li>Развитие специализированных решений для различных отраслей</li>
+                            <li>Интеграция с государственными информационными системами</li>
+                            <li>Развитие edge-вычислений в регионах России</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний по Serverless и DBaaS</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какое основное преимущество бессерверной архитектуры с точки зрения затрат?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Низкая стоимость разработки</div>
+                        <div class="quiz-option" data-correct="true">Оплата только за время выполнения кода</div>
+                        <div class="quiz-option" data-correct="false">Бесплатное использование в течение первого года</div>
+                        <div class="quiz-option" data-correct="false">Отсутствие платы за передачу данных</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! Основное экономическое преимущество serverless — оплата только за фактическое время выполнения кода, без платы за простой серверов.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Что такое "cold start" в контексте бессерверных вычислений?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Остановка функции при достижении лимита времени</div>
+                        <div class="quiz-option" data-correct="false">Завершение работы функции при ошибке</div>
+                        <div class="quiz-option" data-correct="true">Задержка при первом запуске функции после периода бездействия</div>
+                        <div class="quiz-option" data-correct="false">Начало нового цикла тарификации</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Cold start — это задержка при инициализации среды выполнения функции после периода бездействия, которая может влиять на latency.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какое из перечисленных решений является российским DBaaS-провайдером?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Amazon RDS</div>
+                        <div class="quiz-option" data-correct="false">Google Cloud SQL</div>
+                        <div class="quiz-option" data-correct="true">Yandex Managed PostgreSQL</div>
+                        <div class="quiz-option" data-correct="false">Azure SQL Database</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! Yandex Managed PostgreSQL — это управляемая служба баз данных от российского провайдера Яндекс.Облако.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой тип базы данных наиболее подходит для аналитических рабочих нагрузок в DBaaS?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Key-Value базы (Redis)</div>
+                        <div class="quiz-option" data-correct="false">Документные базы (MongoDB)</div>
+                        <div class="quiz-option" data-correct="false">In-Memory базы (Memcached)</div>
+                        <div class="quiz-option" data-correct="true">Column-oriented базы (ClickHouse)</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Column-oriented базы данных, такие как ClickHouse, оптимизированы для аналитических рабочих нагрузок и сложных агрегирующих запросов.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1
+            katex.render("Cost = N \\times (C_{invoke} + T_{exec} \\times M \\times C_{compute})", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2
+            katex.render("Cost_{DBaaS} = C_{instance} + C_{storage} + C_{backup} + C_{transfer} + C_{support}", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
