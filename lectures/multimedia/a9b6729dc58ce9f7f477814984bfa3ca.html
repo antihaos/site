@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моделирование мультимедиа данных в 2D и 3D - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent-primary: #4cc9f0;
+            --accent-secondary: #f72585;
+            --accent-tertiary: #7209b7;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+            --success: #4ade80;
+            --warning: #fbbf24;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(22, 33, 62, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(76, 201, 240, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subsection-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-secondary);
+            border-radius: 2px;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .svg-container {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            overflow: auto;
+        }
+
+        .svg-container svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Пример кода';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-tertiary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(76, 201, 240, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(76, 201, 240, 0.2) 0%, rgba(247, 37, 133, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tool-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tool-name {
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-name::before {
+            content: '🛠️';
+        }
+
+        .tool-features {
+            margin-top: 15px;
+        }
+
+        .tool-feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .tool-feature::before {
+            content: '✓';
+            color: var(--success);
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: rgba(76, 201, 240, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+        }
+
+        .modeling-process {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .process-step {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            counter-increment: step;
+        }
+
+        .process-step::before {
+            content: counter(step);
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-tertiary);
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .process-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+        }
+
+        .format-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--accent-tertiary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 2px;
+            font-weight: 500;
+        }
+
+        .warning-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .warning-title {
+            color: var(--warning);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-title::before {
+            content: '⚠️';
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(76, 201, 240, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(247, 37, 133, 0.2);
+            border: 1px solid rgba(247, 37, 133, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(247, 37, 133, 0.2);
+            border: 1px solid rgba(247, 37, 133, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(76, 201, 240, 0.1) 0%, rgba(247, 37, 133, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .gltf-preview {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .gltf-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #f0f0f0 25%, #ffffff 25%, #ffffff 50%, #f0f0f0 50%, #f0f0f0 75%, #ffffff 75%);
+            background-size: 20px 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .tool-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modeling-process {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .modeling-process {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение в моделирование</a>
+        <a href="#section2" class="nav-item">Основы 2D моделирования</a>
+        <a href="#section3" class="nav-item">Основы 3D моделирования</a>
+        <a href="#section4" class="nav-item">Инструменты 2D</a>
+        <a href="#section5" class="nav-item">Инструменты 3D</a>
+        <a href="#section6" class="nav-item">Форматы файлов</a>
+        <a href="#section7" class="nav-item">Процесс создания 3D</a>
+        <a href="#section8" class="nav-item">Анимация и симуляция</a>
+        <a href="#section9" class="nav-item">Будущее моделирования</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Моделирование мультимедиа данных в 2D и 3D</h1>
+            <p class="lecture-subtitle">Инструменты свободного программного обеспечения для моделирования</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в моделирование мультимедиа данных</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Что такое моделирование в контексте мультимедиа</h3>
+                    <div class="text-content">
+                        <p>Моделирование мультимедиа данных — это процесс создания цифровых представлений объектов, сцен или явлений с использованием компьютерных технологий. Оно охватывает как двухмерную (2D), так и трехмерную (3D) графику, и является фундаментальной частью компьютерной графики, игровой индустрии, архитектурной визуализации, научной визуализации и многих других областей.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Моделирование мультимедиа] --> B[2D Графика]
+                                A --> C[3D Графика]
+                                
+                                B --> B1[Векторная графика<br>SVG, AI, EPS]
+                                B --> B2[Растровая графика<br>PNG, JPEG, TIFF]
+                                B --> B3[Анимация 2D<br>GIF, APNG, SVG-анимация]
+                                
+                                C --> C1[Полигональное моделирование<br>Triangles, Quads]
+                                C --> C2[Параметрическое моделирование<br>NURBS, Splines]
+                                C --> C3[Процедурное моделирование<br>Генерация алгоритмами]
+                                C --> C4[Скульптинг<br>Digital Sculpting]
+                                
+                                style B1 fill:#4cc9f0
+                                style B2 fill:#4cc9f0
+                                style C1 fill:#f72585
+                                style C2 fill:#f72585
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые области применения:</strong></p>
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <div class="feature-title">Игровая индустрия</div>
+                                <div class="text-content">Создание персонажей, окружения, анимации и визуальных эффектов для видеоигр.</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-title">Архитектура и дизайн</div>
+                                <div class="text-content">Визуализация зданий, интерьеров, ландшафтного дизайна и городского планирования.</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-title">Научная визуализация</div>
+                                <div class="text-content">Представление сложных научных данных, молекулярных структур, геологических моделей.</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-title">Мультимедиа и анимация</div>
+                                <div class="text-content">Создание анимационных фильмов, рекламных роликов, телевизионной графики.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Основные принципы моделирования:</div>
+                        <ul>
+                            <li><span class="highlight">Абстракция</span> — упрощение реального объекта до его существенных характеристик</li>
+                            <li><span class="highlight">Параметризация</span> — использование параметров для управления свойствами модели</li>
+                            <li><span class="highlight">Иерархия</span> — организация элементов модели в структуры (сцены, группы, родитель-потомок)</li>
+                            <li><span class="highlight">Текстурирование</span> — применение изображений для детализации поверхности</li>
+                            <li><span class="highlight">Освещение и материалы</span> — симуляция физических свойств поверхностей и взаимодействия со светом</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Основы 2D моделирования -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Основы 2D моделирования</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Векторная vs растровая графика</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>Векторная графика</th>
+                                <th>Растровая графика</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Основное представление</td>
+                                <td>Математические формулы (кривые, линии, точки)</td>
+                                <td>Матрица пикселей (растр)</td>
+                            </tr>
+                            <tr>
+                                <td>Масштабирование</td>
+                                <td>Без потери качества</td>
+                                <td>Потери качества при увеличении</td>
+                            </tr>
+                            <tr>
+                                <td>Размер файла</td>
+                                <td>Обычно меньше (зависит от сложности)</td>
+                                <td>Зависит от разрешения и глубины цвета</td>
+                            </tr>
+                            <tr>
+                                <td>Редактирование</td>
+                                <td>Легко редактировать отдельные элементы</td>
+                                <td>Редактирование пикселей, сложнее менять форму</td>
+                            </tr>
+                            <tr>
+                                <td>Типичные форматы</td>
+                                <td>SVG, AI, EPS, PDF</td>
+                                <td>PNG, JPEG, TIFF, BMP, GIF</td>
+                            </tr>
+                            <tr>
+                                <td>Применение</td>
+                                <td>Логотипы, иконки, схемы, шрифты</td>
+                                <td>Фотографии, текстуры, цифровая живопись</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="svg-container">
+                        <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" style="stop-color:#4cc9f0;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7209b7;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Пример векторной графики: логотип -->
+                            <circle cx="100" cy="100" r="50" fill="url(#grad1)" stroke="#f72585" stroke-width="3"/>
+                            <text x="100" y="100" text-anchor="middle" fill="white" font-family="Arial" font-size="14" dy=".3em">Vector</text>
+                            
+                            <!-- Пример растровой графики (симуляция) -->
+                            <rect x="250" y="50" width="100" height="100" fill="#f0f0f0" stroke="#666" stroke-width="1"/>
+                            <text x="300" y="80" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">Растровое</text>
+                            <text x="300" y="100" text-anchor="middle" fill="#333" font-family="Arial" font-size="12">изображение</text>
+                            <!-- Пиксели -->
+                            <rect x="260" y="110" width="5" height="5" fill="#ff0000"/>
+                            <rect x="265" y="110" width="5" height="5" fill="#00ff00"/>
+                            <rect x="270" y="110" width="5" height="5" fill="#0000ff"/>
+                            <rect x="275" y="110" width="5" height="5" fill="#ffff00"/>
+                            <rect x="280" y="110" width="5" height="5" fill="#ff00ff"/>
+                            <rect x="285" y="110" width="5" height="5" fill="#00ffff"/>
+                        </svg>
+                        <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">Пример векторного объекта (слева) и условное представление растрового изображения (справа)</p>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Математическое представление кривых Безье (векторная графика)</div>
+                        <div class="katex-formula" id="formula1"></div>
+                        <div class="formula-explanation">
+                            <p>где \( P_i \) — контрольные точки, \( B_{i,n}(t) \) — базисные функции Бернштейна. Кривые Безье широко используются в векторной графике для представления плавных кривых.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные понятия 2D графики</h3>
+
+                    <div class="modeling-process">
+                        <div class="process-step">
+                            <div class="process-title">Точки и пути</div>
+                            <div class="text-content">Основные элементы векторной графики. Пути состоят из сегментов (линии, кривые).</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Заливка и обводка</div>
+                            <div class="text-content">Свойства контуров: цвет заливки, цвет и толщина обводки.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Градиенты</div>
+                            <div class="text-content">Плавные переходы между цветами: линейные, радиальные, конические.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Слои</div>
+                            <div class="text-content">Организация элементов в отдельные редактируемые уровни.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Маски и обтравочные контуры</div>
+                            <div class="text-content">Сокрытие частей изображения с использованием других объектов.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Фильтры и эффекты</div>
+                            <div class="text-content">Размытие, тени, свечение и другие визуальные эффекты.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Основы 3D моделирования -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Основы 3D моделирования</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типы 3D моделей</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Типы 3D моделей] --> B[Полигональные сетки]
+                                A --> C[Параметрические поверхности]
+                                A --> D[Воксельные модели]
+                                A --> E[Текучие модели]
+                                
+                                B --> B1[Треугольники (tris)]
+                                B --> B2[Четырехугольники (quads)]
+                                B --> B3[N-угольники (ngons)]
+                                
+                                C --> C1[NURBS<br>Non-Uniform Rational B-Splines]
+                                C --> C2[Subdivision Surfaces]
+                                C --> C3[Сплайны]
+                                
+                                D --> D1[Регулярная сетка вокселей]
+                                D --> D2[Используется в медицинской визуализации]
+                                
+                                E --> E1[Частицы]
+                                E --> E2[Жидкости]
+                                E --> E3[Волосы/мех]
+                                
+                                style B1 fill:#4cc9f0
+                                style C1 fill:#f72585
+                                style D1 fill:#7209b7
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Полигональное моделирование</strong> — наиболее распространенный метод, при котором объекты строятся из многоугольников (обычно треугольников или четырехугольников). Чем больше полигонов, тем более детализированной может быть модель, но тем больше вычислительных ресурсов требуется для её отображения.</p>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Поверхность NURBS (параметрическое моделирование)</div>
+                        <div class="katex-formula" id="formula2"></div>
+                        <div class="formula-explanation">
+                            <p>где \( P_{i,j} \) — контрольные точки, \( R_{i,j} \) — рациональные базисные функции. NURBS позволяют точно представлять криволинейные поверхности и широко используются в CAD-системах.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Конвейер 3D графики</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart LR
+                                A[Моделирование] --> B[Текстурирование]
+                                B --> C[Освещение]
+                                C --> D[Анимация]
+                                D --> E[Рендеринг]
+                                E --> F[Пост-обработка]
+                                
+                                subgraph "Этапы 3D конвейера"
+                                    A
+                                    B
+                                    C
+                                    D
+                                    E
+                                    F
+                                end
+                                
+                                style A fill:#4cc9f0
+                                style B fill:#f72585
+                                style E fill:#7209b7
+                        </div>
+                    </div>
+
+                    <div class="modeling-process">
+                        <div class="process-step">
+                            <div class="process-title">Моделирование</div>
+                            <div class="text-content">Создание формы 3D объекта с использованием различных техник.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Текстурирование</div>
+                            <div class="text-content">Нанесение 2D изображений на поверхность 3D модели для детализации.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Освещение</div>
+                            <div class="text-content">Настройка источников света для создания реалистичного освещения сцены.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Анимация</div>
+                            <div class="text-content">Создание движения объектов, деформаций, изменения параметров во времени.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Рендеринг</div>
+                            <div class="text-content">Преобразование 3D сцены в 2D изображение с учетом всех параметров.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Пост-обработка</div>
+                            <div class="text-content">Коррекция цвета, добавление эффектов, композитинг.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Инструменты 2D -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Инструменты свободного ПО для 2D моделирования</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Векторная графика</h3>
+
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <div class="tool-name">Inkscape</div>
+                            <div class="text-content">
+                                <p>Мощный редактор векторной графики с открытым исходным кодом, аналог Adobe Illustrator. Поддерживает SVG как родной формат.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Поддержка стандарта SVG 1.1</div>
+                                <div class="tool-feature">Расширяемость через плагины</div>
+                                <div class="tool-feature">Инструменты для работы с кривыми Безье</div>
+                                <div class="tool-feature">Трассировка растровых изображений</div>
+                                <div class="tool-feature">Поддержка текста и шрифтов</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Gravit Designer</div>
+                            <div class="text-content">
+                                <p>Полнофункциональный векторный редактор, доступный как веб-приложение и десктопное приложение.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Кроссплатформенность</div>
+                                <div class="tool-feature">Интуитивный интерфейс</div>
+                                <div class="tool-feature">Поддержка облачного сохранения</div>
+                                <div class="tool-feature">Экспорт в SVG, PDF, PNG</div>
+                                <div class="tool-feature">Работа со слоями и стилями</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Karbon</div>
+                            <div class="text-content">
+                                <p>Векторный редактор, входящий в состав Calligra Suite, ориентированный на создание технических чертежей и диаграмм.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Инструменты для точного рисования</div>
+                                <div class="tool-feature">Поддержка градиентов и заливок</div>
+                                <div class="tool-feature">Интеграция с другими приложениями Calligra</div>
+                                <div class="tool-feature">Экспорт в различные форматы</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+<pre>
+&lt;!-- Пример SVG кода, созданного в Inkscape --&gt;
+&lt;svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"&gt;
+  &lt;defs&gt;
+    &lt;radialGradient id="gradient1" cx="50%" cy="50%" r="50%"&gt;
+      &lt;stop offset="0%" style="stop-color:#4cc9f0;stop-opacity:1" /&gt;
+      &lt;stop offset="100%" style="stop-color:#7209b7;stop-opacity:1" /&gt;
+    &lt;/radialGradient&gt;
+  &lt;/defs&gt;
+  
+  &lt;rect x="10" y="10" width="180" height="180" 
+        fill="url(#gradient1)" stroke="#f72585" stroke-width="2"/&gt;
+  
+  &lt;circle cx="100" cy="100" r="50" fill="white" fill-opacity="0.7"/&gt;
+  
+  &lt;text x="100" y="100" text-anchor="middle" 
+        font-family="Arial" font-size="16" fill="#333"&gt;
+    SVG Example
+  &lt;/text&gt;
+  
+  &lt;path d="M50,150 Q100,100 150,150" 
+        stroke="#4cc9f0" stroke-width="3" fill="none"/&gt;
+&lt;/svg&gt;
+</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Растровая графика и цифровая живопись</h3>
+
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <div class="tool-name">GIMP</div>
+                            <div class="text-content">
+                                <p>Мощный редактор растровой графики с открытым исходным кодом, аналог Adobe Photoshop.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Полный набор инструментов для редактирования</div>
+                                <div class="tool-feature">Поддержка слоев, масок и каналов</div>
+                                <div class="tool-feature">Обработка фотографий и ретушь</div>
+                                <div class="tool-feature">Поддержка плагинов и скриптов</div>
+                                <div class="tool-feature">Цветокоррекция и фильтры</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Krita</div>
+                            <div class="text-content">
+                                <p>Профессиональное приложение для цифровой живописи и 2D-анимации с открытым исходным кодом.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Специализированные кисти для художников</div>
+                                <div class="tool-feature">Поддержка планшетов и чувствительности к нажиму</div>
+                                <div class="tool-feature">Инструменты для 2D-анимации</div>
+                                <div class="tool-feature">Расширяемая библиотека кистей</div>
+                                <div class="tool-feature">Поддержка цветовых пространств HDR</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Pinta</div>
+                            <div class="text-content">
+                                <p>Простой и интуитивно понятный редактор растровой графики, вдохновленный Paint.NET.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Простой интерфейс</div>
+                                <div class="tool-feature">Базовые инструменты для рисования</div>
+                                <div class="tool-feature">Поддержка слоев</div>
+                                <div class="tool-feature">Эффекты и корректировки</div>
+                                <div class="tool-feature">Подходит для начинающих</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Инструменты 3D -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Инструменты свободного ПО для 3D моделирования</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Комплексные 3D пакеты</h3>
+
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <div class="tool-name">Blender</div>
+                            <div class="text-content">
+                                <p>Полнофункциональный 3D пакет с открытым исходным кодом для моделирования, анимации, рендеринга, симуляции, монтажа видео и создания игр.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Полигональное, криволинейное и скульптинг моделирование</div>
+                                <div class="tool-feature">Циклы и Eevee рендер движки</div>
+                                <div class="tool-feature">Анимация, риггинг и скиннинг</div>
+                                <div class="tool-feature">Симуляция физики, жидкостей, тканей, волос</div>
+                                <div class="tool-feature">Встроенный игровой движок и инструменты для VFX</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Wings 3D</div>
+                            <div class="text-content">
+                                <p>Специализированный полигональный 3D моделлер с упором на моделирование subdivision поверхностей.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Интуитивная работа с полигональными сетками</div>
+                                <div class="tool-feature">Автоматическое сглаживание (subdivision)</div>
+                                <div class="tool-feature">Поддержка UV-развертки</div>
+                                <div class="tool-feature">Экспорт в различные форматы</div>
+                                <div class="tool-feature">Подходит для органического моделирования</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">MakeHuman</div>
+                            <div class="text-content">
+                                <p>Специализированный инструмент для создания реалистичных 3D моделей человеческих фигур.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Параметрическое моделирование человеческого тела</div>
+                                <div class="tool-feature">Регулировка пропорций, поз, выражений лица</div>
+                                <div class="tool-feature">Генерация одежды и причесок</div>
+                                <div class="tool-feature">Экспорт в Blender и другие форматы</div>
+                                <div class="tool-feature">Подходит для анимации персонажей</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">CAD и параметрическое моделирование</h3>
+
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <div class="tool-name">FreeCAD</div>
+                            <div class="text-content">
+                                <p>Параметрическая 3D CAD система для проектирования реальных объектов любого размера.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Полностью параметрическое моделирование</div>
+                                <div class="tool-feature">Поддержка 2D чертежей и технической документации</div>
+                                <div class="tool-feature">Модульная архитектура для различных областей</div>
+                                <div class="tool-feature">Поддержка форматов STEP, IGES, STL, OBJ</div>
+                                <div class="tool-feature">Анализ методом конечных элементов (FEM)</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">OpenSCAD</div>
+                            <div class="text-content">
+                                <p>Программный CAD инструмент, использующий скриптовый язык для создания 3D моделей.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Моделирование через скрипты (на языке OpenSCAD)</div>
+                                <div class="tool-feature">Твердотельное (CSG) моделирование</div>
+                                <div class="tool-feature">Параметрические модели с использованием переменных</div>
+                                <div class="tool-feature">Идеально для технических деталей и 3D печати</div>
+                                <div class="tool-feature">Экспорт в STL, OFF, AMF, DXF</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">SolveSpace</div>
+                            <div class="text-content">
+                                <p>Параметрическая 2D/3D CAD система с упором на геометрические ограничения.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Работа с геометрическими ограничениями</div>
+                                <div class="tool-feature">Параметрическое 2D и 3D моделирование</div>
+                                <div class="tool-feature">Анализ кинематики механизмов</div>
+                                <div class="tool-feature">Экспорт в STL, STEP, SVG, PDF</div>
+                                <div class="tool-feature">Подходит для инженерного проектирования</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+<pre>
+// Пример кода OpenSCAD для создания параметрической шестерни
+module gear(
+    teeth = 20,
+    pitch_radius = 30,
+    thickness = 10,
+    bore_diameter = 10
+) {
+    // Основные параметры шестерни
+    pressure_angle = 20;
+    addendum = 1;
+    dedendum = 1.25;
+    
+    // Расчет геометрии зуба
+    circular_pitch = 360 / teeth;
+    base_radius = pitch_radius * cos(pressure_angle);
+    outer_radius = pitch_radius + addendum;
+    root_radius = pitch_radius - dedendum;
+    
+    // Создание профиля зуба
+    difference() {
+        // Внешний контур шестерни
+        linear_extrude(height = thickness) {
+            circle(r = outer_radius);
+            
+            // Добавление зубьев
+            for (i = [0:teeth-1]) {
+                rotate([0, 0, i * circular_pitch]) {
+                    translate([pitch_radius, 0, 0]) {
+                        // Профиль зуба (упрощенный)
+                        polygon(points = [
+                            [0, 1],
+                            [2, 0.5],
+                            [2, -0.5],
+                            [0, -1],
+                            [-2, -0.5],
+                            [-2, 0.5]
+                        ]);
+                    }
+                }
+            }
+        }
+        
+        // Отверстие в центре
+        cylinder(h = thickness + 2, r = bore_diameter / 2, center = true);
+    }
+}
+
+// Создание экземпляра шестерни
+gear(teeth = 30, pitch_radius = 40, thickness = 8, bore_diameter = 12);
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Форматы файлов -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Форматы файлов для 2D и 3D графики</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Векторные форматы (2D)</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Формат</th>
+                                <th>Расширение</th>
+                                <th>Тип</th>
+                                <th>Преимущества</th>
+                                <th>Недостатки</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SVG</td>
+                                <td>.svg</td>
+                                <td>Векторный</td>
+                                <td>Открытый стандарт W3C, поддерживается браузерами, масштабируется без потерь</td>
+                                <td>Может быть тяжелым для сложных изображений</td>
+                            </tr>
+                            <tr>
+                                <td>PDF</td>
+                                <td>.pdf</td>
+                                <td>Векторный/Растровый</td>
+                                <td>Универсальный, поддерживает векторную графику, текст, изображения</td>
+                                <td>Не все редакторы могут редактировать векторные данные в PDF</td>
+                            </tr>
+                            <tr>
+                                <td>EPS</td>
+                                <td>.eps</td>
+                                <td>Векторный</td>
+                                <td>Широко используется в полиграфии, содержит PostScript код</td>
+                                <td>Устаревающий формат, заменяется PDF</td>
+                            </tr>
+                            <tr>
+                                <td>AI</td>
+                                <td>.ai</td>
+                                <td>Векторный</td>
+                                <td>Нативный формат Adobe Illustrator, поддерживает все возможности программы</td>
+                                <td>Проприетарный, требует совместимого ПО для редактирования</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">3D форматы</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Формат</th>
+                                <th>Расширение</th>
+                                <th>Тип</th>
+                                <th>Назначение</th>
+                                <th>Поддержка</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>GLTF/GLB</td>
+                                <td>.gltf, .glb</td>
+                                <td>Векторный 3D</td>
+                                <td>"JPEG для 3D", веб-оптимизированный формат для реального времени</td>
+                                <td>Blender, Three.js, Babylon.js, веб-браузеры</td>
+                            </tr>
+                            <tr>
+                                <td>OBJ</td>
+                                <td>.obj</td>
+                                <td>Полигональный</td>
+                                <td>Простейший формат для обмена 3D моделями, поддерживает геометрию и материалы</td>
+                                <td>Практически всеми 3D редакторами</td>
+                            </tr>
+                            <tr>
+                                <td>FBX</td>
+                                <td>.fbx</td>
+                                <td>Полигональный/анимация</td>
+                                <td>Проприетарный формат Autodesk для обмена сценами с анимацией</td>
+                                <td>Autodesk продукты, Blender, Unity, Unreal Engine</td>
+                            </tr>
+                            <tr>
+                                <td>STL</td>
+                                <td>.stl</td>
+                                <td>Полигональный</td>
+                                <td>Формат для 3D печати, содержит только геометрию без материалов</td>
+                                <td>Все CAD и 3D печатные программы</td>
+                            </tr>
+                            <tr>
+                                <td>STEP</td>
+                                <td>.step, .stp</td>
+                                <td>Параметрический</td>
+                                <td>CAD формат для обмена точными параметрическими моделями</td>
+                                <td>CAD системы (FreeCAD, SolidWorks, Fusion 360)</td>
+                            </tr>
+                            <tr>
+                                <td>Blend</td>
+                                <td>.blend</td>
+                                <td>Нативный</td>
+                                <td>Нативный формат Blender, сохраняет всю информацию о сцене</td>
+                                <td>Только Blender</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="gltf-preview">
+                        <div class="gltf-placeholder">
+                            GLTF модель будет отображена здесь<br>
+                            (требуется поддержка WebGL и загрузка модели)
+                        </div>
+                        <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                            GLTF (GL Transmission Format) — современный формат для 3D моделей, оптимизированный для веба и приложений реального времени.
+                        </p>
+                    </div>
+
+                    <div class="code-block">
+<pre>
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "Blender 3.4.1"
+  },
+  "scenes": [
+    {
+      "nodes": [0]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "translation": [0, 0, 0]
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [0.8, 0.2, 0.2, 1.0],
+        "metallicFactor": 0.2,
+        "roughnessFactor": 0.8
+      }
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3",
+      "max": [1.0, 1.0, 1.0],
+      "min": [-1.0, -1.0, -1.0]
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 0
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 288,
+      "uri": "cube.bin"
+    }
+  ]
+}
+</pre>
+                        <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">
+                            Пример структуры файла GLTF (JSON часть)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: Процесс создания 3D -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Процесс создания 3D модели от идеи до рендера</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Полный рабочий процесс</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Концепт и идея] --> B[Блокинг и базовая форма]
+                                B --> C[Детализация модели]
+                                C --> D[UV-развертка]
+                                D --> E[Текстурирование]
+                                E --> F[Настройка материалов]
+                                F --> G[Риггинг и скиннинг]
+                                G --> H[Анимация]
+                                H --> I[Освещение сцены]
+                                I --> J[Рендеринг]
+                                J --> K[Пост-обработка]
+                                K --> L[Финальный результат]
+                                
+                                style B fill:#4cc9f0
+                                style D fill:#f72585
+                                style E fill:#7209b7
+                                style J fill:#4cc9f0
+                        </div>
+                    </div>
+
+                    <div class="modeling-process">
+                        <div class="process-step">
+                            <div class="process-title">Концепт</div>
+                            <div class="text-content">Эскизы, сбор референсов, определение стиля и направления.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Блокинг</div>
+                            <div class="text-content">Создание примитивов для определения основных форм и пропорций.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Детализация</div>
+                            <div class="text-content">Добавление геометрических деталей, скульптинг, работа с топологией.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">UV-развертка</div>
+                            <div class="text-content">Разворачивание 3D поверхности в 2D для наложения текстур.</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Текстурирование</div>
+                            <div class="text-content">Создание и наложение текстур (диффузных, нормалей, отражений и т.д.).</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-title">Материалы</div>
+                            <div class="text-content">Настройка физических свойств поверхности (металл, пластик, стекло).</div>
+                        </div>
+                    </div>
+
+                    <div class="warning-box">
+                        <div class="warning-title">Важно: Оптимизация топологии</div>
+                        <div class="text-content">
+                            <p>Правильная топология (расположение полигонов) критически важна для:</p>
+                            <ul>
+                                <li>Качественной деформации при анимации</li>
+                                <li>Эффективного рендеринга</li>
+                                <li>Субдивижн (subdivision) сглаживания</li>
+                                <li>Текстурирования и UV-развертки</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">UV-развертка и текстурирование</h3>
+
+                    <div class="svg-container">
+                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ccc" stroke-width="0.5"/>
+                                </pattern>
+                            </defs>
+                            
+                            <!-- 3D модель куба -->
+                            <g transform="translate(100, 100)">
+                                <!-- Передняя грань -->
+                                <polygon points="0,0 40,0 40,40 0,40" fill="#4cc9f0" fill-opacity="0.5" stroke="#4cc9f0" stroke-width="2"/>
+                                <!-- Верхняя грань -->
+                                <polygon points="0,0 20,-20 60,-20 40,0" fill="#f72585" fill-opacity="0.5" stroke="#f72585" stroke-width="2"/>
+                                <!-- Боковая грань -->
+                                <polygon points="40,0 60,-20 60,20 40,40" fill="#7209b7" fill-opacity="0.5" stroke="#7209b7" stroke-width="2"/>
+                                
+                                <text x="20" y="20" text-anchor="middle" fill="white" font-size="10">3D Cube</text>
+                            </g>
+                            
+                            <!-- Стрелка преобразования -->
+                            <path d="M180,120 L250,120" stroke="#fff" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                            <text x="215" y="115" text-anchor="middle" fill="#ccc" font-size="12">UV Unwrap</text>
+                            
+                            <!-- UV развертка -->
+                            <g transform="translate(280, 80)">
+                                <rect x="0" y="0" width="80" height="40" fill="url(#grid)" stroke="#4cc9f0" stroke-width="2"/>
+                                <text x="40" y="20" text-anchor="middle" fill="#4cc9f0" font-size="10">Front</text>
+                                
+                                <rect x="0" y="50" width="40" height="40" fill="url(#grid)" stroke="#f72585" stroke-width="2"/>
+                                <text x="20" y="70" text-anchor="middle" fill="#f72585" font-size="10">Top</text>
+                                
+                                <rect x="50" y="50" width="40" height="40" fill="url(#grid)" stroke="#7209b7" stroke-width="2"/>
+                                <text x="70" y="70" text-anchor="middle" fill="#7209b7" font-size="10">Side</text>
+                                
+                                <text x="40" y="110" text-anchor="middle" fill="#ccc" font-size="12">UV Layout</text>
+                            </g>
+                            
+                            <defs>
+                                <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#fff"/>
+                                </marker>
+                            </defs>
+                        </svg>
+                        <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9em;">Схема UV-развертки 3D модели (куб → развернутые грани)</p>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">UV-координаты</div>
+                        <div class="katex-formula" id="formula3"></div>
+                        <div class="formula-explanation">
+                            <p>Каждая вершина 3D модели имеет соответствующие UV-координаты \((u, v)\) в тексельном пространстве (от 0 до 1), которые определяют, какая часть текстуры отображается на этой вершине.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Анимация и симуляция -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Анимация и симуляция в 3D</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типы анимации в 3D</h3>
+
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-title">Ключевая анимация</div>
+                            <div class="text-content">Создание ключевых поз, между которыми программа интерполирует движение.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Анимация по кривым</div>
+                            <div class="text-content">Редактирование кривых, определяющих изменение параметров во времени.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Риггинг и скиннинг</div>
+                            <div class="text-content">Создание костной системы (скелета) и привязка его к модели.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Морфинг</div>
+                            <div class="text-content">Плавное преобразование одной формы в другую.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Процедурная анимация</div>
+                            <div class="text-content">Анимация, генерируемая алгоритмами (маятники, волны).</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">Захват движения</div>
+                            <div class="text-content">Использование данных с реальных движений актеров.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Физическая симуляция</h3>
+
+                    <div class="tool-grid">
+                        <div class="tool-card">
+                            <div class="tool-name">Динамика твердых тел</div>
+                            <div class="text-content">
+                                <p>Симуляция физики падения, столкновений, взаимодействия объектов под действием сил.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Гравитация и другие силы</div>
+                                <div class="tool-feature">Столкновения и отскоки</div>
+                                <div class="tool-feature">Трение и упругость</div>
+                                <div class="tool-feature">Сонные объекты (оптимизация)</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Симуляция жидкостей</div>
+                            <div class="text-content">
+                                <p>Моделирование поведения жидкостей на основе физических уравнений.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Уравнение Навье-Стокса</div>
+                                <div class="tool-feature">Способность течений и волн</div>
+                                <div class="tool-feature">Взаимодействие с объектами</div>
+                                <div class="tool-feature">Пена и брызги</div>
+                            </div>
+                        </div>
+
+                        <div class="tool-card">
+                            <div class="tool-name">Симуляция тканей и волос</div>
+                            <div class="text-content">
+                                <p>Реалистичное поведение мягких тел под действием физических сил.</p>
+                            </div>
+                            <div class="tool-features">
+                                <div class="tool-feature">Деформация под действием сил</div>
+                                <div class="tool-feature">Столкновения с объектами</div>
+                                <div class="tool-feature">Аэродинамическое сопротивление</div>
+                                <div class="tool-feature">Системы частиц для волос/меха</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Уравнение движения в физической симуляции</div>
+                        <div class="katex-formula" id="formula4"></div>
+                        <div class="formula-explanation">
+                            <p>где \( m \) — масса объекта, \( \mathbf{a} \) — ускорение, \( \mathbf{F} \) — сумма всех сил, действующих на объект. Это фундаментальное уравнение используется во всех физических симуляциях.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Будущее моделирования -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Будущее 3D моделирования и тренды</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Новые технологии и направления</h3>
+
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-title">Нейросетевые технологии</div>
+                            <div class="text-content">Использование ИИ для автоматизации моделирования, текстурирования, анимации.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">ПРОЦЕДУРНОЕ ГЕНЕРИРОВАНИЕ</div>
+                            <div class="text-content">Создание контента алгоритмически, а не вручную (города, леса, ландшафты).</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">МЕТАВСЕЛЕННЫ И VR/AR</div>
+                            <div class="text-content">3D моделирование для иммерсивных сред, виртуальной и дополненной реальности.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">3D ПЕЧАТЬ И ЦИФРОВОЕ ПРОИЗВОДСТВО</div>
+                            <div class="text-content">Создание физических объектов из цифровых моделей.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">РЕАЛЬНОЕ ВРЕМЯ И ИГРОВЫЕ ДВИЖКИ</div>
+                            <div class="text-content">Использование игровых движков (Unreal, Unity) для создания интерактивного контента.</div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-title">СКАНЕРЫ И ФОТОГРАММЕТРИЯ</div>
+                            <div class="text-content">Создание 3D моделей из реальных объектов с помощью сканирования.</div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Ключевые тенденции:</div>
+                        <ul>
+                            <li><span class="highlight">Демократизация инструментов</span> — профессиональные инструменты становятся доступнее</li>
+                            <li><span class="highlight">Облачные технологии</span> — рендеринг и симуляция в облаке, совместная работа</li>
+                            <li><span class="highlight">Автоматизация</span> — ИИ берет на себя рутинные задачи моделирования</li>
+                            <li><span class="highlight">Интеграция с реальным миром</span> — смешивание цифрового и физического</li>
+                            <li><span class="highlight">Открытые стандарты</span> — рост популярности открытых форматов (USD, glTF)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">USD (Universal Scene Description)</h3>
+
+                    <div class="text-content">
+                        <p>USD — открытый формат для обмена сложными 3D сценами, разработанный Pixar. Он позволяет создавать иерархические описания сцен с поддержкой композитинга, что делает его идеальным для совместной работы над крупными проектами.</p>
+                    </div>
+
+                    <div class="code-block">
+<pre>
+# Пример USD файла
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1.0
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Sphere "MainSphere"
+    {
+        float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+        double radius = 1.0
+        
+        def Material "RedMaterial"
+        {
+            token outputs:surface.connect = </World/MainSphere/RedMaterial/Surface.outputs:surface>
+            
+            def Shader "Surface"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.8, 0.2, 0.2)
+                float inputs:roughness = 0.5
+                token outputs:surface
+            }
+        }
+    }
+    
+    def Xform "Lights"
+    {
+        def SphereLight "MainLight"
+        {
+            float inputs:intensity = 500
+            color3f inputs:color = (1, 1, 0.9)
+            float3 xformOp:translate = (0, 5, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний по моделированию мультимедиа данных</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какой формат является открытым стандартом W3C для векторной графики и поддерживается всеми современными браузерами?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">AI (Adobe Illustrator)</div>
+                        <div class="quiz-option" data-correct="false">EPS (Encapsulated PostScript)</div>
+                        <div class="quiz-option" data-correct="true">SVG (Scalable Vector Graphics)</div>
+                        <div class="quiz-option" data-correct="false">PDF (Portable Document Format)</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! SVG — это открытый стандарт W3C для векторной графики, который поддерживается всеми современными браузерами и может масштабироваться без потери качества.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какой свободный 3D редактор является наиболее полным и включает в себя инструменты для моделирования, скульптинга, анимации, симуляции и рендеринга?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">Blender</div>
+                        <div class="quiz-option" data-correct="false">FreeCAD</div>
+                        <div class="quiz-option" data-correct="false">OpenSCAD</div>
+                        <div class="quiz-option" data-correct="false">Wings 3D</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Blender — это полнофункциональный 3D пакет с открытым исходным кодом, который включает инструменты для моделирования, скульптинга, анимации, симуляции физики, рендеринга и даже монтажа видео.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какой формат был разработан как "JPEG для 3D" и оптимизирован для передачи и загрузки 3D моделей в веб-приложениях и приложениях реального времени?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">STL</div>
+                        <div class="quiz-option" data-correct="false">OBJ</div>
+                        <div class="quiz-option" data-correct="false">FBX</div>
+                        <div class="quiz-option" data-correct="true">GLTF/GLB</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! GLTF (GL Transmission Format) был разработан Khronos Group как эффективный формат для передачи 3D моделей, часто называемый "JPEG для 3D". Он оптимизирован для веба и приложений реального времени.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой процесс в 3D моделировании отвечает за разворачивание 3D поверхности в 2D плоскость для правильного наложения текстур?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true">UV-развертка</div>
+                        <div class="quiz-option" data-correct="false">Ретопология</div>
+                        <div class="quiz-option" data-correct="false">Скульптинг</div>
+                        <div class="quiz-option" data-correct="false">Риггинг</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! UV-развертка — это процесс проецирования 2D текстуры на 3D модель путем "разворачивания" её поверхности на 2D плоскость. Каждой вершине 3D модели присваиваются координаты на текстуре (U, V).</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1: Кривые Безье
+            katex.render("B(t) = \\sum_{i=0}^{n} P_i B_{i,n}(t), \\quad t \\in [0,1]", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2: NURBS поверхность
+            katex.render("S(u,v) = \\frac{\\sum_{i=0}^{n} \\sum_{j=0}^{m} w_{i,j} P_{i,j} N_{i,p}(u) N_{j,q}(v)}{\\sum_{i=0}^{n} \\sum_{j=0}^{m} w_{i,j} N_{i,p}(u) N_{j,q}(v)}", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Формула 3: UV координаты
+            katex.render("T(u,v) \\rightarrow S(x,y,z)", document.getElementById('formula3'), {
+                throwOnError: false
+            });
+
+            // Формула 4: Уравнение движения
+            katex.render("m\\mathbf{a} = \\sum \\mathbf{F}", document.getElementById('formula4'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+
+            // Инициализация счетчика для шагов процесса
+            const modelingProcess = document.querySelector('.modeling-process');
+            if (modelingProcess) {
+                modelingProcess.style.counterReset = 'step';
+            }
+        });
+    </script>
+</body>
+</html>
