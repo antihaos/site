@@ -729,7 +729,7 @@
                     <div class="diagram">
                         <div class="mermaid">
                             %% Схема пути передачи спутникового сигнала
-                            flowchart TD
+                            graph TD
                                 A[Медиа-контент<br>Видео, аудио] --> B[Центр вещания]
                                 B --> C{Кодирование и мультиплексирование<br>MPEG-TS/DVB}
                                 C --> D[Шифрование (CAS)<br>ECM/EMM генерация]
@@ -1694,7 +1694,7 @@ for key in test_keys:
 
                     <div class="diagram">
                         <div class="mermaid">
-                            flowchart TD
+                            graph TD
                                 A[Подходы CAS] --> B[SimulCrypt]
                                 A --> C[MultiCrypt]
                                 
