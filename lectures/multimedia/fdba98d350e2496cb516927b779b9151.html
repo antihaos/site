@@ -1,0 +1,2655 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Передача мультимедиа через спутниковую связь</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        /* Стили остаются без изменений, как в исходном документе */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Пример кода на Python';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .architecture-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .architecture-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .architecture-title {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-name {
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .use-case-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .use-case-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .use-case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение</a>
+        <a href="#section2" class="nav-item">Архитектура систем</a>
+        <a href="#section3" class="nav-item">Стандарты вещания</a>
+        <a href="#section4" class="nav-item">Системы условного доступа</a>
+        <a href="#section5" class="nav-item">Технологии шифрования</a>
+        <a href="#section6" class="nav-item">Уязвимости и атаки</a>
+        <a href="#section7" class="nav-item">Примеры на Python</a>
+        <a href="#section8" class="nav-item">Будущее технологии</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Передача мультимедиа через спутниковую связь</h1>
+            <p class="lecture-subtitle">Системы защиты спутникового телевидения и особенности передачи</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в спутниковую передачу мультимедиа</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Особенности спутниковой связи</h3>
+                    <div class="text-content">
+                        <p>Спутниковая связь обеспечивает передачу аудио, видео и данных на большие расстояния с покрытием целых континентов. Это делает её идеальной для телевещания, прямых трансляций и доставки контента в удалённые регионы.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Центр вещания] --> B[Телепорт<br>Uplink]
+                                B --> C[Спутник<br>Геостационарная орбита]
+                                C --> D[Широковещательный луч]
+                                D --> E[Приёмная антенна<br>DTH-абонент]
+                                D --> F[Кабельная головная станция]
+                                D --> G[Мобильный приёмник]
+                                E --> H[Ресивер с CAM-модулем]
+                                F --> I[Кабельная сеть]
+                                G --> J[Мобильное устройство]
+                                
+                                style B fill:#4ecdc4
+                                style C fill:#ff6b6b
+                                style H fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые характеристики спутниковой передачи мультимедиа:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Широкое покрытие</span>: один спутник может охватывать территорию в тысячи километров</li>
+                            <li><span class="highlight">Высокая пропускная способность</span>: современные транспондеры поддерживают потоки до 100-300 Мбит/с</li>
+                            <li><span class="highlight">Задержка сигнала</span>: для геостационарных спутников ~250 мс (туда и обратно)</li>
+                            <li><span class="highlight">Устойчивость к помехам</span>: использование помехоустойчивого кодирования (FEC)</li>
+                            <li><span class="highlight">Независимость от наземной инфраструктуры</span>: возможность вещания в зонах без развитой сети</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">36 000 км</div>
+                            <div class="metric-label">Высота орбиты GEO</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">250-280 мс</div>
+                            <div class="metric-label">Задержка RTT</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">54-300 Мбит/с</div>
+                            <div class="metric-label">Пропускная способность транспондера</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">15-20 лет</div>
+                            <div class="metric-label">Срок службы спутника</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция спутникового телевидения</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Эволюция спутникового телевидения
+                                section 1960-1970
+                                    Первые эксперименты : Telstar передаёт<br>телесигнал через Атлантику
+                                    Syncom 3 : Первый геостационарный<br>спутник для ТВ-вещания
+                                section 1970-1980
+                                    Аналоговое вещание : Системы PAL/SECAM/NTSC<br>через спутник
+                                    NASA ATS-6 : Первое прямое спутниковое<br>вещание для образования
+                                section 1980-1990
+                                    DBS-системы : Direct Broadcast Satellite<br>для домашнего приёма
+                                    VideoCipher : Первые системы<br>условного доступа
+                                section 1990-2000
+                                    Цифровое вещание : Стандарт DVB-S<br>MPEG-2 сжатие
+                                    Multi-channel : Увеличение количества<br>каналов на транспондер
+                                section 2000-2010
+                                    HDTV-вещание : Стандарт DVB-S2<br>кодеки H.264/MPEG-4 AVC
+                                    Interactive TV : Обратный канал<br>для интерактивных услуг
+                                section 2010-2020
+                                    Ultra HD : 4K/8K вещание<br>стандарт DVB-S2X
+                                    HDR & WCG : Высокий динамический диапазон<br>широкая цветовая гамма
+                                section 2020-2025
+                                    Гибридные системы : Спутник + 5G<br>конвергентные сети
+                                    Immersive media : VR/AR контент<br>через спутник
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>Спутниковая связь обеспечивает уникальное сочетание широкого покрытия и высокой пропускной способности</li>
+                        <li>Эволюция прошла путь от аналоговых систем к цифровым стандартам DVB-S2/S2X с поддержкой 4K/8K</li>
+                        <li>Задержка сигнала (~250 мс) ограничивает интерактивные приложения, но приемлема для вещания</li>
+                        <li>Современные системы обеспечивают доставку сотен каналов в одном транспондере</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Архитектура спутниковых систем -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Архитектура спутниковых систем передачи мультимедиа</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Ключевые компоненты системы</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Архитектура спутниковой системы] --> B[Земной сегмент]
+                                A --> C[Космический сегмент]
+                                A --> D[Пользовательский сегмент]
+                                
+                                B --> B1[Центр вещания<br>Playout-системы]
+                                B --> B2[Телепорт<br>Uplink станция]
+                                B --> B3[Центр управления<br>NOC]
+                                B --> B4[Системы условного доступа<br>CAS Headend]
+                                
+                                C --> C1[Спутник-ретранслятор<br>Transponder]
+                                C --> C2[Антенны спутника<br>Ку-диапазон, Ка-диапазон]
+                                C --> C3[Бортовой процессор<br>Обработка сигнала]
+                                
+                                D --> D1[Приёмная антенна<br>Параболическая тарелка]
+                                D --> D2[Ресивер/IRD<br>Integrated Receiver Decoder]
+                                D --> D3[CAM-модуль<br>Conditional Access Module]
+                                D --> D4[Смарт-карта<br>Абонентский идентификатор]
+                                
+                                style B1 fill:#4ecdc4
+                                style B4 fill:#ff6b6b
+                                style C1 fill:#4ecdc4
+                                style D2 fill:#4ecdc4
+                                style D4 fill:#ff6b6b
+                        </div>
+                    </div>
+                </div>
+
+                <!-- НОВЫЙ ПОДРАЗДЕЛ: Схема спутниковой передачи данных -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Схема передачи данных: от центра вещания до зрителя</h3>
+                    <div class="text-content">
+                        <p>Путь мультимедийного сигнала от студии до телеэкрана зрителя включает несколько ключевых этапов, различающихся для классических (GEO) и современных низкоорбитальных (LEO) систем.</p>
+                    </div>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            %% Схема пути передачи спутникового сигнала
+                            flowchart TD
+                                A[Медиа-контент<br>Видео, аудио] --> B[Центр вещания]
+                                B --> C{Кодирование и мультиплексирование<br>MPEG-TS/DVB}
+                                C --> D[Шифрование (CAS)<br>ECM/EMM генерация]
+                                D --> E[Модуляция<br>DVB-S2/S2X]
+                                
+                                E --> F{Тип спутниковой системы}
+                                F -->|Традиционная (GEO/MEO)| G[Uplink на геостационарный спутник<br>Через крупный телепорт]
+                                F -->|Современная (LEO)| H[Uplink на ближайший спутник LEO<br>Через сеть гейтвеев]
+                                
+                                G --> I[Спутник на GEO орбите<br>Ретрансляция 'изогнутой трубой']
+                                H --> J[Спутник на LEO орбите<br>Бортовая обработка и маршрутизация]
+                                
+                                I --> K[Широковещание на большую территорию]
+                                J --> L{Маршрут в сети LEO}
+                                L -->|Через космос| M[Лазерные межспутниковые связи (ISL)<br>Ретрансляция до целевого региона]
+                                L -->|Через землю| N[Downlink на гейтвей в другом регионе]
+                                
+                                K --> O[Приём сигнала абонентом DTH<br>Через индивидуальную антенну]
+                                M --> N
+                                N --> O
+                                
+                                O --> P[Ресивер абонента]
+                                P --> Q[CAM-модуль / Смарт-карта<br>Дешифрование]
+                                Q --> R[Декодирование MPEG-TS]
+                                R --> S[Телевизор / Устройство<br>Воспроизведение]
+                                
+                                %% Стилизация ключевых блоков
+                                style D fill:#ff6b6b
+                                style J fill:#4ecdc4
+                                style M fill:#4ecdc4
+                                style Q fill:#ff6b6b
+                        </div>
+                    </div>
+                    <div class="text-content">
+                        <p><strong>Ключевые отличия путей передачи:</strong></p>
+                        <ul>
+                            <li><span class="highlight">GEO/Традиционный путь</span>: Сигнал однократно ретранслируется спутником («изогнутая труба») на статичную огромную территорию. Идеален для массового вещания идентичного контента (ТВ-каналы).</li>
+                            <li><span class="highlight">LEO/Сетевой путь</span>: Сигнал принимается ближайшим спутником, который может обработать его на борту и, используя сеть лазерных линий (ISL), передать через космос непосредственно в зону покрытия целевого региона, после чего транслируется абонентам. Это снижает задержку и позволяет эффективно доставлять персонализированный или интерактивный контент.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типы орбит и их характеристики</h3>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Тип орбиты</th>
+                                <th>Высота</th>
+                                <th>Период обращения</th>
+                                <th>Задержка сигнала (RTT)</th>
+                                <th>Типичные применения</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Геостационарная (GEO)</td>
+                                <td>35 786 км</td>
+                                <td>24 часа (неподвижна)</td>
+                                <td>500-700 мс</td>
+                                <td>Прямое спутниковое телевещание (DTH), фиксированная связь</td>
+                            </tr>
+                            <tr>
+                                <td>Средняя (MEO)</td>
+                                <td>8 000-20 000 км</td>
+                                <td>2-12 часов</td>
+                                <td>150-250 мс</td>
+                                <td>Навигация (GPS, ГЛОНАСС), голосовая связь</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Низкая (LEO)</strong></td>
+                                <td><strong>500-2 000 км</strong></td>
+                                <td><strong>90-120 мин</strong></td>
+                                <td><strong>30-50 мс</strong> (с ISL)<br>100-200 мс (без ISL, через гейтвеи)</td>
+                                <td><strong>Широкополосный интернет (Starlink, OneWeb), IoT, мобильная связь, сбор данных</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Высокоэллиптическая (HEO)</td>
+                                <td>500-50 000 км</td>
+                                <td>12-24 часа</td>
+                                <td>200-400 мс</td>
+                                <td>Вещание и связь в высоких широтах («Молния»)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- НОВЫЙ ПОДРАЗДЕЛ: Подробно о LEO системах -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Подробный обзор низкоорбитальных систем (LEO)</h3>
+                    <div class="text-content">
+                        <p>Низкоорбитальные спутники (Low Earth Orbit, LEO), работающие на высотах 500-2000 км, представляют собой революцию в спутниковой связи, направленную на обеспечение глобального покрытия интернетом с минимальной задержкой. В отличие от одиночных GEO-спутников, они работают в составе крупных <strong>группировок (созвездий)</strong> из сотен или тысяч аппаратов.</p>
+                    </div>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Архитектура и принцип работы</div>
+                            <div class="text-content">
+                                <p>Спутники LEO движутся с высокой угловой скоростью, поэтому для обеспечения непрерывной связи наземный терминал должен переключаться между ними каждые 15-20 минут.</p>
+                                <ul>
+                                    <li><strong>Созвездия</strong>: Спутники размещаются на нескольких орбитальных плоскостях для равномерного покрытия Земли.</li>
+                                    <li><strong>Пользовательский терминал</strong>: Использует электронно-сканируемую фазированную антенную решетку (ЭФАР) для автоматического слежения и переключения между спутниками.</li>
+                                    <li><strong>Наземные сегменты</strong>:
+                                        <ul>
+                                            <li><strong>Гейтвеи (шлюзы)</strong>: Связывают спутниковую сеть с глобальным интернетом.</li>
+                                            <li><strong>Центры управления (NOC)</strong>: Контролируют группировку и управляют сетевым трафиком.</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Ключевые преимущества для мультимедиа</div>
+                            <div class="text-content">
+                                <p>LEO-системы кардинально меняют возможности передачи мультимедиа через спутник.</p>
+                                <ul>
+                                    <li><strong>Сверхнизкая задержка</strong>: 30-50 мс делает возможными интерактивные сервисы: видеозвонки, облачные игры, удалённые рабочие столы.</li>
+                                    <li><strong>Высокая пропускная способность</strong>: Современные аппараты (HTS) обеспечивают десятки Гбит/с на спутник.</li>
+                                    <li><strong>Глобальный и мобильный охват</strong>: Обслуживание удалённых регионов, судов, самолётов.</li>
+                                    <li><strong>Устойчивость</strong>: Отказ одного спутника не прерывает服务, его трафик перенаправляется другим.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Технологические вызовы и решения</div>
+                            <div class="text-content">
+                                <p>Реализация LEO-сетей связана с комплексными инженерными задачами.</p>
+                                <ul>
+                                    <li><strong>Управление группировкой</strong>: Сложная координация тысяч аппаратов с помощью AI/ML.</li>
+                                    <li><strong>Межспутниковые связи (ISL)</strong>: Лазерные линки, создающие «сеть в небе», минимизируют задержку, передавая трафик между спутниками без захода на Землю.</li>
+                                    <li><strong>Проблема интерференции</strong>: Интеллектуальное управление лучом и частотным планированием.</li>
+                                    <li><strong>Космический мусор</strong>: Необходимость систем уклонения и планов по сведению с орбиты.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>
+            # Пример: Упрощённый расчёт времени видимости LEO-спутника
+            import math
+
+            def calculate_visibility_time(satellite_altitude_km, ground_station_lat_deg=0):
+                """
+                Рассчитывает максимальное время видимости LEO-спутника
+                для наземной станции на экваторе (упрощённая модель).
+                """
+                R_earth = 6371  # км, радиус Земли
+                h = satellite_altitude_km
+
+                # Угол места на горизонте (0 градусов)
+                # Центральный угол видимости из центра Земли
+                central_angle = math.degrees(math.acos(R_earth / (R_earth + h)))
+
+                # Период обращения спутника (3-й закон Кеплера, упрощённо)
+                T_minutes = 84.5 * ((R_earth + h) / R_earth) ** 1.5 * (1 / 60)  # в минутах
+
+                # Доля орбиты, когда спутник виден (в пределах центрального угла)
+                visibility_fraction = central_angle / 360
+
+                # Максимальное время видимости
+                max_visibility_minutes = T_minutes * visibility_fraction
+                max_visibility_seconds = max_visibility_minutes * 60
+
+                return {
+                    'central_angle_deg': round(central_angle, 2),
+                    'orbit_period_min': round(T_minutes, 2),
+                    'max_visibility_sec': round(max_visibility_seconds, 2),
+                    'max_visibility_min': round(max_visibility_minutes, 2)
+                }
+
+            # Расчёт для типичных высот
+            altitudes = [550, 1200]  # км, типичные высоты Starlink и OneWeb
+            for alt in altitudes:
+                result = calculate_visibility_time(alt)
+                print(f"Высота {alt} км:")
+                print(f"  Макс. время видимости: ~{result['max_visibility_min']} мин ({result['max_visibility_sec']} сек)")
+                print(f"  Период обращения: ~{result['orbit_period_min']} мин")
+                print()</pre></div>
+
+                    <div class="text-content">
+                        <p><strong>Ведущие проекты LEO-группировок:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Starlink (SpaceX)</span>: Крупнейшая группировка (тысячи спутников). Цель — глобальный широкополосный доступ. Использует лазерные ISL (поколение v1.5+), работает в Ku/Ka-диапазонах.</li>
+                            <li><span class="highlight">OneWeb</span>: Фокус на B2B и правительственные услуги, покрытие до 50° широты. Спутники первого поколения без ISL, планируемое второе поколение — с ISL.</li>
+                            <li><span class="highlight">Project Kuiper (Amazon)</span>: Планируемая группировка >3000 спатников. Заявлена интеграция с облачной инфраструктурой AWS.</li>
+                            <li><span class="highlight">Государственные и специализированные системы</span>: Китай (GuoWang), Telesat Lightspeed, предназначенные для безопасной связи и IoT.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Частотные диапазоны спутниковой связи</h3>
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">C-диапазон (4-8 ГГц)</div>
+                            <div class="text-content">
+                                <p>Исторически первый диапазон для спутниковой связи. Устойчив к атмосферным помехам, но требует антенн большого размера.</p>
+                                <ul>
+                                    <li><strong>Uplink</strong>: 5.925-6.425 ГГц</li>
+                                    <li><strong>Downlink</strong>: 3.7-4.2 ГГц</li>
+                                    <li><strong>Преимущества</strong>: устойчивость к дождю, широкое покрытие</li>
+                                    <li><strong>Недостатки</strong>: большие антенны (1.8-3 м), интерференция с наземными СВЧ-системами</li>
+                                    <li><strong>Применение</strong>: телекоммуникации, вещание в тропических регионах</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Ku-диапазон (12-18 ГГц)</div>
+                            <div class="text-content">
+                                <p>Наиболее распространённый диапазон для непосредственного спутникового вещания (DTH). Позволяет использовать антенны меньшего размера.</p>
+                                <ul>
+                                    <li><strong>Uplink</strong>: 14.0-14.5 ГГц</li>
+                                    <li><strong>Downlink</strong>: 10.7-12.75 ГГц</li>
+                                    <li><strong>Преимущества</strong>: компактные антенны (60-90 см), высокая пропускная способность</li>
+                                    <li><strong>Недостатки</strong>: затухание в дождь (rain fade), требуется точная настройка</li>
+                                    <li><strong>Применение</strong>: DTH-телевидение, VSAT-сети, спутниковый интернет (включая Starlink)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Ka-диапазон (26.5-40 ГГц)</div>
+                            <div class="text-content">
+                                <p>Перспективный диапазон для широкополосного доступа и услуг высокой пропускной способности. Требует advanced technology.</p>
+                                <ul>
+                                    <li><strong>Uplink</strong>: 27.5-31.0 ГГц</li>
+                                    <li><strong>Downlink</strong>: 17.7-21.2 ГГц</li>
+                                    <li><strong>Преимущества</strong>: очень широкая полоса, компактные антенны, высокая скорость</li>
+                                    <li><strong>Недостатки</strong>: сильное затухание в дождь, высокая стоимость оборудования</li>
+                                    <li><strong>Применение</strong>: широкополосный интернет (Viasat, Tooway, Starlink, Kuiper), мультимедиа в Ka-диапазоне</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Расчёт уровня сигнала на входе приёмника (Уравнение передачи)</div>
+                        <div class="katex-formula" id="formula1"></div>
+                        <div class="formula-explanation">
+                            <p>где:</p>
+                            <ul>
+                                <li>\( P_r \) - мощность на входе приёмника (Вт)</li>
+                                <li>\( P_t \) - мощность передатчика (Вт)</li>
+                                <li>\( G_t \) - коэффициент усиления передающей антенны</li>
+                                <li>\( G_r \) - коэффициент усиления приёмной антенны</li>
+                                <li>\( \lambda \) - длина волны (м)</li>
+                                <li>\( R \) - расстояние до спутника (м) - для LEO значительно меньше, чем для GEO</li>
+                                <li>\( L \) - дополнительные потери (атмосфера, поляризация, misalignment)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Стандарты цифрового спутникового вещания -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Стандарты цифрового спутникового вещания</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">DVB-S, DVB-S2, DVB-S2X: сравнительный анализ</h3>
+
+                    <div class="text-content">
+                        <p>Семейство стандартов DVB (Digital Video Broadcasting) определяет методы модуляции и кодирования для цифрового спутникового вещания. Эволюция стандартов направлена на повышение спектральной эффективности и поддержку новых услуг.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph LR
+                                A[MPEG-2 Transport Stream] --> B[DVB-S Encoder]
+                                B --> C[QPSK Modulator]
+                                C --> D[Satellite Uplink]
+                                D --> E[Transponder]
+                                E --> F[Downlink]
+                                F --> G[DVB-S Receiver]
+                                G --> H[MPEG-2 Decoder]
+                                
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style G fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Пример расчёта битрейта транспондера DVB-S2
+import math
+
+def calculate_transponder_bitrate(symbol_rate, modulation, fec):
+    """
+    Расчёт полезного битрейта транспондера.
+    
+    Параметры:
+    symbol_rate: символьная скорость (Бод)
+    modulation: модуляция ('QPSK', '8PSK', '16APSK', '32APSK')
+    fec: кодовая скорость (например, 3/4)
+    """
+    # Биты на символ для различных модуляций
+    bits_per_symbol = {
+        'QPSK': 2,
+        '8PSK': 3,
+        '16APSK': 4,
+        '32APSK': 5
+    }
+    
+    # Преобразование строки FEC в число
+    if isinstance(fec, str):
+        num, denom = map(int, fec.split('/'))
+        fec_ratio = num / denom
+    else:
+        fec_ratio = fec
+    
+    # Расчёт битрейта
+    gross_bitrate = symbol_rate * bits_per_symbol[modulation]
+    net_bitrate = gross_bitrate * fec_ratio
+    
+    return {
+        'gross_bitrate_Mbps': gross_bitrate / 1e6,
+        'net_bitrate_Mbps': net_bitrate / 1e6,
+        'spectral_efficiency': net_bitrate / symbol_rate
+    }
+
+# Пример для типичного транспондера
+params = [
+    (27500000, 'QPSK', '3/4'),      # SD-каналы
+    (30000000, '8PSK', '2/3'),      # HD-каналы
+    (32000000, '16APSK', '3/4'),    # UHD-каналы
+    (35000000, '32APSK', '9/10')    # Высокоскоростные данные
+]
+
+for sr, mod, fec in params:
+    result = calculate_transponder_bitrate(sr, mod, fec)
+    print(f"SR: {sr/1e6:.1f} МБод, Модуляция: {mod}, FEC: {fec}")
+    print(f"  Полезный битрейт: {result['net_bitrate_Mbps']:.2f} Мбит/с")
+    print(f"  Спектральная эффективность: {result['spectral_efficiency']:.2f} бит/с/Гц")
+    print()</pre>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые особенности стандартов:</strong></p>
+                        <ul>
+                            <li><span class="highlight">DVB-S (1995)</span>: QPSK модуляция, свёрточное кодирование + код Рида-Соломона, эффективность ~2.0-2.5 бит/с/Гц</li>
+                            <li><span class="highlight">DVB-S2 (2005)</span>: поддержка 8PSK, 16APSK, 32APSK, коды LDPC+BCH, ACM/VCM, эффективность до 4.5 бит/с/Гц</li>
+                            <li><span class="highlight">DVB-S2X (2014)</span>: расширение DVB-S2 с дополнительными режимами модуляции (64APSK, 128APSK), улучшенная эффективность до 5.5 бит/с/Гц</li>
+                            <li><span class="highlight">DVB-S3 (в разработке)</span>: ожидается дальнейшее повышение эффективности, поддержка терабитных скоростей</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнительная таблица стандартов</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>DVB-S</th>
+                                <th>DVB-S2</th>
+                                <th>DVB-S2X</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Год стандартизации</td>
+                                <td>1995</td>
+                                <td>2005</td>
+                                <td>2014</td>
+                            </tr>
+                            <tr>
+                                <td>Модуляции</td>
+                                <td>QPSK</td>
+                                <td>QPSK, 8PSK, 16APSK, 32APSK</td>
+                                <td>+ 64APSK, 128APSK, 256APSK</td>
+                            </tr>
+                            <tr>
+                                <td>Коды FEC</td>
+                                <td>Свёрточный + RS (7/8 max)</td>
+                                <td>LDPC + BCH (9/10 max)</td>
+                                <td>LDPC + BCH (11/12 max)</td>
+                            </tr>
+                            <tr>
+                                <td>Спектральная эффективность</td>
+                                <td>2.0-2.5 бит/с/Гц</td>
+                                <td>2.5-4.5 бит/с/Гц</td>
+                                <td>4.5-5.5 бит/с/Гц</td>
+                            </tr>
+                            <tr>
+                                <td>Поддержка ACM/VCM</td>
+                                <td>Нет</td>
+                                <td>Да</td>
+                                <td>Улучшенная</td>
+                            </tr>
+                            <tr>
+                                <td>Макс. битрейт на 36 МГц</td>
+                                <td>~45 Мбит/с</td>
+                                <td>~70 Мбит/с</td>
+                                <td>~85 Мбит/с</td>
+                            </tr>
+                            <tr>
+                                <td>Типичные применения</td>
+                                <td>SD-телевидение, радио</td>
+                                <td>HD-телевидение, IP-сервисы</td>
+                                <td>UHD, профессиональные приложения</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Транспондеры и их параметры</h3>
+
+                    <div class="text-content">
+                        <p>Транспондер — приёмопередатчик на спутнике, который принимает сигнал с Земли, преобразует его частоту и усиливает для обратной передачи. Современные спутники имеют 20-100 транспондеров.</p>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">36-72 МГц</div>
+                            <div class="metric-label">Полоса транспондера</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">50-150 Вт</div>
+                            <div class="metric-label">Мощность выходного усилителя</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">10.7-12.75 ГГц</div>
+                            <div class="metric-label">Диапазон downlink (Ku)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">20-100 шт</div>
+                            <div class="metric-label">Количество на спутнике</div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Класс для работы с параметрами транспондера
+class Transponder:
+    def __init__(self, frequency, polarization, symbol_rate, fec, modulation=None):
+        self.frequency = frequency  # в МГц
+        self.polarization = polarization  # 'V' или 'H'
+        self.symbol_rate = symbol_rate  # в Бодах
+        self.fec = fec  # кодовая скорость
+        self.modulation = modulation  # тип модуляции
+        
+    def calculate_bandwidth(self, roll_off=0.35):
+        """Расчёт занимаемой полосы частот."""
+        # Формула: BW = SR * (1 + roll_off)
+        return self.symbol_rate * (1 + roll_off)
+    
+    def get_transponder_info(self):
+        """Возвращает информацию о транспондере."""
+        info = {
+            'frequency': f"{self.frequency} MHz",
+            'polarization': self.polarization,
+            'symbol_rate': f"{self.symbol_rate/1e6:.1f} MS/s",
+            'fec': self.fec,
+            'bandwidth': f"{self.calculate_bandwidth()/1e6:.2f} MHz"
+        }
+        if self.modulation:
+            info['modulation'] = self.modulation
+        return info
+
+# Примеры транспондеров популярных спутников
+transponders = [
+    Transponder(12360, 'V', 27500, '3/4', 'DVB-S2'),
+    Transponder(12437, 'H', 30000, '5/6', 'DVB-S2'),
+    Transponder(12522, 'V', 22000, '2/3', 'DVB-S'),
+    Transponder(12647, 'H', 45000, '9/10', 'DVB-S2X'),
+]
+
+for tp in transponders:
+    info = tp.get_transponder_info()
+    print(f"Транспондер {info['frequency']} {info['polarization']}:")
+    print(f"  SR: {info['symbol_rate']}, FEC: {info['fec']}, BW: {info['bandwidth']}")
+    if 'modulation' in info:
+        print(f"  Модуляция: {info['modulation']}")
+    print()</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Системы условного доступа (CAS) -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Системы условного доступа (CAS) в спутниковом телевидении</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура CAS</h3>
+
+                    <div class="text-content">
+                        <p>Система условного доступа (Conditional Access System) — это комплекс программно-аппаратных средств, обеспечивающих ограничение доступа к платному контенту. CAS контролирует, кто, когда и какие каналы может смотреть[reference:0].</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant H как CAS Headend
+                                participant S как Скремблер
+                                participant T как Транспондер
+                                participant R как Ресивер
+                                participant C как Смарт-карта
+                                
+                                H->>S: Генерация Control Word (CW)
+                                S->>S: Шифрование CW с помощью Service Key
+                                S->>T: Передача ECM (Encrypted CW)
+                                H->>T: Передача EMM (Management Messages)
+                                T->>R: Вещание зашифрованного потока + ECM + EMM
+                                
+                                R->>C: Запрос дешифрования ECM
+                                C->>C: Проверка прав доступа
+                                C->>C: Дешифрование CW с помощью Personal Key
+                                C->>R: Возврат дешифрованного CW
+                                R->>R: Дескремблирование TS с помощью CW
+                                R->>R: Воспроизведение контента
+                                
+                                Note over H,C: Периодическая смена CW (каждые 5-30 сек)
+                                Note over H,C: EMM содержит ключи подписки,<br>обновляется реже (раз в месяц)
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Упрощённая модель системы CAS на Python
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+import hashlib
+import time
+
+class SimpleCAS:
+    def __init__(self, service_key):
+        """Инициализация CAS с сервисным ключом."""
+        self.service_key = service_key
+        self.control_words = {}  # ID канала -> текущий CW
+        
+    def generate_control_word(self, channel_id):
+        """Генерация контрольного слова для канала."""
+        # В реальной системе CW генерируется случайно и часто меняется
+        cw = get_random_bytes(16)  # 128-битный CW
+        self.control_words[channel_id] = {
+            'cw': cw,
+            'generated': time.time(),
+            'expires': time.time() + 10  # Действует 10 секунд
+        }
+        return cw
+    
+    def create_ecm(self, channel_id, cw):
+        """Создание ECM (Entitlement Control Message)."""
+        # Шифрование CW с помощью сервисного ключа
+        cipher = AES.new(self.service_key, AES.MODE_ECB)
+        encrypted_cw = cipher.encrypt(cw)
+        
+        ecm = {
+            'channel_id': channel_id,
+            'encrypted_cw': encrypted_cw,
+            'timestamp': time.time(),
+            'cw_index': hash(cw) % 256  # Индекс для синхронизации
+        }
+        return ecm
+    
+    def create_emm(self, subscriber_id, subscription_data):
+        """Создание EMM (Entitlement Management Message)."""
+        # EMM содержит информацию о подписке
+        emm = {
+            'subscriber_id': subscriber_id,
+            'subscriptions': subscription_data,
+            'valid_from': time.time(),
+            'valid_to': time.time() + 30*24*3600,  # 30 дней
+            'signature': self._sign_emm(subscriber_id, subscription_data)
+        }
+        return emm
+    
+    def _sign_emm(self, subscriber_id, data):
+        """Подпись EMM (упрощённо)."""
+        message = f"{subscriber_id}:{data}".encode()
+        return hashlib.sha256(message).digest()
+
+# Пример использования
+service_key = get_random_bytes(32)  # 256-битный сервисный ключ
+cas = SimpleCAS(service_key)
+
+# Генерация CW для канала
+channel_id = "PREMIUM_SPORTS"
+cw = cas.generate_control_word(channel_id)
+print(f"Сгенерирован CW для канала {channel_id}: {cw.hex()}")
+
+# Создание ECM
+ecm = cas.create_ecm(channel_id, cw)
+print(f"ECM создан: channel_id={ecm['channel_id']}, index={ecm['cw_index']}")
+
+# Создание EMM для абонента
+subscriber_id = "USER_001"
+subscription = {"PREMIUM_SPORTS": True, "MOVIE_CHANNELS": True}
+emm = cas.create_emm(subscriber_id, subscription)
+print(f"EMM создан для {subscriber_id}, действует до: {time.ctime(emm['valid_to'])}")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные системы CAS на рынке</h3>
+
+                    <div class="text-content">
+                        <p>На рынке существует множество проприетарных систем CAS, каждая со своими особенностями и уровнем защиты[reference:1].</p>
+                    </div>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">PowerVu (Scientific Atlanta)</div>
+                            <div class="text-content">
+                                <p>Разработана для профессионального и военного применения. Использует 56-битный потоковый шифр, считается одной из самых защищённых[reference:2].</p>
+                                <ul>
+                                    <li><strong>Применение</strong>: American Forces Network, Discovery Channel, профессиональные feeds</li>
+                                    <li><strong>Особенности</strong>: адресное кодирование, несовместимость с другим оборудованием</li>
+                                    <li><strong>Взлом</strong>: частично взломана, ключи доступны в эмуляторах</li>
+                                    <li><strong>Текущий статус</strong>: используется для профессионального вещания</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Nagravision (Kudelski)</div>
+                            <div class="text-content">
+                                <p>Швейцарская система, используемая многими операторами по всему миру. Поддерживает несколько версий с улучшенной защитой.</p>
+                                <ul>
+                                    <li><strong>Применение</strong>: Dish Network, Bell TV, Sky Deutschland</li>
+                                    <li><strong>Особенности</strong>: смарт-карты, алгорим на основе DES/AES, поддержка кардшаринга</li>
+                                    <li><strong>Взлом</strong>: ранние версии взломаны, Nagravision 3 считается более защищённой</li>
+                                    <li><strong>Текущий статус</strong>: активно используется, периодически обновляется</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Viaccess (France Télécom)</div>
+                            <div class="text-content">
+                                <p>Французская система, популярная в Европе и Африке. Прошла через множество версий, каждая со своими уязвимостями[reference:3].</p>
+                                <ul>
+                                    <li><strong>Применение</strong>: НТВ-Плюс, Hot Bird, французские каналы</li>
+                                    <li><strong>Особенности</strong>: PC2.x (взломаны), PC3.x/4.x/5.x (более защищены)</li>
+                                    <li><strong>Взлом</strong>: версии до PC2.6 полностью взломаны, новые версии устойчивее</li>
+                                    <li><strong>Текущий статус</strong>: используется с обновлёнными версиями</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Другие значимые системы:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Irdeto</span>: используется МТС, Orion Express, Радуга ТВ; версии Irdeto 2/3 считаются защищёнными</li>
+                            <li><span class="highlight">Conax</span>: норвежская система, популярна в Скандинавии и Восточной Европе</li>
+                            <li><span class="highlight">DRECrypt</span>: российская система, разработана ООО «Цифра», используется более чем у 50 операторов[reference:4]</li>
+                            <li><span class="highlight">Роскрипт</span>: российская система, соответствует ГОСТ 28147-89, используется ЭР-Телеком[reference:5]</li>
+                            <li><span class="highlight">BISS</span>: открытая система для временного шифрования feeds, используемая EBU для спортивных событий[reference:6]</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнение систем CAS</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Система</th>
+                                <th>Разработчик</th>
+                                <th>Алгоритм шифрования</th>
+                                <th>Уровень защиты</th>
+                                <th>Распространение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PowerVu</td>
+                                <td>Scientific Atlanta</td>
+                                <td>Проприетарный потоковый шифр (56 бит)</td>
+                                <td>Высокий</td>
+                                <td>Профессиональное вещание, военные</td>
+                            </tr>
+                            <tr>
+                                <td>Nagravision 3</td>
+                                <td>Kudelski (Швейцария)</td>
+                                <td>AES-128, проприетарные алгоритмы</td>
+                                <td>Высокий</td>
+                                <td>Dish Network, Bell TV, Sky DE</td>
+                            </tr>
+                            <tr>
+                                <td>Viaccess PC5.0</td>
+                                <td>France Télécom</td>
+                                <td>AES-128, RSA для ключей</td>
+                                <td>Средний-высокий</td>
+                                <td>НТВ-Плюс, Hot Bird, Европа</td>
+                            </tr>
+                            <tr>
+                                <td>Irdeto 3</td>
+                                <td>Irdeto (Нидерланды)</td>
+                                <td>AES-256, эллиптические кривые</td>
+                                <td>Высокий</td>
+                                <td>МТС, Orion Express, Африка</td>
+                            </tr>
+                            <tr>
+                                <td>DRECrypt 5</td>
+                                <td>ООО «Цифра» (Россия)</td>
+                                <td>ГОСТ 28147-89, AES-256</td>
+                                <td>Высокий</td>
+                                <td>Россия, СНГ (50+ операторов)</td>
+                            </tr>
+                            <tr>
+                                <td>BISS-2</td>
+                                <td>EBU</td>
+                                <td>AES-128, открытый стандарт</td>
+                                <td>Средний</td>
+                                <td>Временные feeds, спорт, новости</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Технологии шифрования и защиты -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Технологии шифрования и защиты в спутниковом ТВ</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура защиты DVB</h3>
+
+                    <div class="text-content">
+                        <p>Стандарт DVB определяет Common Scrambling Algorithm (CSA) для скремблирования транспортного потока MPEG-2. CSA использует цепочку сдвиговых регистров для генерации псевдослучайной последовательности, которая XOR-ится с данными.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[MPEG-2 TS] --> B[Скремблер CSA]
+                                B --> C[Зашифрованный TS]
+                                D[Control Word] --> B
+                                E[Service Key] --> F[Шифрование CW]
+                                F --> G[ECM]
+                                H[Subscriber Key] --> I[Дешифрование CW]
+                                I --> J[Дескремблер CSA]
+                                C --> J
+                                J --> K[Исходный TS]
+                                
+                                style B fill:#4ecdc4
+                                style F fill:#4ecdc4
+                                style I fill:#4ecdc4
+                                style J fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Реализация упрощённого алгоритма скремблирования CSA
+class SimplifiedCSA:
+    def __init__(self, key):
+        """Инициализация скремблера с ключом."""
+        self.key = key
+        self.registers = self._init_registers(key)
+        
+    def _init_registers(self, key):
+        """Инициализация сдвиговых регистров из ключа."""
+        # Упрощённая версия - в реальном CSA используется сложная логика
+        import struct
+        registers = []
+        for i in range(0, len(key), 4):
+            if i + 4 <= len(key):
+                value = struct.unpack('I', key[i:i+4])[0]
+                registers.append(value & 0xFFFFFFFF)
+        return registers
+    
+    def scramble(self, data):
+        """Скремблирование данных."""
+        result = bytearray()
+        for i, byte in enumerate(data):
+            # Генерация псевдослучайного байта
+            prbyte = self._generate_byte(i)
+            # XOR с данными
+            result.append(byte ^ prbyte)
+        return bytes(result)
+    
+    def _generate_byte(self, position):
+        """Генерация псевдослучайного байта (упрощённо)."""
+        # В реальном CSA используется сложная комбинация регистров
+        if not self.registers:
+            return 0
+        
+        result = 0
+        for reg in self.registers:
+            result ^= (reg >> (position % 32)) & 0xFF
+        
+        # "Сдвиг" регистров
+        for i in range(len(self.registers)):
+            self.registers[i] = (self.registers[i] << 1) | (self.registers[i] >> 31)
+            self.registers[i] &= 0xFFFFFFFF
+            
+        return result & 0xFF
+    
+    def descramble(self, data):
+        """Дескремблирование (та же операция, что и скремблирование)."""
+        return self.scramble(data)
+
+# Пример использования
+key = b'SECRET_KEY_128BIT'
+csa = SimplifiedCSA(key)
+
+# Тестовые данные (заголовок MPEG-2 TS)
+ts_packet = bytes([
+    0x47, 0x40, 0x00, 0x10, 0x00,  # Заголовок TS
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+])
+
+print("Исходный пакет (первые 16 байт):", ts_packet[:16].hex())
+scrambled = csa.scramble(ts_packet)
+print("Скремблированный (первые 16 байт):", scrambled[:16].hex())
+descrambled = csa.descramble(scrambled)
+print("Дескремблированный (первые 16 байт):", descrambled[:16].hex())
+print("Совпадает с исходным?", ts_packet[:16] == descrambled[:16])</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">BISS (Basic Interoperable Scrambling System)</h3>
+
+                    <div class="text-content">
+                        <p>BISS — открытый стандарт для временного шифрования спутниковых feeds, разработанный EBU. Используется для защиты спортивных событий, новостных репортажей и других временных трансляций[reference:7].</p>
+                    </div>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">BISS-1</div>
+                            <div class="text-content">
+                                <p>Режим с общим сессионным ключом, который известен и передатчику, и приёмнику.</p>
+                                <ul>
+                                    <li><strong>Ключ</strong>: 12-значный шестнадцатеричный сессионный ключ</li>
+                                    <li><strong>Безопасность</strong>: зависит от секретности ключа</li>
+                                    <li><strong>Применение</strong>: закрытые корпоративные трансляции, временные feeds</li>
+                                    <li><strong>Ограничения</strong>: ключ должен быть заранее согласован</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">BISS-E (Encrypted)</div>
+                            <div class="text-content">
+                                <p>Усовершенствованный режим с двумя ключами: секретным мастер-ключом и сессионным ключом.</p>
+                                <ul>
+                                    <li><strong>Ключи</strong>: секретный BISS-ключ + 16-значный сессионный код</li>
+                                    <li><strong>Безопасность</strong>: выше, так как требуется мастер-ключ в декодере</li>
+                                    <li><strong>Применение</strong>: спортивные события высокого уровня (UEFA, Olympics)</li>
+                                    <li><strong>Преимущества</strong>: контроль прав доступа, возможность отзыва</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">BISS-2</div>
+                            <div class="text-content">
+                                <p>Следующее поколение BISS с улучшенными алгоритмами шифрования.</p>
+                                <ul>
+                                    <li><strong>Алгоритмы</strong>: AES вместо DES, более стойкое шифрование</li>
+                                    <li><strong>Безопасность</strong>: соответствует современным стандартам</li>
+                                    <li><strong>Применение</strong>: постепенно внедряется для замены BISS-1</li>
+                                    <li><strong>Совместимость</strong>: требует нового оборудования</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Генерация и проверка BISS ключей
+import hashlib
+import secrets
+
+class BISSKeyGenerator:
+    @staticmethod
+    def generate_biss1_key():
+        """Генерация 12-значного BISS-1 ключа."""
+        # 12 hex digits = 6 bytes = 48 bits
+        key_bytes = secrets.token_bytes(6)
+        return key_bytes.hex().upper()[:12]
+    
+    @staticmethod
+    def generate_biss_e_session_code():
+        """Генерация 16-значного сессионного кода для BISS-E."""
+        # 16 hex digits = 8 bytes = 64 bits
+        session_bytes = secrets.token_bytes(8)
+        return session_bytes.hex().upper()[:16]
+    
+    @staticmethod
+    def calculate_biss_e_key(master_key, session_code):
+        """
+        Вычисление BISS-1 ключа из мастер-ключа и сессионного кода.
+        В реальной системе используется более сложный алгоритм.
+        """
+        # Упрощённая демонстрация
+        combined = master_key.encode() + session_code.encode()
+        hash_result = hashlib.sha256(combined).digest()
+        # Берём первые 6 байт хэша как BISS-1 ключ
+        return hash_result[:6].hex().upper()[:12]
+    
+    @staticmethod
+    def validate_biss_key(key):
+        """Проверка формата BISS ключа."""
+        if len(key) == 12:
+            # BISS-1 ключ
+            try:
+                int(key, 16)
+                return "BISS-1", True
+            except ValueError:
+                return "Invalid", False
+        elif len(key) == 16:
+            # BISS-E сессионный код
+            try:
+                int(key, 16)
+                return "BISS-E session code", True
+            except ValueError:
+                return "Invalid", False
+        else:
+            return "Invalid length", False
+
+# Пример использования
+generator = BISSKeyGenerator()
+
+# Генерация BISS-1 ключа
+biss1_key = generator.generate_biss1_key()
+print(f"Сгенерирован BISS-1 ключ: {biss1_key}")
+
+# Генерация BISS-E сессионного кода
+session_code = generator.generate_biss_e_session_code()
+print(f"Сгенерирован BISS-E сессионный код: {session_code}")
+
+# Мастер-ключ (в реальной системе хранится в защищённой памяти декодера)
+master_key = "SECRET_MASTER_KEY_001"
+
+# Вычисление BISS-1 ключа из мастер-ключа и сессионного кода
+calculated_key = generator.calculate_biss_e_key(master_key, session_code)
+print(f"Вычисленный BISS-1 ключ: {calculated_key}")
+
+# Проверка ключей
+test_keys = [biss1_key, session_code, "INVALID123", "1234567890ABCDEFG"]
+for key in test_keys:
+    key_type, valid = generator.validate_biss_key(key)
+    print(f"Ключ '{key}': {key_type}, valid={valid}")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">SimulCrypt vs MultiCrypt</h3>
+
+                    <div class="text-content">
+                        <p>Существует два основных подхода к реализации CAS в сетях вещания[reference:8].</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Подходы CAS] --> B[SimulCrypt]
+                                A --> C[MultiCrypt]
+                                
+                                B --> B1[Несколько систем CAS<br>работают параллельно]
+                                B --> B2[Один алгоритм скремблирования<br>(Common Scrambling)]
+                                B --> B3[Мультиплекс содержит ECM/EMM<br>для каждой системы]
+                                B --> B4[Экономичнее, требует координации<br>между операторами]
+                                
+                                C --> C1[Поддержка разных CAS<br>через сменные модули]
+                                C --> C2[Каждая система использует<br>свой алгоритм]
+                                C --> C3[DVB-CI интерфейс для CAM-модулей]
+                                C --> C4[Гибче, но дороже<br>абонентское оборудование]
+                                
+                                style B1 fill:#4ecdc4
+                                style B2 fill:#4ecdc4
+                                style C1 fill:#4ecdc4
+                                style C3 fill:#4ecdc4
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Сравнение подходов:</strong></p>
+                        <ul>
+                            <li><span class="highlight">SimulCrypt</span>: несколько операторов CAS совместно используют один скремблированный поток. Экономит полосу, но требует тщательной координации. Используется в крупных сетях, где несколько провайдеров CAS обслуживают разных операторов.</li>
+                            <li><span class="highlight">MultiCrypt</span>: ресивер поддерживает несколько систем CAS через сменные CAM-модули. Даёт гибкость абоненту, но увеличивает стоимость оборудования. Требует интерфейса DVB-CI и физической замены модулей при смене оператора.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Уязвимости и атаки на спутниковые системы -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Уязвимости и атаки на спутниковые системы защиты</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Типы атак на CAS</h3>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">Кардшаринг</div>
+                            <div class="metric-label">Card Sharing<br>Совместное использование карты</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Клонирование</div>
+                            <div class="metric-label">Card Cloning<br>Копирование смарт-карт</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Атаки на алгоритм</div>
+                            <div class="metric-label">Algorithm Attacks<br>Криптоанализ</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Эмуляция</div>
+                            <div class="metric-label">Software Emulation<br>Программные эмуляторы</div>
+                        </div>
+                    </div>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Кардшаринг (Card Sharing)</div>
+                            <div class="text-content">
+                                <p>Метод, при котором одна легальная смарт-карта используется множеством пользователей через сеть интернет. Карта устанавливается в специальный сервер (card server), который раздаёт CW клиентам.</p>
+                                <ul>
+                                    <li><strong>Механизм</strong>: сервер декодирует ECM и отправляет CW клиентам по интернету</li>
+                                    <li><strong>Обнаружение</strong>: сложно, так как используется легальная карта</li>
+                                    <li><strong>Меры противодействия</strong>: геолокация, анализ трафика, frequent key rotation</li>
+                                    <li><strong>Распространённость</strong>: широко распространена, особенно для устаревших систем CAS</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Клонирование смарт-карт</div>
+                            <div class="text-content">
+                                <p>Физическое копирование содержимого легальной смарт-карты на пустую карту. Требует получения дампа памяти оригинальной карты.</p>
+                                <ul>
+                                    <li><strong>Механизм</strong>: извлечение ключей и данных из карты через уязвимости</li>
+                                    <li><strong>Исторические примеры</strong>: Sky UK (P4 cards), DirecTV (early cards)</li>
+                                    <li><strong>Меры противодействия</strong>: secure chips, memory encryption, unique identifiers</li>
+                                    <li><strong>Текущее состояние</strong>: современные карты с аппаратной защитой устойчивы к клонированию</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Программные эмуляторы</div>
+                            <div class="text-content">
+                                <p>Эмуляция работы смарт-карты или CAS системы в программном обеспечении. Позволяет обойти необходимость физической карты.</p>
+                                <ul>
+                                    <li><strong>Механизм</strong>: reverse engineering алгоритмов, эмуляция протоколов</li>
+                                    <li><strong>Примеры</strong>: OSCam, CCcam, NewCS для различных CAS</li>
+                                    <li><strong>Меры противодействия</strong>: обфускация кода, аппаратная привязка, frequent updates</li>
+                                    <li><strong>Правовой статус</strong>: во многих странах использование эмуляторов незаконно</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Исторические взломы CAS систем</h3>
+
+                    <div class="text-content">
+                        <p>За годы существования спутникового ТВ практически все основные системы CAS подвергались взлому в той или иной форме[reference:9][reference:10].</p>
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Система CAS</th>
+                                <th>Версия</th>
+                                <th>Год взлома</th>
+                                <th>Метод взлома</th>
+                                <th>Текущий статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Viaccess</td>
+                                <td>PC2.3 - PC2.6</td>
+                                <td>2000-2005</td>
+                                <td>Криптоанализ, эмуляция</td>
+                                <td>Полностью взломана, не используется</td>
+                            </tr>
+                            <tr>
+                                <td>Nagravision</td>
+                                <td>Nagravision 1</td>
+                                <td>2002</td>
+                                <td>Клонирование карт</td>
+                                <td>Заменена на Nagravision 2/3</td>
+                            </tr>
+                            <tr>
+                                <td>PowerVu</td>
+                                <td>Early versions</td>
+                                <td>2014</td>
+                                <td>Анализ алгоритма, keys опубликованы</td>
+                                <td>Частично взломана, ключи в эмуляторах</td>
+                            </tr>
+                            <tr>
+                                <td>Irdeto</td>
+                                <td>Irdeto 1</td>
+                                <td>2001</td>
+                                <td>Клонирование карт</td>
+                                <td>Заменена на Irdeto 2/3</td>
+                            </tr>
+                            <tr>
+                                <td>Conax</td>
+                                <td>Conax 4</td>
+                                <td>2008</td>
+                                <td>Кардшаринг, эмуляция</td>
+                                <td>Обновлена до Conax 7</td>
+                            </tr>
+                            <tr>
+                                <td>Mediaguard</td>
+                                <td>Seca 1, 2</td>
+                                <td>2003-2006</td>
+                                <td>Клонирование карт</td>
+                                <td>Заменена на Mediaguard 3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block"><pre># Демонстрация простой атаки на слабый алгоритм шифрования
+import itertools
+import time
+
+def weak_encryption(data, key):
+    """Слабый алгоритм шифрования (для демонстрации)."""
+    result = bytearray()
+    for i, byte in enumerate(data):
+        result.append(byte ^ key[i % len(key)])
+    return bytes(result)
+
+def brute_force_attack(ciphertext, known_plaintext, max_key_length=4):
+    """
+    Атака полным перебором на слабый алгоритм.
+    
+    Параметры:
+    ciphertext: зашифрованные данные
+    known_plaintext: известный фрагмент открытого текста
+    max_key_length: максимальная длина ключа для перебора
+    """
+    # Ищем позицию известного текста в шифротексте
+    # (в реальной атаке это может быть заголовок MPEG-TS и т.д.)
+    
+    for key_length in range(1, max_key_length + 1):
+        print(f"Пробуем длину ключа: {key_length} байт")
+        
+        # Генерируем все возможные ключи данной длины
+        total_keys = 256 ** key_length
+        print(f"  Всего ключей для перебора: {total_keys:,}")
+        
+        # Для демонстрации ограничим перебор
+        if total_keys > 10000:
+            print(f"  Слишком много ключей, пропускаем...")
+            continue
+        
+        start_time = time.time()
+        
+        # Перебор всех возможных ключей
+        for key_tuple in itertools.product(range(256), repeat=key_length):
+            key = bytes(key_tuple)
+            
+            # Пробуем расшифровать начало
+            decrypted = weak_encryption(ciphertext[:len(known_plaintext)], key)
+            
+            if decrypted == known_plaintext:
+                elapsed = time.time() - start_time
+                print(f"  Ключ найден: {key.hex()} за {elapsed:.2f} секунд")
+                return key
+        
+        elapsed = time.time() - start_time
+        print(f"  Ключ не найден, затрачено {elapsed:.2f} секунд")
+    
+    return None
+
+# Демонстрация
+print("Демонстрация атаки на слабый алгоритм шифрования")
+print("=" * 50)
+
+# Известный открытый текст (например, заголовок MPEG-TS)
+known_plaintext = b'\x47\x40\x00\x10\x00'  # Синхробайт + PID
+
+# Случайный ключ
+original_key = b'\x12\x34\x56'
+print(f"Оригинальный ключ: {original_key.hex()}")
+
+# Шифрование тестовых данных
+test_data = known_plaintext + b'SOME_ADDITIONAL_DATA_FOR_TESTING'
+ciphertext = weak_encryption(test_data, original_key)
+print(f"Зашифрованные данные (первые 10 байт): {ciphertext[:10].hex()}")
+
+# Попытка атаки
+print("\nЗапуск атаки полным перебором...")
+found_key = brute_force_attack(ciphertext, known_plaintext, max_key_length=3)
+
+if found_key:
+    print(f"\nАтака успешна! Найден ключ: {found_key.hex()}")
+    # Проверка, что ключ правильный
+    decrypted = weak_encryption(ciphertext, found_key)
+    print(f"Расшифрованные данные (первые 10 байт): {decrypted[:10].hex()}")
+    print(f"Совпадает с исходными? {decrypted[:len(known_plaintext)] == known_plaintext}")
+else:
+    print("\nАтака не удалась (ключ слишком длинный или алгоритм сильнее)")
+
+print("\nВывод: короткие ключи уязвимы к brute-force атакам.")
+print("В реальных CAS используются ключи длиной 128-256 бит, что делает перебор невозможным.")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Меры противодействия и современные подходы</h3>
+
+                    <div class="text-content">
+                        <p>Современные системы CAS используют многоуровневую защиту для противодействия атакам.</p>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Современные технологии защиты:</div>
+                        <ul>
+                            <li><strong>Аппаратная безопасность</strong>: secure chips (Secure Element), TPM (Trusted Platform Module), hardware encryption</li>
+                            <li><strong>Динамическое обновление</strong>: frequent key rotation (каждые 5-30 секунд), online updates of CAS software</li>
+                            <li><strong>Мониторинг и анализ</strong>: системы обнаружения кардшаринга, анализ трафика, detection of abnormal patterns</li>
+                            <li><strong>Юридические меры</strong>: преследование пиратских серверов, блокировка сайтов с ключами</li>
+                            <li><strong>Обфускация кода</strong>: защита алгоритмов от reverse engineering, white-box cryptography</li>
+                            <li><strong>Гибридные системы</strong>: комбинация спутниковой доставки с интернет-аутентификацией</li>
+                        </ul>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Экономический ущерб от пиратства</div>
+                        <div class="katex-formula" id="formula2"></div>
+                        <div class="formula-explanation">
+                            <p>где \( L \) - потери от пиратства, \( S \) - количество подписчиков, \( R \) - средний доход на подписчика, \( P \) - процент пиратства. По оценкам, ежегодные потери индустрии составляют миллиарды долларов.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: Примеры реализации на Python -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Примеры реализации на Python</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Анализ транспондеров и спутниковых параметров</h3>
+
+                    <div class="code-block"><pre># Класс для работы со спутниковыми параметрами
+class SatelliteAnalyzer:
+    def __init__(self):
+        self.satellites = self._load_satellite_data()
+    
+    def _load_satellite_data(self):
+        """Загрузка данных о спутниках (упрощённо)."""
+        return {
+            'Yamal 401 (90.0°E)': {
+                'position': '90.0°E',
+                'transponders': [
+                    {'freq': 10970, 'pol': 'V', 'sr': 30000, 'fec': '3/4', 'system': 'DVB-S2'},
+                    {'freq': 11012, 'pol': 'H', 'sr': 30000, 'fec': '3/4', 'system': 'DVB-S2'},
+                    {'freq': 11055, 'pol': 'V', 'sr': 30000, 'fec': '5/6', 'system': 'DVB-S2'},
+                ]
+            },
+            'Express AMU1 (36.0°E)': {
+                'position': '36.0°E',
+                'transponders': [
+                    {'freq': 12522, 'pol': 'V', 'sr': 27500, 'fec': '3/4', 'system': 'DVB-S'},
+                    {'freq': 12565, 'pol': 'H', 'sr': 27500, 'fec': '3/4', 'system': 'DVB-S'},
+                ]
+            },
+            'Eutelsat Hotbird 13B (13.0°E)': {
+                'position': '13.0°E',
+                'transponders': [
+                    {'freq': 10758, 'pol': 'V', 'sr': 27500, 'fec': '3/4', 'system': 'DVB-S2'},
+                    {'freq': 10853, 'pol': 'H', 'sr': 27500, 'fec': '5/6', 'system': 'DVB-S2'},
+                ]
+            }
+        }
+    
+    def find_transponders_by_frequency(self, freq_range):
+        """Поиск транспондеров в заданном диапазоне частот."""
+        min_freq, max_freq = freq_range
+        results = []
+        
+        for sat_name, sat_data in self.satellites.items():
+            for tp in sat_data['transponders']:
+                if min_freq <= tp['freq'] <= max_freq:
+                    results.append({
+                        'satellite': sat_name,
+                        'transponder': tp
+                    })
+        
+        return results
+    
+    def analyze_cas_systems(self):
+        """Анализ систем CAS на разных спутниках."""
+        cas_summary = {}
+        
+        for sat_name, sat_data in self.satellites.items():
+            # В реальной системе здесь был бы парсинг реальных данных
+            # Для демонстрации используем статические данные
+            if 'Hotbird' in sat_name:
+                cas_summary[sat_name] = ['Viaccess', 'Nagravision', 'Conax']
+            elif 'Yamal' in sat_name:
+                cas_summary[sat_name] = ['DRECrypt', 'Viaccess']
+            elif 'Express' in sat_name:
+                cas_summary[sat_name] = ['Viaccess', 'PowerVu']
+        
+        return cas_summary
+    
+    def calculate_coverage(self, satellite, receiver_position):
+        """
+        Расчёт возможности приёма со спутника.
+        Упрощённая модель - в реальности нужны точные расчёты.
+        """
+        # Простая проверка: спутник должен быть виден над горизонтом
+        # В реальности需要考虑 many factors: elevation, azimuth, etc.
+        return True
+
+# Пример использования
+analyzer = SatelliteAnalyzer()
+
+# Поиск транспондеров в диапазоне 10900-11100 МГц
+print("Транспондеры в диапазоне 10900-11100 МГц:")
+print("=" * 50)
+transponders = analyzer.find_transponders_by_frequency((10900, 11100))
+for item in transponders:
+    tp = item['transponder']
+    print(f"{item['satellite']}: {tp['freq']} {tp['pol']} {tp['sr']} {tp['fec']} {tp['system']}")
+
+# Анализ систем CAS
+print("\n\nСистемы CAS на спутниках:")
+print("=" * 50)
+cas_systems = analyzer.analyze_cas_systems()
+for sat, systems in cas_systems.items():
+    print(f"{sat}: {', '.join(systems)}")
+
+# Проверка покрытия
+print("\n\nПроверка покрытия:")
+print("=" * 50)
+receiver_pos = (55.7558, 37.6173)  # Москва
+for sat in analyzer.satellites.keys():
+    covered = analyzer.calculate_coverage(sat, receiver_pos)
+    print(f"{sat}: {'Доступен' if covered else 'Недоступен'}")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эмуляция простого ресивера с CAS</h3>
+
+                    <div class="code-block"><pre># Упрощённая эмуляция ресивера с поддержкой CAS
+class VirtualReceiver:
+    def __init__(self, receiver_id):
+        self.receiver_id = receiver_id
+        self.cam_module = None
+        self.smart_card = None
+        self.subscriptions = set()
+        
+    def insert_cam(self, cam_type):
+        """Установка CAM-модуля."""
+        self.cam_module = {
+            'type': cam_type,
+            'inserted': True,
+            'initialized': False
+        }
+        print(f"[{self.receiver_id}] Установлен CAM модуль: {cam_type}")
+    
+    def insert_smartcard(self, card_data):
+        """Установка смарт-карты."""
+        self.smart_card = card_data
+        print(f"[{self.receiver_id}] Установлена смарт-карта: {card_data.get('id', 'Unknown')}")
+        
+        # Активация подписок
+        self.subscriptions = set(card_data.get('subscriptions', []))
+        print(f"[{self.receiver_id}] Активные подписки: {', '.join(self.subscriptions) if self.subscriptions else 'Нет'}")
+    
+    def tune_transponder(self, freq, pol, sr):
+        """Настройка на транспондер."""
+        print(f"[{self.receiver_id}] Настроен на: {freq} МГц {pol}, SR: {sr}")
+        return {
+            'locked': True,
+            'signal_strength': 85,  # %
+            'signal_quality': 92,   # %
+            'ber': 1e-8             # Bit Error Rate
+        }
+    
+    def process_ecm(self, ecm_packet):
+        """Обработка ECM пакета."""
+        if not self.cam_module or not self.smart_card:
+            print(f"[{self.receiver_id}] Ошибка: нет CAM или карты")
+            return None
+        
+        channel_id = ecm_packet.get('channel_id')
+        
+        # Проверка подписки
+        if channel_id not in self.subscriptions:
+            print(f"[{self.receiver_id}] Нет подписки на канал: {channel_id}")
+            return None
+        
+        # Эмуляция дешифрования
+        print(f"[{self.receiver_id}] Дешифрование ECM для канала: {channel_id}")
+        
+        # В реальной системе здесь было бы обращение к CAM модулю
+        # который обращается к смарт-карте для дешифрования CW
+        cw = bytes([0xAA] * 16)  # Заглушка для Control Word
+        return cw
+    
+    def descramble_ts(self, scrambled_ts, cw):
+        """Дескремблирование транспортного потока."""
+        if not cw:
+            print(f"[{self.receiver_id}] Ошибка: нет Control Word")
+            return None
+        
+        # Упрощённое дескремблирование (XOR)
+        descrambled = bytearray()
+        for i, byte in enumerate(scrambled_ts):
+            descrambled.append(byte ^ cw[i % len(cw)])
+        
+        print(f"[{self.receiver_id}] TS дескремблирован ({len(descrambled)} байт)")
+        return bytes(descrambled)
+    
+    def play_channel(self, channel_info):
+        """Эмуляция воспроизведения канала."""
+        print(f"[{self.receiver_id}] Воспроизведение канала: {channel_info['name']}")
+        print(f"  Качество: {channel_info.get('quality', 'HD')}")
+        print(f"  Язык: {channel_info.get('language', 'Russian')}")
+        print(f"  Кодек: {channel_info.get('codec', 'H.264')}")
+        
+        # Эмуляция обработки потока
+        return {
+            'playing': True,
+            'resolution': channel_info.get('resolution', '1920x1080'),
+            'bitrate': channel_info.get('bitrate', '8 Mbps')
+        }
+
+# Пример использования виртуального ресивера
+print("Демонстрация работы виртуального ресивера")
+print("=" * 60)
+
+# Создание ресивера
+receiver = VirtualReceiver("LivingRoom-STB")
+
+# Установка CAM модуля
+receiver.insert_cam("Conax CAM v3.0")
+
+# Установка смарт-карты
+card_data = {
+    'id': 'CARD_0012345678',
+    'provider': 'НТВ-Плюс',
+    'subscriptions': ['PREMIUM_SPORTS', 'MOVIE_CHANNELS', 'DOCUMENTARY'],
+    'valid_until': '2025-12-31'
+}
+receiver.insert_smartcard(card_data)
+
+# Настройка на транспондер
+tune_result = receiver.tune_transponder(12360, 'V', 27500)
+print(f"Сигнал: {tune_result['signal_strength']}%, Качество: {tune_result['signal_quality']}%")
+
+# Обработка ECM (имитация приёма от спутника)
+ecm_packet = {
+    'channel_id': 'PREMIUM_SPORTS',
+    'encrypted_cw': b'\x00' * 16,  # Зашифрованный CW
+    'timestamp': 1672531200
+}
+cw = receiver.process_ecm(ecm_packet)
+
+if cw:
+    # Дескремблирование TS
+    scrambled_ts = b'\x47\x40\x00\x10\x00' * 100  # Имитация зашифрованного TS
+    descrambled_ts = receiver.descramble_ts(scrambled_ts, cw)
+    
+    # Воспроизведение канала
+    channel_info = {
+        'name': 'PREMIUM_SPORTS',
+        'quality': 'HD',
+        'language': 'Russian',
+        'codec': 'H.264',
+        'resolution': '1920x1080',
+        'bitrate': '10 Mbps'
+    }
+    play_result = receiver.play_channel(channel_info)
+    
+    print(f"\nРезультат воспроизведения:")
+    print(f"  Статус: {'Воспроизводится' if play_result['playing'] else 'Ошибка'}")
+    print(f"  Разрешение: {play_result['resolution']}")
+    print(f"  Битрейт: {play_result['bitrate']}")
+
+# Попытка воспроизведения канала без подписки
+print("\n" + "=" * 60)
+print("Попытка доступа к каналу без подписки:")
+ecm_no_sub = {'channel_id': 'PREMIUM_PORN', 'encrypted_cw': b'\x00' * 16}
+cw_no_sub = receiver.process_ecm(ecm_no_sub)
+if not cw_no_sub:
+    print("Доступ запрещён: нет соответствующей подписки")</pre>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Мониторинг и анализ спутникового трафика</h3>
+
+                    <div class="code-block"><pre># Инструмент для мониторинга спутникового трафика
+import json
+from datetime import datetime, timedelta
+
+class SatelliteTrafficMonitor:
+    def __init__(self):
+        self.traffic_log = []
+        self.alerts = []
+        
+    def log_transponder_activity(self, transponder_info, activity_type):
+        """Логирование активности транспондера."""
+        log_entry = {
+            'timestamp': datetime.now().isoformat(),
+            'transponder': transponder_info,
+            'activity_type': activity_type,
+            'receiver_id': 'MONITOR_001'
+        }
+        self.traffic_log.append(log_entry)
+        
+        # Проверка на подозрительную активность
+        self._check_for_suspicious_activity(log_entry)
+        
+        return log_entry
+    
+    def _check_for_suspicious_activity(self, log_entry):
+        """Проверка на подозрительную активность."""
+        suspicious = False
+        reason = ""
+        
+        # Примеры проверок:
+        # 1. Частая смена транспондеров
+        recent_logs = [l for l in self.traffic_log[-10:] 
+                      if l['activity_type'] == 'tune']
+        if len(recent_logs) > 5:
+            time_range = (datetime.fromisoformat(recent_logs[-1]['timestamp']) - 
+                         datetime.fromisoformat(recent_logs[0]['timestamp']))
+            if time_range.total_seconds() < 10:
+                suspicious = True
+                reason = "Чрезмерно частая смена транспондеров"
+        
+        # 2. Попытки доступа к зашифрованным каналам без подписки
+        if (log_entry['activity_type'] == 'ecm_request' and 
+            'encrypted' in log_entry.get('transponder', {}).get('flags', [])):
+            # Проверяем, есть ли успешные дешифрования
+            successful_decrypts = [l for l in self.traffic_log[-20:] 
+                                  if l['activity_type'] == 'decrypt_success']
+            if len(successful_decrypts) == 0:
+                suspicious = True
+                reason = "Множественные неудачные попытки дешифрования"
+        
+        if suspicious:
+            alert = {
+                'timestamp': datetime.now().isoformat(),
+                'level': 'WARNING',
+                'receiver': log_entry['receiver_id'],
+                'reason': reason,
+                'details': log_entry
+            }
+            self.alerts.append(alert)
+            print(f"ПРЕДУПРЕЖДЕНИЕ: {reason}")
+    
+    def generate_report(self, hours=24):
+        """Генерация отчёта за указанный период."""
+        cutoff_time = datetime.now() - timedelta(hours=hours)
+        relevant_logs = [l for l in self.traffic_log 
+                        if datetime.fromisoformat(l['timestamp']) > cutoff_time]
+        
+        if not relevant_logs:
+            return {"message": "Нет данных за указанный период"}
+        
+        # Статистика по типам активности
+        activity_stats = {}
+        for log in relevant_logs:
+            activity_type = log['activity_type']
+            activity_stats[activity_type] = activity_stats.get(activity_type, 0) + 1
+        
+        # Статистика по транспондерам
+        transponder_stats = {}
+        for log in relevant_logs:
+            tp = log.get('transponder', {}).get('frequency', 'unknown')
+            transponder_stats[tp] = transponder_stats.get(tp, 0) + 1
+        
+        report = {
+            'period_hours': hours,
+            'total_entries': len(relevant_logs),
+            'activity_statistics': activity_stats,
+            'transponder_statistics': transponder_stats,
+            'alerts_count': len([a for a in self.alerts 
+                                if datetime.fromisoformat(a['timestamp']) > cutoff_time]),
+            'sample_entries': relevant_logs[:5]  # Первые 5 записей для примера
+        }
+        
+        return report
+
+# Пример использования монитора
+print("Демонстрация мониторинга спутникового трафика")
+print("=" * 60)
+
+monitor = SatelliteTrafficMonitor()
+
+# Имитация активности
+activities = [
+    {'frequency': 12360, 'pol': 'V', 'sr': 27500, 'flags': ['encrypted']},
+    {'frequency': 12437, 'pol': 'H', 'sr': 30000, 'flags': ['free']},
+    {'frequency': 12522, 'pol': 'V', 'sr': 27500, 'flags': ['encrypted']},
+]
+
+# Логирование различной активности
+for i in range(15):
+    import random
+    import time
+    
+    tp = random.choice(activities)
+    activity_type = random.choice(['tune', 'ecm_request', 'decrypt_success', 'decrypt_failure'])
+    
+    monitor.log_transponder_activity(tp, activity_type)
+    time.sleep(0.1)  # Имитация времени между событиями
+
+# Генерация отчёта
+print("\nОтчёт за последние 24 часа:")
+print("=" * 60)
+report = monitor.generate_report(hours=24)
+print(json.dumps(report, indent=2, ensure_ascii=False))
+
+# Вывод предупреждений
+if monitor.alerts:
+    print(f"\nОбнаружено предупреждений: {len(monitor.alerts)}")
+    for alert in monitor.alerts[-3:]:  # Последние 3 предупреждения
+        print(f"  [{alert['level']}] {alert['reason']}")
+else:
+    print("\nПредупреждений не обнаружено.")
+
+print("\nВывод: системы мониторинга помогают обнаруживать подозрительную")
+print("активность и потенциальные атаки на спутниковые системы.")</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Будущее спутниковой передачи мультимедиа -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Будущее спутниковой передачи мультимедиа</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Перспективные технологии и тренды</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Спутниковые группировки LEO</div>
+                            <div class="text-content">
+                                <p>Создание крупных группировок низкоорбитальных спутников для глобального покрытия с низкой задержкой.</p>
+                                <ul>
+                                    <li><strong>Starlink (SpaceX)</strong>: тысячи спутников для широкополосного интернета</li>
+                                    <li><strong>OneWeb</strong>: глобальная спутниковая сеть для интернета и услуг связи</li>
+                                    <li><strong>Kuiper (Amazon)</strong>: планируемая группировка для облачных услуг</li>
+                                    <li><strong>Преимущества</strong>: низкая задержка (20-40 мс), глобальное покрытие</li>
+                                    <li><strong>Вызовы</strong>: координация тысяч спутников, космический мусор</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Гибридные спутниково-земные системы</div>
+                            <div class="text-content">
+                                <p>Интеграция спутниковых и наземных сетей для создания seamless connectivity.</p>
+                                <ul>
+                                    <li><strong>5G NTN (Non-Terrestrial Networks)</strong>: спутники как часть сетей 5G</li>
+                                    <li><strong>Multicast ABR</strong>: спутник для широковещания, 5G для обратного канала</li>
+                                    <li><strong>Edge caching</strong>: кэширование контента на спутниках для уменьшения задержки</li>
+                                    <li><strong>Применение</strong>: IoT, connected cars, remote areas coverage</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Квантовое шифрование для CAS</div>
+                            <div class="text-content">
+                                <p>Использование квантовой криптографии для абсолютной защиты спутниковой связи.</p>
+                                <ul>
+                                    <li><strong>Quantum Key Distribution (QKD)</strong>: распределение ключей с физической безопасностью</li>
+                                    <li><strong>Спутниковые QKD системы</strong>: Micius (Китай), planned European systems</li>
+                                    <li><strong>Преимущества</strong>: защита от будущих квантовых компьютеров</li>
+                                    <li><strong>Ограничения</strong>: сложность реализации, необходимость прямой видимости</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="formula">
+                        <div class="formula-title">Ёмкость будущих спутниковых систем</div>
+                        <div class="katex-formula" id="formula3"></div>
+                        <div class="formula-explanation">
+                            <p>где \( C_{total} \) - общая ёмкость системы, \( N_{sat} \) - количество спутников, \( B_{sat} \) - пропускная способность одного спутника, \( \eta_{spectral} \) - спектральная эффективность. Будущие системы смогут обеспечивать терабитные скорости.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция стандартов и кодеков</h3>
+
+                    <div class="text-content">
+                        <p>Развитие стандартов вещания и кодеков сжатия для поддержки иммерсивного контента.</p>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">DVB-S3</div>
+                            <div class="metric-label">Следующее поколение<br>спутникового стандарта</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">8K & Beyond</div>
+                            <div class="metric-label">Сверхвысокое разрешение<br>16K, 32K в перспективе</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">H.266/VVC</div>
+                            <div class="metric-label">Кодек следующего поколения<br>+50% эффективности</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">MPEG-5 LCEVC</div>
+                            <div class="metric-label">Гибридное кодирование<br>для эффективности</div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Ключевые направления развития:</div>
+                        <ul>
+                            <li><strong>Immersive media</strong>: VR/AR контент через спутник, 360° видео, light field displays</li>
+                            <li><strong>Personalized broadcasting</strong>: targeted advertising, индивидуальные потоки, context-aware delivery</li>
+                            <li><strong>AI-enhanced compression</strong>: neural network based codecs, content-aware encoding, super-resolution</li>
+                            <li><strong>Green satellite technology</strong>: energy-efficient satellites, sustainable orbit management</li>
+                            <li><strong>Inter-satellite links</strong.: laser communication between satellites for global mesh networks</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Прогноз развития до 2030 года</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Прогноз развития спутниковой передачи мультимедиа до 2030
+                                section 2025
+                                    Массовое развёртывание LEO : Starlink, OneWeb<br>достигают полной операционной готовности
+                                    Первые гибридные 5G-satellite : Коммерческие услуги<br>интегрированных сетей
+                                section 2026-2027
+                                    DVB-S3 стандартизация : Новый стандарт<br>с поддержкой терабитных скоростей
+                                    Квантовое шифрование : Первые коммерческие<br>спутниковые QKD системы
+                                section 2028-2029
+                                    Иммерсивное вещание : Массовое распространение<br>VR/AR контента через спутник
+                                    AI-оптимизированные сети : Самооптимизирующиеся<br>спутниковые группировки
+                                section 2030 и далее
+                                    Терабитные спутники : Отдельные спутники<br>с пропускной способностью >1 Тбит/с
+                                    Полная конвергенция : Бесшовная интеграция<br>спутниковых, наземных и воздушных сетей
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний по спутниковой передаче мультимедиа</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Какой стандарт цифрового спутникового вещания использует коды LDPC+BCH для коррекции ошибок и поддерживает модуляции до 32APSK?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">DVB-S</div>
+                        <div class="quiz-option" data-correct="true">DVB-S2</div>
+                        <div class="quiz-option" data-correct="false">DVB-T2</div>
+                        <div class="quiz-option" data-correct="false">ATSC 3.0</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! DVB-S2, стандартизированный в 2005 году, использует современные коды LDPC в сочетании с кодами BCH и поддерживает модуляции QPSK, 8PSK, 16APSK и 32APSK[reference:11].</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какая система условного доступа была разработана Scientific Atlanta и изначально использовалась для военных нужд и American Forces Network?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Nagravision</div>
+                        <div class="quiz-option" data-correct="false">Viaccess</div>
+                        <div class="quiz-option" data-correct="true">PowerVu</div>
+                        <div class="quiz-option" data-correct="false">Conax</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! PowerVu была разработана Scientific Atlanta для профессионального и военного применения и долгое время использовалась для вещания American Forces Network[reference:12].</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Какой открытый стандарт шифрования, разработанный EBU, используется для временной защиты спортивных событий и новостных репортажей?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">DRECrypt</div>
+                        <div class="quiz-option" data-correct="false">VideoGuard</div>
+                        <div class="quiz-option" data-correct="true">BISS</div>
+                        <div class="quiz-option" data-correct="false">Irdeto</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! BISS (Basic Interoperable Scrambling System) — это открытый стандарт, разработанный European Broadcasting Union для защиты временных спутниковых feeds, таких как спортивные события и новостные репортажи[reference:13].</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой российский стандарт CAS соответствует ГОСТ 28147-89 и используется компанией ЭР-Телеком?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Viaccess</div>
+                        <div class="quiz-option" data-correct="false">Nagravision</div>
+                        <div class="quiz-option" data-correct="false">PowerVu</div>
+                        <div class="quiz-option" data-correct="true">Роскрипт</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Роскрипт — это российская система условного доступа, соответствующая ГОСТ 28147-89, которая используется компанией ЭР-Телеком параллельно с системой Nagra[reference:14].</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Формула 1: Уровень сигнала
+            katex.render("P_r = \\frac{P_t G_t G_r \\lambda^2}{(4\\pi R)^2 L}", document.getElementById('formula1'), {
+                throwOnError: false
+            });
+
+            // Формула 2: Экономический ущерб
+            katex.render("L = S \\times R \\times P", document.getElementById('formula2'), {
+                throwOnError: false
+            });
+
+            // Формула 3: Ёмкость системы
+            katex.render("C_{total} = N_{sat} \\times B_{sat} \\times \\eta_{spectral}", document.getElementById('formula3'), {
+                throwOnError: false
+            });
+
+            // Исправление отображения строчных формул
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
