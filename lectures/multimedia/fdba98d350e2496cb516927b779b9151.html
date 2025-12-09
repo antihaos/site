@@ -138,6 +138,7 @@
         }
 
         .code-block {
+            display: :none;
             background: #1e293b;
             color: var(--text-primary);
             padding: 20px;
@@ -692,7 +693,7 @@
                     <h3 class="subsection-title">Ключевые компоненты системы</h3>
                     <div class="diagram">
                         <div class="mermaid">
-                            flowchart TD
+                            graph TD
                                 A[Архитектура спутниковой системы] --> B[Земной сегмент]
                                 A --> C[Космический сегмент]
                                 A --> D[Пользовательский сегмент]
@@ -728,7 +729,6 @@
                     </div>
                     <div class="diagram">
                         <div class="mermaid">
-                            %% Схема пути передачи спутникового сигнала
                             graph TD
                                 A[Медиа-контент<br>Видео, аудио] --> B[Центр вещания]
                                 B --> C{Кодирование и мультиплексирование<br>MPEG-TS/DVB}
