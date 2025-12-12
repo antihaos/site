@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Автоматизация развертывания инфраструктуры в облаке - Конспект лекции</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: 'Пример кода';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(0, 212, 255, 0.2) 0%, rgba(255, 46, 99, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .architecture-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .architecture-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .architecture-title {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tech-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-name {
+            font-size: 1.2em;
+            color: var(--accent-secondary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        .quiz-section {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-secondary);
+        }
+
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .quiz-options {
+            margin-bottom: 15px;
+        }
+
+        .quiz-option {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .quiz-option.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+        }
+
+        .quiz-option.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+        }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .quiz-feedback.correct {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            display: block;
+        }
+
+        .quiz-feedback.incorrect {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            display: block;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 46, 99, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .use-case-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .use-case-title {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+                width: 80%;
+                right: 10%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+
+            .navigation.active {
+                display: block;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .lecture-title {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .architecture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .use-case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+    <div class="navigation" id="navigation">
+        <a href="#section1" class="nav-item">Введение в IaC</a>
+        <a href="#section2" class="nav-item">Принципы IaC</a>
+        <a href="#section3" class="nav-item">Инструменты автоматизации</a>
+        <a href="#section4" class="nav-item">Terraform и CloudFormation</a>
+        <a href="#section5" class="nav-item">Ansible и конфигурация</a>
+        <a href="#section6" class="nav-item">CI/CD для инфраструктуры</a>
+        <a href="#section7" class="nav-item">Тестирование инфраструктуры</a>
+        <a href="#section8" class="nav-item">Безопасность и Compliance</a>
+        <a href="#section9" class="nav-item">Паттерны и практики</a>
+        <a href="#quiz" class="nav-item">Тест</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Автоматизация развертывания инфраструктуры в облаке</h1>
+            <p class="lecture-subtitle">Infrastructure as Code (IaC): принципы, инструменты и практики</p>
+        </div>
+
+        <div class="content">
+            <!-- Раздел 1: Введение в IaC -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в Infrastructure as Code</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Что такое Infrastructure as Code</h3>
+                    <div class="text-content">
+                        <p>Infrastructure as Code (IaC) — это подход к управлению и provisioning инфраструктуры с использованием машинно-читаемых файлов конфигурации, а не интерактивных инструментов настройки. IaC позволяет автоматизировать создание, изменение и удаление инфраструктурных ресурсов, обеспечивая воспроизводимость, версионирование и контроль изменений.</p>
+                    </div>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TB
+                                A[Разработчик/Оператор] --> B[Код инфраструктуры]
+                                B --> C[Файлы конфигурации<br>HCL, YAML, JSON]
+                                C --> D[Инструмент IaC]
+                                D --> E[Планирование изменений]
+                                D --> F[Применение конфигурации]
+                                E --> G[Просмотр изменений<br>перед применением]
+                                F --> H[Облачная инфраструктура<br>VMs, сети, БД, балансировщики]
+                                
+                                style A fill:#4ecdc4
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#ff6b6b
+                        </div>
+                    </div>
+
+                    <div class="text-content">
+                        <p><strong>Ключевые характеристики IaC:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Версионирование кода</span>: инфраструктура описывается в файлах, которые можно хранить в Git</li>
+                            <li><span class="highlight">Идемпотентность</span>: многократное применение конфигурации дает одинаковый результат</li>
+                            <li><span class="highlight">Воспроизводимость</span>: одинаковые среды могут быть созданы многократно</li>
+                            <li><span class="highlight">Автоматизация</span>: полное исключение ручных операций</li>
+                            <li><span class="highlight">Документирование</span>: код служит документацией текущей инфраструктуры</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">90%</div>
+                            <div class="metric-label">Сокращение времени развертывания</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">60%</div>
+                            <div class="metric-label">Снижение ошибок конфигурации</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">85%</div>
+                            <div class="metric-label">Увеличение скорости восстановления</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">100%</div>
+                            <div class="metric-label">Трассируемость изменений</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция управления инфраструктурой</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Эволюция управления инфраструктурой
+                                section 1990-2000
+                                    Ручное управление : Физические серверы - ручная настройка
+                                    Скрипты : Bash, PowerShell - автоматизация задач
+                                section 2001-2010
+                                    Конфигурационные менеджеры : Puppet, Chef - управление конфигурацией
+                                    Виртуализация : VMware, Hyper-V -виртуальные машины
+                                section 2011-2015
+                                    Облачные платформы : AWS, Azure - API для инфраструктуры
+                                    Контейнеризация : Docker - стандартизация приложений
+                                section 2014-2016
+                                    Инфраструктура как код : Terraform - декларативное управление
+                                    Immutable инфраструктура : Packer - образы вместо обновлений
+                                section 2017-2020
+                                    GitOps : ArgoCD, Flux - управление через Git
+                                    Policy as Code : OPA, Sentinel - политики в коде
+                                section 2021-2025
+                                    AIOps : ИИ для управления - и оптимизации
+                                    FinOps : Управление затратами - через код
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые моменты:</div>
+                    <ul>
+                        <li>IaC превращает инфраструктуру из "искусства" в инженерную дисциплину</li>
+                        <li>Код инфраструктуры можно тестировать, рецензировать и версионировать как прикладной код</li>
+                        <li>Автоматизация снижает человеческие ошибки и ускоряет развертывание</li>
+                        <li>IaC является фундаментом для DevOps и современных практик разработки</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Принципы IaC -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Принципы и методологии Infrastructure as Code</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные принципы IaC</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Принципы IaC] --> B[Идемпотентность]
+                                A --> C[Декларативность]
+                                A --> D[Версионирование]
+                                A --> E[Модульность]
+                                A --> F[Тестируемость]
+                                
+                                B --> B1[Повторное применение<br>дает тот же результат]
+                                C --> C1[Описание желаемого<br>состояния]
+                                D --> D1[История изменений<br>в системе контроля версий]
+                                E --> E1[Переиспользуемые<br>компоненты]
+                                F --> F1[Автоматизированное<br>тестирование конфигураций]
+                                
+                                style B fill:#4ecdc4
+                                style C fill:#4ecdc4
+                                style D fill:#4ecdc4
+                                style E fill:#4ecdc4
+                                style F fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Подходы к управлению инфраструктурой</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Подход</th>
+                                <th>Описание</th>
+                                <th>Преимущества</th>
+                                <th>Инструменты</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Декларативный</td>
+                                <td>Описание желаемого состояния инфраструктуры</td>
+                                <td>Простота, предсказуемость, идемпотентность</td>
+                                <td>Terraform, CloudFormation, Pulumi</td>
+                            </tr>
+                            <tr>
+                                <td>Императивный</td>
+                                <td>Описание шагов для достижения состояния</td>
+                                <td>Гибкость, контроль над процессом</td>
+                                <td>Ansible, Chef, Puppet</td>
+                            </tr>
+                            <tr>
+                                <td>Mutable</td>
+                                <td>Обновление существующей инфраструктуры</td>
+                                <td>Эффективное использование ресурсов</td>
+                                <td>Ansible, Chef, SaltStack</td>
+                            </tr>
+                            <tr>
+                                <td>Immutable</td>
+                                <td>Создание новых образов вместо обновления</td>
+                                <td>Стабильность, простота отката</td>
+                                <td>Packer, Docker, AMI/Golden Images, Boxes/Коробки</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Жизненный цикл инфраструктуры как кода</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart LR
+                                A[Написание кода] --> B[Проверка кода]
+                                B --> C[Планирование изменений]
+                                C --> D[Применение конфигурации]
+                                D --> E[Тестирование]
+                                E --> F[Мониторинг]
+                                F --> G[Обнаружение дрейфа]
+                                G -->|Изменения| A
+                                G -->|Соответствие| F
+                                
+                                subgraph "Управление версиями"
+                                    A
+                                    B
+                                end
+                                
+                                subgraph "Выполнение"
+                                    C
+                                    D
+                                end
+                                
+                                subgraph "Валидация"
+                                    E
+                                    F
+                                    G
+                                end
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Пример декларативного описания инфраструктуры на HCL (Terraform)
+# Файл: main.tf
+
+terraform {
+  required_version = ">= 1.0.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "eu-west-1"
+  
+  default_tags {
+    tags = {
+      Environment = "production"
+      ManagedBy   = "terraform"
+      Project     = "ecommerce-platform"
+    }
+  }
+}
+
+# Модуль VPC
+module "vpc" {
+  source = "./modules/vpc"
+  
+  name               = "production-vpc"
+  cidr               = "10.0.0.0/16"
+  azs                = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  private_subnets    = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets     = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+  enable_nat_gateway = true
+  single_nat_gateway = false
+}
+
+# Модуль EKS кластера
+module "eks" {
+  source = "./modules/eks"
+  
+  cluster_name    = "production-cluster"
+  cluster_version = "1.27"
+  
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+  
+  node_groups = {
+    general = {
+      desired_size = 3
+      max_size     = 10
+      min_size     = 3
+      
+      instance_types = ["t3.medium"]
+      capacity_type  = "ON_DEMAND"
+    }
+    
+    spot = {
+      desired_size = 2
+      max_size     = 8
+      min_size     = 2
+      
+      instance_types = ["t3.medium", "t3a.medium"]
+      capacity_type  = "SPOT"
+    }
+  }
+}
+
+# Модуль базы данных
+module "database" {
+  source = "./modules/rds"
+  
+  identifier = "production-db"
+  engine     = "postgres"
+  version    = "14.5"
+  
+  instance_class    = "db.t3.large"
+  allocated_storage = 100
+  
+  db_name  = "ecommerce"
+  username = var.db_username
+  password = var.db_password
+  
+  vpc_security_group_ids = [module.vpc.default_security_group_id]
+  subnet_ids            = module.vpc.private_subnets
+  
+  backup_retention_period = 7
+  skip_final_snapshot     = false
+}
+
+# Модуль мониторинга
+module "monitoring" {
+  source = "./modules/monitoring"
+  
+  cluster_name = module.eks.cluster_name
+  vpc_id       = module.vpc.vpc_id
+  
+  alarms = {
+    high_cpu = {
+      threshold = 80
+      period    = 300
+    }
+    
+    low_disk = {
+      threshold = 20
+      period    = 600
+    }
+  }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Инструменты автоматизации -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Инструменты автоматизации инфраструктуры</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Категории инструментов IaC</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Provisioning Tools</div>
+                            <div class="text-content">
+                                <p>Инструменты для создания и управления облачными ресурсами.</p>
+                                <ul>
+                                    <li><strong>Terraform</strong>: мультиоблачный, декларативный</li>
+                                    <li><strong>AWS CloudFormation</strong>: нативный для AWS</li>
+                                    <li><strong>Azure Resource Manager</strong>: нативный для Azure</li>
+                                    <li><strong>Google Deployment Manager</strong>: нативный для GCP</li>
+                                    <li><strong>Pulumi</strong>: использование языков программирования</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Configuration Management</div>
+                            <div class="text-content">
+                                <p>Инструменты для настройки и управления конфигурацией серверов.</p>
+                                <ul>
+                                    <li><strong>Ansible</strong>: агентless, YAML-based</li>
+                                    <li><strong>Chef</strong>: Ruby-based, мощная экосистема</li>
+                                    <li><strong>Puppet</strong>: декларативный, enterprise-фокус</li>
+                                    <li><strong>SaltStack</strong>: быстрый, event-driven</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Container Orchestration</div>
+                            <div class="text-content">
+                                <p>Инструменты для управления контейнеризированными приложениями.</p>
+                                <ul>
+                                    <li><strong>Kubernetes</strong>: стандарт де-факто</li>
+                                    <li><strong>Docker Swarm</strong>: простая оркестрация</li>
+                                    <li><strong>Nomad</strong>: от HashiCorp, проще K8s</li>
+                                    <li><strong>Amazon ECS</strong>: managed сервис от AWS</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Сравнение инструментов Provisioning</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Инструмент</th>
+                                <th>Провайдер</th>
+                                <th>Язык</th>
+                                <th>Парадигма</th>
+                                <th>Особенности</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Terraform</td>
+                                <td>HashiCorp</td>
+                                <td>HCL, JSON</td>
+                                <td>Декларативная</td>
+                                <td>Мультиоблачный, состояние (state), модули</td>
+                            </tr>
+                            <tr>
+                                <td>CloudFormation</td>
+                                <td>AWS</td>
+                                <td>YAML, JSON</td>
+                                <td>Декларативная</td>
+                                <td>Глубокая интеграция с AWS, измененияets</td>
+                            </tr>
+                            <tr>
+                                <td>ARM Templates</td>
+                                <td>Microsoft</td>
+                                <td>JSON</td>
+                                <td>Декларативная</td>
+                                <td>Bicep (DSL), интеграция с Azure DevOps</td>
+                            </tr>
+                            <tr>
+                                <td>Pulumi</td>
+                                <td>Pulumi Corp</td>
+                                <td>TypeScript, Python, Go, .NET</td>
+                                <td>Императивная/Декларативная</td>
+                                <td>Использование языков программирования</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Российские инструменты и решения</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Terraform + Российские облака</div>
+                            <div class="text-content">
+                                <p>Использование Terraform с провайдерами для российских облачных платформ.</p>
+                                <ul>
+                                    <li><strong>Yandex Cloud Provider</strong>: официальный провайдер для Yandex.Cloud</li>
+                                    <li><strong>SberCloud Terraform</strong>: поддержка СберОблака</li>
+                                    <li><strong>Selectel Provider</strong>: управление ресурсами Selectel</li>
+                                    <li><strong>VK Cloud Solutions</td>
+                                        <td>Mail.ru Cloud Solutions</td>
+                                        <td>Интеграция с облаком VK</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Ansible для российских систем</div>
+                            <div class="text-content">
+                                <p>Использование Ansible для управления российскими ОС и ПО.</p>
+                                <ul>
+                                    <li><strong>Astra Linux</strong>: модули для российской ОС</li>
+                                    <li><strong>ALT Linux</strong>: поддержка дистрибутива</li>
+                                    <li><strong>Russian PostgreSQL</strong>: роли для настройки СУБД</li>
+                                    <li><strong>Domestic software</strong>: модули для отечественного ПО</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Собственные разработки</div>
+                            <div class="text-content">
+                                <p>Российские инструменты для автоматизации инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>Cloud.ru Stack</strong>: фреймворк для облачных развертываний</li>
+                                    <li><strong>RUVDS API</strong>: автоматизация российского хостинг-провайдера</li>
+                                    <li><strong>Инструменты Госсектора</strong>: специализированные решения для государственных организаций</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Terraform и CloudFormation -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Terraform и CloudFormation: глубокое погружение</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура Terraform</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Terraform Configuration] --> B[terraform plan]
+                                B --> C[Execution Plan]
+                                C --> D[terraform apply]
+                                D --> E[Terraform Core]
+                                E --> F[Provider Plugins]
+                                F --> G[Cloud APIs]
+                                G --> H[Cloud Resources]
+                                
+                                I[State File] --> E
+                                E --> I
+                                
+                                style A fill:#4ecdc4
+                                style E fill:#ff6b6b
+                                style F fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Ключевые концепции Terraform</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">State Management</div>
+                            <div class="text-content">
+                                <p>Terraform state хранит связь между ресурсами в коде и реальными облачными ресурсами.</p>
+                                <ul>
+                                    <li><strong>Backends</strong>: local, S3, Azure Storage, GCS</li>
+                                    <li><strong>State Locking</strong>: предотвращение параллельных изменений</li>
+                                    <li><strong>State Security</strong>: шифрование, управление доступом</li>
+                                    <li><strong>State Migration</strong>: перемещение между бэкендами</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Modules и Reusability</div>
+                            <div class="text-content">
+                                <p>Модули позволяют создавать переиспользуемые компоненты инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>Local Modules</strong>: модули в том же репозитории</li>
+                                    <li><strong>Registry Modules</strong>: публичные модули из Terraform Registry</li>
+                                    <li><strong>Private Modules</strong>: корпоративные модули в приватных registry</li>
+                                    <li><strong>Module Composition</strong>: комбинирование модулей для сложных систем</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Workspaces и Environments</div>
+                            <div class="text-content">
+                                <p>Управление различными окружениями (dev, staging, production).</p>
+                                <ul>
+                                    <li><strong>Terraform Workspaces</strong>: изоляция state для разных окружений</li>
+                                    <li><strong>Directory per Env</strong>: отдельные директории для каждого окружения</li>
+                                    <li><strong>Terragrunt</strong>: инструмент для управления множеством конфигураций</li>
+                                    <li><strong>Variables и Workspaces</strong>: динамическая конфигурация через переменные</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Пример модуля Terraform для безопасной VPC
+# Файл: modules/secure-vpc/main.tf
+
+variable "name" {
+  description = "Имя VPC"
+  type        = string
+}
+
+variable "cidr" {
+  description = "CIDR блок для VPC"
+  type        = string
+}
+
+variable "azs" {
+  description = "Availability Zones"
+  type        = list(string)
+}
+
+variable "public_subnet_cidrs" {
+  description = "CIDR блоки для публичных подсетей"
+  type        = list(string)
+}
+
+variable "private_subnet_cidrs" {
+  description = "CIDR блоки для приватных подсетей"
+  type        = list(string)
+}
+
+resource "aws_vpc" "main" {
+  cidr_block           = var.cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  
+  tags = {
+    Name = var.name
+  }
+}
+
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+  
+  tags = {
+    Name = "${var.name}-igw"
+  }
+}
+
+resource "aws_subnet" "public" {
+  count             = length(var.public_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.public_subnet_cidrs[count.index]
+  availability_zone = var.azs[count.index % length(var.azs)]
+  
+  map_public_ip_on_launch = true
+  
+  tags = {
+    Name = "${var.name}-public-${count.index + 1}"
+    Type = "public"
+  }
+}
+
+resource "aws_subnet" "private" {
+  count             = length(var.private_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_subnet_cidrs[count.index]
+  availability_zone = var.azs[count.index % length(var.azs)]
+  
+  tags = {
+    Name = "${var.name}-private-${count.index + 1}"
+    Type = "private"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+  
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+  
+  tags = {
+    Name = "${var.name}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_eip" "nat" {
+  count = length(var.azs)
+  domain = "vpc"
+  
+  tags = {
+    Name = "${var.name}-nat-eip-${count.index + 1}"
+  }
+}
+
+resource "aws_nat_gateway" "main" {
+  count         = length(var.azs)
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = aws_subnet.public[count.index].id
+  
+  tags = {
+    Name = "${var.name}-nat-${count.index + 1}"
+  }
+  
+  depends_on = [aws_internet_gateway.main]
+}
+
+resource "aws_route_table" "private" {
+  count  = length(var.azs)
+  vpc_id = aws_vpc.main.id
+  
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main[count.index].id
+  }
+  
+  tags = {
+    Name = "${var.name}-private-rt-${count.index + 1}"
+  }
+}
+
+resource "aws_route_table_association" "private" {
+  count          = length(aws_subnet.private)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private[count.index % length(var.azs)].id
+}
+
+# Output values
+output "vpc_id" {
+  description = "ID созданной VPC"
+  value       = aws_vpc.main.id
+}
+
+output "public_subnet_ids" {
+  description = "ID публичных подсетей"
+  value       = aws_subnet.public[*].id
+}
+
+output "private_subnet_ids" {
+  description = "ID приватных подсетей"
+  value       = aws_subnet.private[*].id
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Ansible и конфигурация -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Ansible и управление конфигурацией</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Архитектура Ansible</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Ansible Control Node] --> B[Inventory]
+                                A --> C[Playbooks]
+                                A --> D[Modules]
+                                
+                                B --> E[Managed Nodes]
+                                C --> E
+                                D --> E
+                                
+                                E --> F[SSH/WinRM]
+                                E --> G[Python]
+                                
+                                style A fill:#ff6b6b
+                                style E fill:#4ecdc4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Ключевые компоненты Ansible</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Inventory</div>
+                            <div class="text-content">
+                                <p>Определение и организация управляемых узлов.</p>
+                                <ul>
+                                    <li><strong>Static Inventory</strong>: файлы INI или YAML</li>
+                                    <li><strong>Dynamic Inventory</strong>: скрипты для облачных провайдеров</li>
+                                    <li><strong>Inventory Groups</strong>: группировка хостов по ролям</li>
+                                    <li><strong>Inventory Variables</strong>: переменные на уровне групп и хостов</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Playbooks и Roles</div>
+                            <div class="text-content">
+                                <p>Playbooks описывают желаемое состояние, Roles организуют переиспользуемую логику.</p>
+                                <ul>
+                                    <li><strong>Playbooks</strong>: YAML файлы с последовательностью задач</li>
+                                    <li><strong>Roles</strong>: переиспользуемые коллекции задач, handlers, templates</li>
+                                    <li><strong>Tasks</strong>: отдельные операции на управляемых узлах</li>
+                                    <li><strong>Handlers</strong>: задачи, запускаемые по событию (notify)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Templates и Variables</div>
+                            <div class="text-content">
+                                <p>Динамическая генерация конфигурационных файлов с использованием переменных.</p>
+                                <ul>
+                                    <li><strong>Jinja2 Templates</strong>: шаблоны для конфигурационных файлов</li>
+                                    <li><strong>Variable Precedence</strong>: иерархия переменных в Ansible</li>
+                                    <li><strong>Vault</strong>: шифрование чувствительных данных</li>
+                                    <li><strong>Facts</strong>: автоматически собираемая информация о хостах</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre># Пример роли Ansible для настройки Nginx с TLS
+# Файл: roles/nginx/tasks/main.yml
+
+---
+- name: Установка зависимостей
+  apt:
+    name:
+      - nginx
+      - python3-certbot-nginx
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Установка Nginx для RHEL
+  yum:
+    name:
+      - nginx
+      - certbot-nginx
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Создание директории для сайтов
+  file:
+    path: /etc/nginx/sites-available
+    state: directory
+    mode: '0755'
+
+- name: Создание директории для TLS сертификатов
+  file:
+    path: /etc/letsencrypt
+    state: directory
+    mode: '0755'
+
+- name: Генерация конфигурации Nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: '0644'
+  notify: reload nginx
+
+- name: Генерация конфигурации сайта
+  template:
+    src: site.conf.j2
+    dest: "/etc/nginx/sites-available/{{ domain }}"
+    mode: '0644'
+  notify: reload nginx
+
+- name: Активация сайта
+  file:
+    src: "/etc/nginx/sites-available/{{ domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ domain }}"
+    state: link
+  notify: reload nginx
+
+- name: Получение TLS сертификата
+  command: >
+    certbot certonly --nginx
+    -d {{ domain }}
+    -d www.{{ domain }}
+    --email {{ admin_email }}
+    --agree-tos
+    --non-interactive
+    --keep-until-expiring
+  register: certbot_result
+  changed_when: "'Certificate not yet due for renewal' not in certbot_result.stdout"
+  notify: reload nginx
+
+- name: Настройка автоматического обновления сертификатов
+  cron:
+    name: "Обновление Let's Encrypt сертификатов"
+    minute: "0"
+    hour: "2"
+    day: "*/15"
+    job: "certbot renew --quiet && systemctl reload nginx"
+    user: root
+
+# Файл: roles/nginx/handlers/main.yml
+---
+- name: reload nginx
+  systemd:
+    name: nginx
+    state: reloaded
+    daemon_reload: yes
+
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: yes
+
+# Файл: playbook.yml
+---
+- name: Развертывание веб-инфраструктуры
+  hosts: webservers
+  become: yes
+  vars:
+    domain: example.com
+    admin_email: admin@example.com
+    
+  roles:
+    - role: nginx
+    - role: security
+    - role: monitoring
+      
+  tasks:
+    - name: Проверка доступности веб-сервера
+      uri:
+        url: "https://{{ domain }}"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: result
+      until: result.status == 200
+      retries: 5
+      delay: 10
+      
+    - name: Отправка уведомления о успешном развертывании
+      slack:
+        token: "{{ slack_token }}"
+        msg: "Веб-сервер {{ inventory_hostname }} успешно настроен"
+        channel: "#deployments"
+        username: "Ansible Bot"
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 6: CI/CD для инфраструктуры -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. CI/CD для инфраструктурного кода</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Принципы GitOps для инфраструктуры</h3>
+                    <div class="diagram">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant D как Разработчик
+                                participant G как Git Repository
+                                participant C как CI/CD Pipeline
+                                participant T как Terraform/Ansible
+                                participant S как State Management
+                                participant Cloud как Облачная платформа
+                                
+                                D->>G: Push изменений инфраструктуры
+                                G->>C: Trigger pipeline
+                                
+                                C->>C: Статический анализ кода
+                                C->>C: Планирование изменений
+                                C->>C: Автоматическое тестирование
+                                
+                                alt Тесты пройдены
+                                    C->>S: Блокировка state
+                                    C->>T: Применение изменений
+                                    T->>Cloud: Создание/изменение ресурсов
+                                    Cloud-->>T: Подтверждение
+                                    T-->>C: Успешное применение
+                                    C->>S: Разблокировка state
+                                    C->>D: Уведомление об успехе
+                                else Тесты не пройдены
+                                    C->>D: Уведомление об ошибке
+                                end
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Этапы CI/CD пайплайна для IaC</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Проверка кода</div>
+                            <div class="text-content">
+                                <p>Статический анализ и валидация кода инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>terraform fmt/validate</strong>: форматирование и синтаксическая проверка</li>
+                                    <li><strong>tflint/tfsec</strong>: поиск ошибок и проблем безопасности</li>
+                                    <li><strong>checkov</strong>: проверка соответствия политикам безопасности</li>
+                                    <li><strong>pre-commit hooks</strong>: автоматические проверки перед коммитом</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Планирование изменений</div>
+                            <div class="text-content">
+                                <p>Предварительный просмотр изменений перед применением.</p>
+                                <ul>
+                                    <li><strong>terraform plan</strong>: генерация плана изменений</li>
+                                    <li><strong>Cost estimation</strong>: оценка стоимости изменений (Infracost)</li>
+                                    <li><strong>Policy проверки</strong>: проверка соответствия политикам (Sentinel, OPA)</li>
+                                    <li><strong>Ревью плана</strong>: manual/automated review изменений</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Применение и тестирование</div>
+                            <div class="text-content">
+                                <p>Развертывание и верификация инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>terraform apply</strong>: применение изменений</li>
+                                    <li><strong>Integration testing</strong>: тестирование созданной инфраструктуры</li>
+                                    <li><strong>Compliance scanning</strong>: проверка соответствия стандартам</li>
+                                    <li><strong>Документирование</strong>: автоматическая генерация документации</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пример пайплайна GitLab CI/CD</h3>
+
+                    <div class="code-block"><pre># Файл: .gitlab-ci.yml
+
+stages:
+  - validate
+  - plan
+  - apply
+  - test
+
+variables:
+  TF_ROOT: ${CI_PROJECT_DIR}
+  TF_STATE_NAME: ${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}
+  
+  # Использование контейнера с предустановленными инструментами
+  image: hashicorp/terraform:1.5.0
+
+cache:
+  paths:
+    - ${TF_ROOT}/.terraform
+
+before_script:
+  - terraform --version
+  - rm -rf .terraform
+
+# Стадия валидации
+validate:
+  stage: validate
+  script:
+    - cd ${TF_ROOT}
+    - terraform init -backend=false
+    - terraform validate
+    - terraform fmt -check
+    - tflint --module
+  artifacts:
+    reports:
+      codequality: gl-codequality-report.json
+  only:
+    - merge_requests
+    - master
+    - develop
+
+# Стадия планирования для merge requests
+plan:
+  stage: plan
+  script:
+    - cd ${TF_ROOT}
+    - terraform init
+    - terraform plan -out=plan.tfplan
+    - terraform show -json plan.tfplan > plan.json
+  artifacts:
+    paths:
+      - ${TF_ROOT}/plan.tfplan
+      - ${TF_ROOT}/plan.json
+    expire_in: 1 hour
+  dependencies:
+    - validate
+  only:
+    - merge_requests
+
+# Автоматическое применение для develop ветки
+apply_develop:
+  stage: apply
+  script:
+    - cd ${TF_ROOT}
+    - terraform init
+    - terraform apply -auto-approve plan.tfplan
+    
+    # Запуск интеграционных тестов
+    - |
+      if command -v terratest &> /dev/null; then
+        go test -v ./tests -timeout 30m
+      fi
+  environment:
+    name: development
+    url: https://dev.${CI_PROJECT_NAME}.example.com
+  dependencies:
+    - plan
+  only:
+    - develop
+  when: manual
+
+# Ручное применение для production
+apply_production:
+  stage: apply
+  script:
+    - cd ${TF_ROOT}
+    - terraform init
+    - terraform apply -auto-approve plan.tfplan
+    
+    # Валидация production инфраструктуры
+    - ./scripts/validate_production.sh
+  environment:
+    name: production
+    url: https://${CI_PROJECT_NAME}.example.com
+  dependencies:
+    - plan
+  only:
+    - master
+  when: manual
+  needs: ["plan"]
+
+# Тестирование инфраструктуры
+infrastructure_tests:
+  stage: test
+  image: golang:1.20
+  script:
+    - cd ${TF_ROOT}/tests
+    - go mod init tests
+    - go mod tidy
+    - go test -v -timeout 45m
+  artifacts:
+    reports:
+      junit: report.xml
+    paths:
+      - ${TF_ROOT}/tests/coverage.html
+  only:
+    - merge_requests
+    - master
+    - develop
+
+# Security scanning
+security_scan:
+  stage: test
+  image: aquasec/tfsec:latest
+  script:
+    - tfsec ${TF_ROOT} --format json --out tfsec.json
+  artifacts:
+    reports:
+      sast: tfsec.json
+  allow_failure: false
+  only:
+    - merge_requests
+    - master
+
+# Cost estimation
+cost_estimation:
+  stage: plan
+  image: infracost/infracost:latest
+  script:
+    - cd ${TF_ROOT}
+    - terraform init
+    - infracost breakdown --path . --format json --out-file infracost.json
+    - infracost output --format diff --path infracost.json
+  artifacts:
+    reports:
+      cost_estimation: infracost.json
+  only:
+    - merge_requests
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 7: Тестирование инфраструктуры -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. Тестирование инфраструктурного кода</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Уровни тестирования IaC</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Уровень тестирования</th>
+                                <th>Цель</th>
+                                <th>Инструменты</th>
+                                <th>Когда выполнять</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Статический анализ</td>
+                                <td>Поиск синтаксических ошибок и проблем безопасности</td>
+                                <td>tflint, checkov, tfsec, Terrascan</td>
+                                <td>На этапе разработки, в pre-commit hooks</td>
+                            </tr>
+                            <tr>
+                                <td>Unit-тестирование</td>
+                                <td>Проверка отдельных модулей и ресурсов</td>
+                                <td>terratest, kitchen-terraform, pytest</td>
+                                <td>При изменении модулей, перед созданием PR</td>
+                            </tr>
+                            <tr>
+                                <td>Интеграционное тестирование</td>
+                                <td>Проверка взаимодействия компонентов</td>
+                                <td>terratest, inspec, goss</td>
+                                <td>После применения изменений в тестовом окружении</td>
+                            </tr>
+                            <tr>
+                                <td>End-to-end тестирование</td>
+                                <td>Проверка всей системы в целом</td>
+                                <td>Selenium, Cypress, Postman</td>
+                                <td>В staging окружении перед production</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Инструменты тестирования</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Terratest</div>
+                            <div class="text-content">
+                                <p>Библиотека на Go для тестирования инфраструктуры Terraform.</p>
+                                <ul>
+                                    <li><strong>Особенности</strong>: Создание и уничтожение инфраструктуры для тестов</li>
+                                    <li><strong>Поддерживаемые облака</strong>: AWS, Azure, GCP, Kubernetes</li>
+                                    <li><strong>Использование</strong>: Unit и интеграционные тесты</li>
+                                    <li><strong>Примеры</strong>: Проверка создания ресурсов, конфигурации сетей</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">InSpec</div>
+                            <div class="text-content">
+                                <p>Фреймворк для тестирования и аудита инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>Особенности</strong>: Язык на основе Ruby, человекочитаемый синтаксис</li>
+                                    <li><strong>Поддержка</strong>: Локальные системы, облака, контейнеры</li>
+                                    <li><strong>Использование</strong>: Compliance as Code, security testing</li>
+                                    <li><strong>Примеры</strong>: Проверка настроек безопасности, соответствие стандартам</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Checkov и tfsec</div>
+                            <div class="text-content">
+                                <p>Статические анализаторы безопасности для кода инфраструктуры.</p>
+                                <ul>
+                                    <li><strong>Особенности</strong>: Поиск уязвимостей и небезопасных конфигураций</li>
+                                    <li><strong>Политики</strong>: Предопределенные и кастомные политики безопасности</li>
+                                    <li><strong>Интеграция</strong>: CI/CD пайплайны, IDE плагины</li>
+                                    <li><strong>Примеры</strong>: Проверка открытых портов, шифрования данных</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block"><pre>// Пример тестов на Go с использованием Terratest
+package test
+
+import (
+    "testing"
+    "fmt"
+    "strings"
+    
+    "github.com/gruntwork-io/terratest/modules/terraform"
+    "github.com/gruntwork-io/terratest/modules/aws"
+    "github.com/gruntwork-io/terratest/modules/random"
+    "github.com/stretchr/testify/assert"
+)
+
+func TestVPCModule(t *testing.T) {
+    t.Parallel()
+    
+    // Генерация уникального имени для тестов
+    uniqueID := random.UniqueId()
+    vpcName := fmt.Sprintf("test-vpc-%s", uniqueID)
+    
+    // Конфигурация Terraform для теста
+    terraformOptions := &terraform.Options{
+        // Путь к тестируемому модулю
+        TerraformDir: "../modules/vpc",
+        
+        // Переменные для модуля
+        Vars: map[string]interface{}{
+            "name":               vpcName,
+            "cidr":               "10.0.0.0/16",
+            "azs":                []string{"eu-west-1a", "eu-west-1b"},
+            "public_subnets":     []string{"10.0.1.0/24", "10.0.2.0/24"},
+            "private_subnets":    []string{"10.0.101.0/24", "10.0.102.0/24"},
+            "enable_nat_gateway": true,
+        },
+        
+        // Переменные окружения для AWS
+        EnvVars: map[string]string{
+            "AWS_DEFAULT_REGION": "eu-west-1",
+        },
+    }
+    
+    // Очистка ресурсов после тестов
+    defer terraform.Destroy(t, terraformOptions)
+    
+    // Инициализация и применение Terraform
+    terraform.InitAndApply(t, terraformOptions)
+    
+    // Получение выходных значений
+    vpcID := terraform.Output(t, terraformOptions, "vpc_id")
+    publicSubnets := terraform.OutputList(t, terraformOptions, "public_subnet_ids")
+    privateSubnets := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
+    
+    // Проверки
+    t.Run("VPC создан корректно", func(t *testing.T) {
+        vpc := aws.GetVpcById(t, vpcID, "eu-west-1")
+        
+        assert.Equal(t, vpcName, aws.GetTagsForVpc(t, vpcID, "eu-west-1")["Name"])
+        assert.Equal(t, "10.0.0.0/16", vpc.CidrBlock)
+        assert.True(t, *vpc.IsDefault)
+    })
+    
+    t.Run("Подсети созданы корректно", func(t *testing.T) {
+        assert.Len(t, publicSubnets, 2)
+        assert.Len(t, privateSubnets, 2)
+        
+        // Проверка публичных подсетей
+        for _, subnetID := range publicSubnets {
+            subnet := aws.GetSubnetById(t, subnetID, "eu-west-1")
+            assert.True(t, *subnet.MapPublicIpOnLaunch)
+            assert.True(t, strings.HasPrefix(*subnet.CidrBlock, "10.0."))
+        }
+        
+        // Проверка приватных подсетей
+        for _, subnetID := range privateSubnets {
+            subnet := aws.GetSubnetById(t, subnetID, "eu-west-1")
+            assert.False(t, *subnet.MapPublicIpOnLaunch)
+            assert.True(t, strings.HasPrefix(*subnet.CidrBlock, "10.0."))
+        }
+    })
+    
+    t.Run("NAT Gateway создан", func(t *testing.T) {
+        natGateways := aws.GetNatGatewaysByVpcId(t, vpcID, "eu-west-1")
+        assert.Greater(t, len(natGateways), 0)
+    })
+    
+    t.Run("Маршрутные таблицы настроены", func(t *testing.T) {
+        routeTables := aws.GetRouteTablesForVpc(t, vpcID, "eu-west-1")
+        assert.Greater(t, len(routeTables), 0)
+        
+        // Проверка маршрута к интернету в публичной таблице маршрутизации
+        hasInternetRoute := false
+        for _, rt := range routeTables {
+            for _, route := range rt.Routes {
+                if route.GatewayId != nil && strings.HasPrefix(*route.GatewayId, "igw-") {
+                    hasInternetRoute = true
+                    break
+                }
+            }
+        }
+        assert.True(t, hasInternetRoute)
+    })
+}
+
+// Пример теста безопасности с Checkov в Python
+import json
+import subprocess
+import pytest
+
+def test_terraform_security():
+    """Тестирование безопасности кода Terraform"""
+    
+    # Запуск Checkov
+    result = subprocess.run(
+        ["checkov", "-d", ".", "--quiet", "-o", "json"],
+        capture_output=True,
+        text=True
+    )
+    
+    # Парсинг результатов
+    report = json.loads(result.stdout)
+    
+    # Проверка на критические уязвимости
+    critical_failures = []
+    for check in report.get("results", {}).get("failed_checks", []):
+        if check.get("severity") == "CRITICAL":
+            critical_failures.append(check)
+    
+    # Утверждение, что нет критических уязвимостей
+    assert len(critical_failures) == 0, \
+        f"Найдены критические уязвимости: {critical_failures}"
+    
+    # Проверка соответствия стандартам
+    compliance_failures = []
+    for check in report.get("results", {}).get("failed_checks", []):
+        if "CIS" in check.get("guideline", ""):
+            compliance_failures.append(check)
+    
+    assert len(compliance_failures) < 5, \
+        f"Слишком много нарушений стандартов CIS: {len(compliance_failures)}"
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Безопасность и Compliance -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Безопасность и Compliance as Code</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Принципы безопасной инфраструктуры</h3>
+
+                    <div class="diagram">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[Secure Infrastructure] --> B[Identity & Access Management]
+                                A --> C[Network Security]
+                                A --> D[Data Protection]
+                                A --> E[Monitoring & Auditing]
+                                A --> F[Compliance & Governance]
+                                
+                                B --> B1[Principle of Least Privilege]
+                                B --> B2[Role-Based Access Control]
+                                B --> B3[Multi-Factor Authentication]
+                                
+                                C --> C1[Network Segmentation]
+                                C --> C2[Security Groups & NACLs]
+                                C --> C3[VPN & Direct Connect]
+                                
+                                D --> D1[Encryption at Rest]
+                                D --> D2[Encryption in Transit]
+                                D --> D3[Key Management]
+                                
+                                E --> E1[Log Aggregation]
+                                E --> E2[Real-time Monitoring]
+                                E --> E3[Audit Trails]
+                                
+                                F --> F1[Policy as Code]
+                                F --> F2[Automated Compliance Checks]
+                                F --> F3[Regular Audits]
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Инструменты Security as Code</h3>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Инструмент</th>
+                                <th>Категория</th>
+                                <th>Назначение</th>
+                                <th>Интеграция с IaC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Checkov</td>
+                                <td>Static Analysis</td>
+                                <td>Сканирование кода Terraform на уязвимости</td>
+                                <td>Terraform, CloudFormation, Kubernetes</td>
+                            </tr>
+                            <tr>
+                                <td>tfsec</td>
+                                <td>Static Analysis</td>
+                                <td>Анализ безопасности кода Terraform</td>
+                                <td>Terraform, AWS, Azure, GCP</td>
+                            </tr>
+                            <tr>
+                                <td>Sentinel</td>
+                                <td>Policy as Code</td>
+                                <td>Политики для Terraform Enterprise/Cloud</td>
+                                <td>Terraform Enterprise/Cloud</td>
+                            </tr>
+                            <tr>
+                                <td>OPA/Gatekeeper</td>
+                                <td>Policy as Code</td>
+                                <td>Универсальный движок политик</td>
+                                <td>Kubernetes, Terraform, CI/CD</td>
+                            </tr>
+                            <tr>
+                                <td>Prowler</td>
+                                <td>Cloud Security</td>
+                                <td>Аудит безопасности облачных сред</td>
+                                <td>AWS, Azure, GCP</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Пример политик безопасности</h3>
+
+                    <div class="code-block"><pre># Пример политик Sentinel для Terraform
+# Политика: Запрет публичных S3 bucket
+
+import "tfplan/v2" as tfplan
+
+# Основная функция политики
+main = rule {
+    all_buckets_are_private
+}
+
+# Проверка всех S3 bucket
+all_buckets_are_private = rule {
+    all tfplan.resources.aws_s3_bucket as _, instances {
+        all instances as _, r {
+            is_bucket_private(r)
+        }
+    }
+}
+
+# Функция проверки приватности bucket
+is_bucket_private(bucket) = true {
+    # Bucket имеет настройки блокировки публичного доступа
+    bucket.applied.block_public_acls == true
+    bucket.applied.block_public_policy == true
+    bucket.applied.ignore_public_acls == true
+    bucket.applied.restrict_public_buckets == true
+}
+
+is_bucket_private(bucket) = false {
+    # Любое из условий не выполнено
+    not bucket.applied.block_public_acls == true
+    or not bucket.applied.block_public_policy == true
+    or not bucket.applied.ignore_public_acls == true
+    or not bucket.applied.restrict_public_buckets == true
+}
+
+# Политика: Требование тегов для всех ресурсов
+import "strings"
+import "types"
+
+required_tags = [
+    "Environment",
+    "Owner",
+    "Project",
+]
+
+main = rule {
+    all_resources_have_required_tags
+}
+
+all_resources_have_required_tags = rule {
+    all tfplan.resources as resource_type, resources {
+        all resources as resource_name, resource_instances {
+            all resource_instances as instance_index, instance {
+                # Пропускаем data resources
+                not strings.has_prefix(resource_type, "data.")
+                
+                # Проверяем наличие тегов
+                instance.applied.tags is not null
+                and all required_tags as tag {
+                    instance.applied.tags[tag] is not null
+                    and types.type_of(instance.applied.tags[tag]) == "string"
+                    and instance.applied.tags[tag] != ""
+                }
+            }
+        }
+    }
+}
+
+# Политика: Ограничение размера инстансов
+allowed_instance_types = [
+    "t3.micro",
+    "t3.small",
+    "t3.medium",
+    "m5.large",
+]
+
+main = rule {
+    all_instances_are_allowed_size
+}
+
+all_instances_are_allowed_size = rule {
+    all tfplan.resources.aws_instance as _, instances {
+        all instances as _, r {
+            r.applied.instance_type in allowed_instance_types
+        }
+    }
+}
+
+# Пример Checkov политики в YAML
+metadata:
+  id: "CKV_AWS_18"
+  name: "Ensure the S3 bucket has access logging enabled"
+  category: "LOGGING"
+
+definition:
+  and:
+    - resource_types:
+        - aws_s3_bucket
+      attribute: "logging"
+      operator: "not_exists"
+    - resource_types:
+        - aws_s3_bucket
+      attribute: "logging.target_bucket"
+      operator: "not_exists"
+
+fix:
+  json: |
+    {
+      "logging": {
+        "target_bucket": "my-logging-bucket",
+        "target_prefix": "logs/"
+      }
+    }
+
+# Пример OPA политики для Kubernetes
+package kubernetes.admission
+
+import data.kubernetes.namespaces
+
+deny[msg] {
+    input.request.kind.kind == "Pod"
+    not input.request.object.metadata.namespace
+    msg := "Pod must have a namespace"
+}
+
+deny[msg] {
+    input.request.kind.kind == "Pod"
+    input.request.object.metadata.namespace == "default"
+    msg := "Pods may not be created in the default namespace"
+}
+
+deny[msg] {
+    input.request.kind.kind == "Pod"
+    not input.request.object.spec.containers[_].resources.limits.cpu
+    msg := "CPU limits must be set for all containers"
+}
+
+# Политика для российских требований безопасности
+package ru.compliance
+
+# Проверка российского региона для хранения данных
+deny[msg] {
+    input.resource_type == "aws_s3_bucket"
+    input.region != "eu-north-1"  # Стокгольм (ближайший к России)
+    msg := "Данные должны храниться в регионах, соответствующих требованиям 152-ФЗ"
+}
+
+# Проверка российских TLS сертификатов
+allow_tls_certificates = [
+    "CryptoPro",
+    "ViPNet",
+    "Крипто-ПРО",
+]
+
+deny[msg] {
+    input.resource_type == "aws_acm_certificate"
+    not input.certificate_authority in allow_tls_certificates
+    msg := sprintf("Требуется использование российских TLS сертификатов. Разрешенные: %v", [allow_tls_certificates])
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Паттерны и практики -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Паттерны и лучшие практики</h2>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Паттерны организации кода инфраструктуры</h3>
+
+                    <div class="architecture-grid">
+                        <div class="architecture-card">
+                            <div class="architecture-title">Монолитная конфигурация</div>
+                            <div class="text-content">
+                                <p>Вся инфраструктура в одном репозитории и состоянии.</p>
+                                <ul>
+                                    <li><strong>Плюсы</strong>: Простота, единое состояние</li>
+                                    <li><strong>Минусы</strong>: Сложность масштабирования, риск конфликтов</li>
+                                    <li><strong>Использование</strong>: Небольшие проекты, PoC</li>
+                                    <li><strong>Пример</strong>: Все ресурсы AWS в одном main.tf</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Структура по окружениям</div>
+                            <div class="text-content">
+                                <p>Отдельные конфигурации для dev, staging, production.</p>
+                                <ul>
+                                    <li><strong>Плюсы</strong>: Изоляция окружений, разные политики</li>
+                                    <li><strong>Минусы</strong>: Дублирование кода, сложность синхронизации</li>
+                                    <li><strong>Использование</strong>: Средние и крупные проекты</li>
+                                    <li><strong>Пример</strong>: Отдельные директории envs/dev, envs/prod</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="architecture-card">
+                            <div class="architecture-title">Структура по компонентам</div>
+                            <div class="text-content">
+                                <p>Разделение по функциональным компонентам (сеть, БД, приложения).</p>
+                                <ul>
+                                    <li><strong>Плюсы</strong>: Высокая переиспользуемость, независимое развертывание</li>
+                                    <li><strong>Минусы</strong>: Сложность управления зависимостями</li>
+                                    <li><strong>Использование</strong>: Микросервисные архитектуры</li>
+                                    <li><strong>Пример</strong>: Отдельные модули для VPC, EKS, RDS</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Лучшие практики IaC</h3>
+
+                    <div class="text-content">
+                        <p><strong>Рекомендации по организации кода:</strong></p>
+                        <ul>
+                            <li><span class="highlight">Используйте модули</span>: создавайте переиспользуемые компоненты</li>
+                            <li><span class="highlight">Храните state удаленно</span>: S3, Azure Storage с блокировкой</li>
+                            <li><span class="highlight">Используйте переменные</span>: параметризуйте конфигурации</li>
+                            <li><span class="highlight">Тестируйте код</span>: внедряйте автоматическое тестирование</li>
+                            <li><span class="highlight">Версионируйте модули</span>: используйте семантическое версионирование</li>
+                            <li><span class="highlight">Документируйте</span>: генерируйте документацию автоматически</li>
+                            <li><span class="highlight">Внедряйте безопасность</span>: security scanning в CI/CD</li>
+                            <li><span class="highlight">Мониторьте дрейф</span>: регулярно проверяйте соответствие кода и инфраструктуры</li>
+                        </ul>
+                    </div>
+
+                    <div class="performance-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">GitOps</div>
+                            <div class="metric-label">Модель развертывания</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Immutable</div>
+                            <div class="metric-label">Инфраструктура</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Everything as Code</div>
+                            <div class="metric-label">Философия</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">Shift Left Security</div>
+                            <div class="metric-label">Безопасность</div>
+                        </div>
+                    </div>
+
+                    <div class="key-points">
+                        <div class="key-points-title">Тенденции будущего:</div>
+                        <ul>
+                            <li>Увеличение использования AI/ML для оптимизации инфраструктуры</li>
+                            <li>Развитие FinOps через код для управления затратами</li>
+                            <li>Интеграция с платформами внутренних разработчиков (IDP)</li>
+                            <li>Автоматическая генерация кода инфраструктуры</li>
+                            <li>Развитие российских инструментов и экосистемы</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел: Тест -->
+            <div class="section" id="quiz">
+                <h2 class="section-title">Тест: Проверка знаний по автоматизации инфраструктуры</h2>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">1. Что такое идемпотентность в контексте Infrastructure as Code?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Возможность отката изменений</div>
+                        <div class="quiz-option" data-correct="true">Свойство операции давать одинаковый результат при повторном выполнении</div>
+                        <div class="quiz-option" data-correct="false">Способность кода работать в разных облаках</div>
+                        <div class="quiz-option" data-correct="false">Автоматическое масштабирование инфраструктуры</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! Идемпотентность означает, что многократное применение одной и той же конфигурации дает одинаковый результат, что является ключевым свойством IaC инструментов.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">2. Какой инструмент использует декларативный подход и язык HCL для описания инфраструктуры?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Ansible</div>
+                        <div class="quiz-option" data-correct="false">Chef</div>
+                        <div class="quiz-option" data-correct="true">Terraform</div>
+                        <div class="quiz-option" data-correct="false">Puppet</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Terraform использует декларативный подход и язык HCL (HashiCorp Configuration Language) для описания инфраструктуры.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">3. Что такое Terraform state и зачем он нужен?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Файл с паролями и секретами</div>
+                        <div class="quiz-option" data-correct="false">Журнал выполненных команд Terraform</div>
+                        <div class="quiz-option" data-correct="true">Файл, который хранит связь между ресурсами в коде и реальными облачными ресурсами</div>
+                        <div class="quiz-option" data-correct="false">Кэш загруженных провайдеров</div>
+                    </div>
+                    <div class="quiz-feedback">Правильно! Terraform state хранит связь между ресурсами, описанными в коде, и реальными ресурсами в облаке, а также их текущее состояние и метаданные.</div>
+                </div>
+
+                <div class="quiz-section">
+                    <div class="quiz-question">4. Какой подход к управлению инфраструктуре предполагает создание новых образов вместо обновления существующих серверов?</div>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false">Mutable Infrastructure</div>
+                        <div class="quiz-option" data-correct="true">Immutable Infrastructure</div>
+                        <div class="quiz-option" data-correct="false">Declarative Infrastructure</div>
+                        <div class="quiz-option" data-correct="false">Imperative Infrastructure</div>
+                    </div>
+                    <div class="quiz-feedback">Верно! Immutable Infrastructure предполагает создание новых образов (например, с помощью Packer) вместо обновления существующих серверов, что повышает стабильность и упрощает откат изменений.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+
+                // Закрытие мобильного меню после клика
+                const navigation = document.getElementById('navigation');
+                navigation.classList.remove('active');
+            });
+        });
+
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Мобильное меню
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const navigation = document.getElementById('navigation');
+
+        mobileMenuToggle.addEventListener('click', function() {
+            navigation.classList.toggle('active');
+        });
+
+        // Тестовая логика
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = this.parentElement.nextElementSibling;
+
+                // Сброс всех вариантов в этом вопросе
+                this.parentElement.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                });
+
+                // Показ правильного/неправильного ответа
+                if (isCorrect) {
+                    this.classList.add('correct');
+                    feedback.classList.add('correct');
+                    feedback.classList.remove('incorrect');
+                } else {
+                    this.classList.add('incorrect');
+                    feedback.classList.add('incorrect');
+                    feedback.classList.remove('correct');
+
+                    // Показать правильный ответ
+                    const correctOption = this.parentElement.querySelector('.quiz-option[data-correct="true"]');
+                    correctOption.classList.add('correct');
+                }
+            });
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
