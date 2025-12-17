@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Виртуальная и дополненная реальность - Расширенный конспект</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --accent-primary: #00d4ff;
+            --accent-secondary: #ff2e63;
+            --accent-vr: #9d4edd;
+            --accent-ar: #ff9e00;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-vr), var(--accent-ar));
+        }
+        
+        .lecture-title {
+            font-size: 2.5em;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .lecture-subtitle {
+            font-size: 1.2em;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .section {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+            position: relative;
+            scroll-margin-top: 20px;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-primary);
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .subsection {
+            margin-bottom: 25px;
+        }
+        
+        .subsection-title {
+            font-size: 1.3em;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .text-content {
+            margin-bottom: 20px;
+            text-align: justify;
+            color: var(--text-secondary);
+        }
+        
+        .diagram {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid var(--border-color);
+            overflow-x: auto;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: var(--text-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .code-block::before {
+            content: attr(data-language);
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 4px 10px;
+            font-size: 0.8em;
+            border-radius: 0 10px 0 10px;
+            font-weight: bold;
+        }
+        
+        details {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        
+        details summary {
+            padding: 15px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-primary);
+            font-weight: 600;
+            cursor: pointer;
+            list-style: none;
+            position: relative;
+        }
+        
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        details summary:after {
+            content: '▶';
+            position: absolute;
+            right: 20px;
+            transition: transform 0.3s;
+        }
+        
+        details[open] summary:after {
+            transform: rotate(90deg);
+        }
+        
+        details .content-inside {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .formula {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid var(--accent-secondary);
+            font-family: 'Cambria Math', serif;
+        }
+        
+        .formula-title {
+            font-size: 1.1em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .formula-explanation {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            text-align: left;
+        }
+        
+        .katex-formula {
+            font-size: 1.1em;
+            overflow-x: auto;
+            color: var(--text-primary);
+            text-align: center;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .comparison-table th {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .comparison-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        
+        .technology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .technology-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid var(--accent-vr);
+            transition: transform 0.3s ease;
+        }
+        
+        .ar-card {
+            border-left-color: var(--accent-ar);
+        }
+        
+        .technology-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .technology-name {
+            font-size: 1.2em;
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .tech-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .vr-tech {
+            background: rgba(157, 78, 221, 0.2);
+            color: var(--accent-vr);
+        }
+        
+        .ar-tech {
+            background: rgba(255, 158, 0, 0.2);
+            color: var(--accent-ar);
+        }
+        
+        .mr-tech {
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-primary);
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, rgba(157, 78, 221, 0.2) 0%, rgba(255, 158, 0, 0.2) 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: var(--accent-primary);
+        }
+        
+        .navigation {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            z-index: 100;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover {
+            background: var(--accent-secondary);
+            transform: translateX(-5px);
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-vr), var(--accent-ar));
+            transform-origin: left;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .key-points {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.1) 0%, rgba(255, 158, 0, 0.1) 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--accent-primary);
+        }
+        
+        .key-points-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+        }
+        
+        .layer-model {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .layer-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .layer-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-primary);
+            margin-bottom: 5px;
+        }
+        
+        .layer-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .advanced-section {
+            background: rgba(22, 33, 62, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .advanced-title {
+            color: var(--accent-secondary);
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .example-box {
+            background: rgba(26, 26, 46, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--accent-primary);
+        }
+        
+        .example-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent-primary);
+        }
+        
+        .warning-box {
+            background: rgba(255, 46, 99, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 3px solid var(--accent-secondary);
+        }
+        
+        .warning-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--accent-secondary);
+        }
+        
+        .reality-spectrum {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+        }
+        
+        .spectrum-item {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+        }
+        
+        .spectrum-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .spectrum-vr {
+            color: var(--accent-vr);
+        }
+        
+        .spectrum-ar {
+            color: var(--accent-ar);
+        }
+        
+        .spectrum-mr {
+            color: var(--accent-primary);
+        }
+        
+        @media (max-width: 768px) {
+            .navigation {
+                display: none;
+            }
+            
+            .lecture-title {
+                font-size: 2em;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            .section-title {
+                font-size: 1.5em;
+            }
+            
+            .header {
+                padding: 25px;
+            }
+            
+            .technology-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .layer-model {
+                grid-template-columns: 1fr;
+            }
+            
+            .reality-spectrum {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .lecture-title {
+                font-size: 1.7em;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    
+    <div class="navigation">
+        <a href="#section1" class="nav-item">Введение</a>
+        <a href="#section2" class="nav-item">Основные понятия</a>
+        <a href="#section3" class="nav-item">Оборудование VR</a>
+        <a href="#section4" class="nav-item">Оборудование AR</a>
+        <a href="#section5" class="nav-item">Технологии отслеживания</a>
+        <a href="#section6" class="nav-item">Разработка VR/AR</a>
+        <a href="#section7" class="nav-item">3D графика</a>
+        <a href="#section8" class="nav-item">Применение</a>
+        <a href="#section9" class="nav-item">Будущее и метавселенные</a>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="lecture-title">Виртуальная и дополненная реальность</h1>
+            <p class="lecture-subtitle">Расширенный конспект лекции с техническими деталями и практическими примерами</p>
+        </div>
+        
+        <div class="content">
+            <!-- Раздел 1: Введение -->
+            <div class="section" id="section1">
+                <h2 class="section-title">1. Введение в VR/AR технологии</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Эволюция технологий виртуальной и дополненной реальности</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            timeline
+                                title Эволюция VR/AR технологий
+                                1968 : Система Sword of Damocles<br>Первый HMD от Ивана Сазерленда
+                                1989 : VPL Research коммерческий VR<br>DataGlove и EyePhone
+                                1990-е : Виртуальные симуляторы<br>военные и медицинские применения
+                                2010 : Проект Google Glass<br>Популяризация AR
+                                2012 : Oculus Rift Kickstarter<br>Возрождение VR
+                                2016 : Потребительские VR системы<br>HTC Vive, PlayStation VR
+                                2020 : Standalone VR устройства<br>Oculus Quest, Mixed Reality
+                                2023 : Apple Vision Pro<br>Смешанная реальность нового поколения
+                        </div>
+                    </div>
+                    
+                    <div class="text-content">
+                        <p><strong>Ключевые этапы развития:</strong></p>
+                        <ul>
+                            <li><span class="highlight">1960-1970-е</span>: Теоретические основы и первые экспериментальные системы</li>
+                            <li><span class="highlight">1980-1990-е</span>: Специализированные военные и промышленные применения</li>
+                            <li><span class="highlight">2000-е</span>: Развитие мобильных AR технологий и компьютерного зрения</li>
+                            <li><span class="highlight">2010-е</span>: Массовое производство потребительских VR устройств</li>
+                            <li><span class="highlight">2020-е</span>: Конвергенция технологий, смешанная реальность и метавселенные</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="reality-spectrum">
+                        <div class="spectrum-item">
+                            <div class="spectrum-label spectrum-vr">Виртуальная реальность (VR)</div>
+                            <div class="text-content">Полное погружение в цифровую среду</div>
+                        </div>
+                        <div class="spectrum-item">
+                            <div class="spectrum-label spectrum-mr">Смешанная реальность (MR)</div>
+                            <div class="text-content">Взаимодействие реальных и виртуальных объектов</div>
+                        </div>
+                        <div class="spectrum-item">
+                            <div class="spectrum-label spectrum-ar">Дополненная реальность (AR)</div>
+                            <div class="text-content">Наложение цифровых объектов на реальный мир</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Основные характеристики и требования</h3>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Характеристика</th>
+                                <th>VR</th>
+                                <th>AR</th>
+                                <th>Критическое значение</th>
+                                <th>Влияние на пользователя</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Частота обновления</td>
+                                <td>90-120 Гц</td>
+                                <td>60-90 Гц</td>
+                                <td>> 90 Гц для комфорта</td>
+                                <td>Плавность движения, уменьшение укачивания</td>
+                            </tr>
+                            <tr>
+                                <td>Задержка (латентность)</td>
+                                <td>&lt; 20 мс</td>
+                                <td>&lt; 50 мс</td>
+                                <td>&lt; 20 мс</td>
+                                <td>Иммерсивность, избегание simulator sickness</td>
+                            </tr>
+                            <tr>
+                                <td>Разрешение дисплея</td>
+                                <td>2K-4K на глаз</td>
+                                <td>Full HD - 4K</td>
+                                <td>> 60 PPD</td>
+                                <td>Четкость изображения, эффект "screen door"</td>
+                            </tr>
+                            <tr>
+                                <td>Поле зрения (FOV)</td>
+                                <td>100-120°</td>
+                                <td>40-60°</td>
+                                <td>> 90°</td>
+                                <td>Чувство присутствия, периферийное зрение</td>
+                            </tr>
+                            <tr>
+                                <td>Точность отслеживания</td>
+                                <td>&lt; 1 мм</td>
+                                <td>&lt; 5 мм</td>
+                                <td>&lt; 2 мм</td>
+                                <td>Точность взаимодействия, реалистичность</td>
+                            </tr>
+                            <tr>
+                                <td>Частота отслеживания</td>
+                                <td>60-120 Гц</td>
+                                <td>30-60 Гц</td>
+                                <td>> 60 Гц</td>
+                                <td>Отзывчивость, плавность движений</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="key-points">
+                        <div class="key-points-title">Ключевые принципы:</div>
+                        <ul>
+                            <li><strong>Присутствие (Presence)</strong>: ощущение нахождения в виртуальной среде</li>
+                            <li><strong>Иммерсивность</strong>: степень погружения в виртуальный мир</li>
+                            <li><strong>Интерактивность</strong>: возможность взаимодействия с виртуальными объектами</li>
+                            <li><strong>Отслеживание в реальном времени</strong>: точное определение положения и ориентации</li>
+                            <li><strong>Перспективная проекция</strong>: корректное отображение 3D сцены на 2D дисплее</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 2: Основные понятия -->
+            <div class="section" id="section2">
+                <h2 class="section-title">2. Основные понятия и терминология</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Спектр реальности (Reality-Virtuality Continuum)</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph LR
+                                A[Реальная среда] --> B[Дополненная реальность<br>AR]
+                                B --> C[Дополненная виртуальность<br>AV]
+                                C --> D[Виртуальная среда<br>VR]
+                                
+                                A --> E["Физическая реальность<br>Без цифровых объектов"]
+                                B --> F["Цифровые объекты<br>накладываются на реальность"]
+                                C --> G["Реальные объекты<br>интегрируются в виртуальность"]
+                                D --> H["Полностью синтетическая<br>цифровая среда"]
+                        </div>
+                    </div>
+                    
+                    <div class="text-content">
+                        <p><strong>Определения по спектру реальности:</strong></p>
+                        <ul>
+                            <li><strong>Реальная среда</strong>: физический мир без цифровых дополнений</li>
+                            <li><strong>Дополненная реальность (AR)</strong>: наложение цифровых объектов на реальный мир</li>
+                            <li><strong>Дополненная виртуальность (AV)</strong>: включение реальных объектов в виртуальную среду</li>
+                            <li><strong>Виртуальная реальность (VR)</strong>: полностью синтетическая цифровая среда</li>
+                            <li><strong>Смешанная реальность (MR)</strong>: непрерывный спектр между реальностью и виртуальностью</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Ключевые термины и концепции</h3>
+                    
+                    <div class="layer-model">
+                        <div class="layer-item">
+                            <div class="layer-number">1</div>
+                            <div class="layer-name">Присутствие</div>
+                            <div class="text-content">Ощущение нахождения в виртуальной среде</div>
+                        </div>
+                        <div class="layer-item">
+                            <div class="layer-number">2</div>
+                            <div class="layer-name">Иммерсивность</div>
+                            <div class="text-content">Степень погружения пользователя</div>
+                        </div>
+                        <div class="layer-item">
+                            <div class="layer-number">3</div>
+                            <div class="layer-name">Шлем/Очки</div>
+                            <div class="text-content">HMD - Head-Mounted Display</div>
+                        </div>
+                        <div class="layer-item">
+                            <div class="layer-number">4</div>
+                            <div class="layer-name">Отслеживание</div>
+                            <div class="text-content">Tracking - определение положения и ориентации</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-content">
+                        <p><strong>Важные технические термины:</strong></p>
+                        <ul>
+                            <li><strong>HMD (Head-Mounted Display)</strong>: устройство отображения, надеваемое на голову</li>
+                            <li><strong>FOV (Field of View)</strong>: поле зрения, угол обзора пользователя</li>
+                            <li><strong>DOF (Degrees of Freedom)</strong>: степени свободы движения (3DOF, 6DOF)</li>
+                            <li><strong>Motion-to-Photon Latency</strong>: задержка между движением и обновлением изображения</li>
+                            <li><strong>IPD (Interpupillary Distance)</strong>: межзрачковое расстояние для калибровки</li>
+                            <li><strong>PPD (Pixels Per Degree)</strong>: плотность пикселей на градус угла обзора</li>
+                            <li><strong>Vergence-Accommodation Conflict</strong>: конфликт между схождением глаз и фокусировкой</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="advanced-section">
+                        <div class="advanced-title">Глубокий анализ: Вергентно-аккомодационный конфликт</div>
+                        <div class="text-content">
+                            <p>В реальном мире глаза человека одновременно сходятся (vergence) и фокусируются (accommodation) на одной точке. В VR эти процессы разделены:</p>
+                            <ul>
+                                <li>Схождение глаз определяется положением виртуального объекта</li>
+                                <li>Фокусировка всегда остается на фиксированном расстоянии (дисплее)</li>
+                                <li>Этот конфликт вызывает зрительное напряжение и усталость</li>
+                            </ul>
+                            <p><strong>Решения:</strong> варьируемые фокусные плоскости, световые поля, мультифокальные дисплеи</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 3: Оборудование VR -->
+            <div class="section" id="section3">
+                <h2 class="section-title">3. Оборудование виртуальной реальности</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Шлемы виртуальной реальности</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Типы VR шлемов] --> B[Автономные]
+                                A --> C[Подключаемые к ПК]
+                                A --> D[Мобильные]
+                                A --> E[Для консолей]
+                                
+                                B --> F["Oculus Quest 2/3<br>HTC Vive Focus 3<br>PICO 4"]
+                                C --> G["Valve Index<br>HTC Vive Pro 2<br>Varjo Aero"]
+                                D --> H["Google Cardboard<br>Samsung Gear VR<br>Google Daydream"]
+                                E --> I["PlayStation VR2<br>PlayStation VR"]
+                                
+                                F --> J["Автономные<br>Встроенный процессор<br>Без проводов"]
+                                G --> K["Высокая производительность<br>Требуют мощный ПК<br>Лучшая графика"]
+                                H --> L["Используют смартфон<br>Низкая стоимость<br>Ограниченные возможности"]
+                                I --> M["Интеграция с консолью<br>Оптимизированная производительность<br>Эксклюзивный контент"]
+                        </div>
+                    </div>
+                    
+                    <div class="text-content">
+                        <p><strong>Ключевые компоненты VR шлема:</strong></p>
+                        <ul>
+                            <li><strong>Дисплеи</strong>: LCD, OLED, micro-OLED, LCoS с высокой частотой обновления</li>
+                            <li><strong>Линзы</strong>: Fresnel, аспherical, pancake линзы для широкого FOV</li>
+                            <li><strong>Системы отслеживания</strong>: inside-out, outside-in, SLAM</li>
+                            <li><strong>Датчики</strong>: IMU (гироскоп, акселерометр, магнитометр)</li>
+                            <li><strong>Аудиосистема</strong>: встроенные наушники, пространственный звук</li>
+                            <li><strong>Системы охлаждения</strong>: активные и пассивные системы</li>
+                            <li><strong>Порты подключения</strong>: USB-C, DisplayPort, HDMI, беспроводные адаптеры</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Дисплейные технологии VR</h3>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Технология</th>
+                                <th>Принцип работы</th>
+                                <th>Преимущества</th>
+                                <th>Недостатки</th>
+                                <th>Применение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>LCD</td>
+                                <td>Жидкие кристаллы с подсветкой</td>
+                                <td>Низкая стоимость, высокая плотность пикселей</td>
+                                <td>Низкая контрастность, время отклика</td>
+                                <td>Бюджетные VR системы</td>
+                            </tr>
+                            <tr>
+                                <td>OLED</td>
+                                <td>Органические светодиоды</td>
+                                <td>Высокая контрастность, быстрый отклик</td>
+                                <td>Выгорание пикселей, высокая стоимость</td>
+                                <td>Качественные VR системы</td>
+                            </tr>
+                            <tr>
+                                <td>Micro-OLED</td>
+                                <td>Миниатюрные OLED на кремнии</td>
+                                <td>Высокое PPD, компактность</td>
+                                <td>Очень высокая стоимость, ограниченный размер</td>
+                                <td>Varjo, Apple Vision Pro</td>
+                            </tr>
+                            <tr>
+                                <td>LCoS</td>
+                                <td>Жидкие кристаллы на кремнии</td>
+                                <td>Высокое разрешение, отсутствие screen door</td>
+                                <td>Сложность производства, стоимость</td>
+                                <td>Профессиональные VR системы</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <details>
+                        <summary>Пример кода: Структура данных контроллера VR</summary>
+                        <div class="content-inside">
+                            <div class="code-block" data-language="C++">
+// Пример структуры данных контроллера VR
+struct VRControllerState {
+    // Позиция и ориентация (6DOF)
+    glm::vec3 position;           // Позиция в метрах
+    glm::quat rotation;           // Ориентация как кватернион
+    
+    // Входные данные
+    struct {
+        float trigger;            // Аналоговый триггер (0.0 - 1.0)
+        float grip;               // Аналоговый захват
+        glm::vec2 joystick;       // Джойстик (x, y)
+        glm::vec2 touchpad;       // Тачпад (x, y)
+        
+        // Кнопки
+        bool menu : 1;
+        bool system : 1;
+        bool a : 1;               // Кнопка A/X
+        bool b : 1;               // Кнопка B/Y
+        bool thumbstick : 1;      // Нажатие джойстика
+        bool triggerButton : 1;   // Цифровое нажатие триггера
+        bool gripButton : 1;      // Цифровое нажатие захвата
+    } inputs;
+    
+    // Временные метки
+    uint64_t timestamp;          // Время сбора данных (нс)
+    uint32_t frameNumber;        // Номер кадра
+};
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Раздел 4: Оборудование AR -->
+            <div class="section" id="section4">
+                <h2 class="section-title">4. Оборудование дополненной реальности</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Технологии дисплеев AR</h3>
+                    
+                    <div class="technology-grid">
+                        <div class="technology-card ar-card">
+                            <div class="technology-name">Волноводные дисплеи</div>
+                            <div class="tech-type ar-tech">AR</div>
+                            <div class="text-content">
+                                <p>Оптические волноводы передают свет от проектора к глазу.</p>
+                                <p><strong>Типы:</strong> Геометрические, дифракционные, голографические</p>
+                                <p><strong>Преимущества:</strong> Тонкие, легкие, хорошая прозрачность</p>
+                                <p><strong>Используется в:</strong> Microsoft HoloLens, Magic Leap</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technology-card ar-card">
+                            <div class="technology-name">Свободно-формные призмы</div>
+                            <div class="tech-type ar-tech">AR</div>
+                            <div class="text-content">
+                                <p>Призмы с оптимизированной поверхностью для отражения света.</p>
+                                <p><strong>Преимущества:</strong> Широкое поле зрения, хорошая яркость</p>
+                                <p><strong>Недостатки:</strong> Больший объем, сложность производства</p>
+                                <p><strong>Используется в:</strong> Google Glass Enterprise, Vuzix</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technology-card ar-card">
+                            <div class="technology-name">Ретинальные проекторы</div>
+                            <div class="tech-type ar-tech">AR</div>
+                            <div class="text-content">
+                                <p>Проецируют изображение непосредственно на сетчатку глаза.</p>
+                                <p><strong>Преимущества:</strong> Высокая яркость, независимость от зрения</p>
+                                <p><strong>Недостатки:</strong> Безопасность, точность наведения</p>
+                                <p><strong>Используется в:</strong> North Focals, экспериментальные системы</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <details>
+                        <summary>Пример кода: Настройка ARKit сессии в Swift</summary>
+                        <div class="content-inside">
+                            <div class="code-block" data-language="Swift">
+import ARKit
+import RealityKit
+
+class ARViewController: UIViewController {
+    @IBOutlet var arView: ARView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupARSession()
+    }
+    
+    func setupARSession() {
+        // Конфигурация AR сессии
+        let configuration = ARWorldTrackingConfiguration()
+        
+        // Включение возможностей
+        configuration.planeDetection = [.horizontal, .vertical]
+        configuration.environmentTexturing = .automatic
+        
+        // Запуск сессии
+        arView.session.run(configuration)
+        
+        // Обработка жестов
+        setupGestures()
+    }
+    
+    func setupGestures() {
+        // Жест тапа для размещения объектов
+        let tapGesture = UITapGestureRecognizer(target: self, 
+                                               action: #selector(handleTap))
+        arView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: arView)
+        
+        // Raycast для определения позиции в реальном мире
+        guard let raycastResult = arView.raycast(
+            from: location,
+            allowing: .estimatedPlane,
+            alignment: .any
+        ).first else { return }
+        
+        // Создание 3D модели
+        let sphere = MeshResource.generateSphere(radius: 0.1)
+        let material = SimpleMaterial(color: .blue, isMetallic: true)
+        let model = ModelEntity(mesh: sphere, materials: [material])
+        
+        // Создание якоря и добавление модели
+        let anchor = AnchorEntity(world: raycastResult.worldTransform)
+        anchor.addChild(model)
+        
+        // Добавление в сцену
+        arView.scene.addAnchor(anchor)
+    }
+}
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Раздел 5: Технологии отслеживания -->
+            <div class="section" id="section5">
+                <h2 class="section-title">5. Технологии отслеживания и позиционирования</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">SLAM (Simultaneous Localization and Mapping)</h3>
+                    
+                    <div class="text-content">
+                        <p>SLAM - одновременная локализация и построение карты, фундаментальная технология для AR/VR, которая позволяет устройствам понимать и ориентироваться в окружающем пространстве в реальном времени.</p>
+                    </div>
+                    
+                    <details>
+                        <summary>Пример кода: Базовый класс Visual SLAM на Python</summary>
+                        <div class="content-inside">
+                            <div class="code-block" data-language="Python">
+import numpy as np
+import cv2
+
+class VisualSLAM:
+    def __init__(self):
+        # Инициализация детектора признаков
+        self.orb = cv2.ORB_create(nfeatures=2000)
+        self.bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+        
+        # Состояние SLAM
+        self.map_points = []          # 3D точки карты
+        self.keyframes = []           # Ключевые кадры
+        self.camera_poses = []        # Позиции камеры
+        self.current_pose = np.eye(4) # Текущая позиция
+        
+    def process_frame(self, frame):
+        """Обработка нового кадра"""
+        # Извлечение признаков
+        keypoints, descriptors = self.extract_features(frame)
+        
+        if len(self.keyframes) == 0:
+            # Первый кадр - инициализация
+            self.initialize_map(frame, keypoints, descriptors)
+        else:
+            # Сопоставление с предыдущим кадром
+            matches = self.match_features(descriptors)
+            
+            # Оценка движения камеры
+            transformation = self.estimate_pose(keypoints, matches)
+            
+            # Обновление позиции
+            self.current_pose = self.current_pose @ transformation
+            
+        return self.current_pose
+    
+    def extract_features(self, frame):
+        """Извлечение ORB признаков из кадра"""
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        keypoints, descriptors = self.orb.detectAndCompute(gray, None)
+        return keypoints, descriptors
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Раздел 6: Разработка VR/AR -->
+            <div class="section" id="section6">
+                <h2 class="section-title">6. Разработка приложений VR/AR</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Игровые движки и фреймворки</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Платформы разработки] --> B[Unity]
+                                A --> C[Unreal Engine]
+                                A --> D[Godot]
+                                A --> E[WebXR]
+                                
+                                B --> F["Поддержка всех платформ<br>Большое сообщество<br>Asset Store<br>C# программирование"]
+                                C --> G["Высококачественная графика<br>Blueprint визуальное программирование<br>C++ производительность"]
+                                D --> H["Открытый исходный код<br>Легковесный<br>GDScript язык<br>Растущая поддержка VR/AR"]
+                                E --> I["Веб-стандарт для VR/AR<br>Не требует установки<br>Кроссплатформенность<br>JavaScript/WebGL"]
+                        </div>
+                    </div>
+                    
+                    <details>
+                        <summary>Пример кода: Базовый класс для VR взаимодействий в C# (Unity)</summary>
+                        <div class="content-inside">
+                            <div class="code-block" data-language="C#">
+using UnityEngine;
+
+public abstract class VRInteractable : MonoBehaviour
+{
+    public enum InteractionType { Grab, Use, Touch, Point }
+    
+    [Header("Interaction Settings")]
+    public InteractionType interactionType = InteractionType.Grab;
+    public float activationDistance = 0.1f;
+    
+    [Header("Haptic Feedback")]
+    public float hapticIntensity = 0.5f;
+    public float hapticDuration = 0.1f;
+    
+    // Состояние взаимодействия
+    protected bool isHovered = false;
+    protected bool isGrabbed = false;
+    
+    // События взаимодействия
+    public virtual void OnHoverEnter(VRController controller)
+    {
+        isHovered = true;
+        // Визуальная обратная связь
+        // Тактильная обратная связь
+        controller.TriggerHapticPulse(hapticIntensity, hapticDuration);
+    }
+    
+    public virtual void OnHoverExit(VRController controller)
+    {
+        isHovered = false;
+    }
+    
+    public virtual void OnGrab(VRController controller)
+    {
+        isGrabbed = true;
+        // Сильная тактильная обратная связь
+        controller.TriggerHapticPulse(1.0f, 0.2f);
+    }
+    
+    public virtual void OnRelease(VRController controller)
+    {
+        isGrabbed = false;
+    }
+}
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Раздел 7: 3D графика -->
+            <div class="section" id="section7">
+                <h2 class="section-title">7. 3D графика и рендеринг для VR/AR</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Оптимизация рендеринга для VR/AR</h3>
+                    
+                    <div class="text-content">
+                        <p>Рендеринг для VR/AR имеет уникальные требования из-за необходимости отрисовки двух изображений (для каждого глаза) с высокой частотой кадров и минимальной задержкой.</p>
+                    </div>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Техника оптимизации</th>
+                                <th>Принцип работы</th>
+                                <th>Эффект на производительность</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Foveated Rendering</td>
+                                <td>Снижение детализации на периферии зрения</td>
+                                <td>+50-70% FPS</td>
+                            </tr>
+                            <tr>
+                                <td>Fixed Foveated Rendering</td>
+                                <td>Статическое снижение качества по краям</td>
+                                <td>+30-50% FPS</td>
+                            </tr>
+                            <tr>
+                                <td>Single Pass Stereo</td>
+                                <td>Одновременный рендеринг для обоих глаз</td>
+                                <td>+40% FPS</td>
+                            </tr>
+                            <tr>
+                                <td>Dynamic Resolution</td>
+                                <td>Автоматическая настройка разрешения</td>
+                                <td>+30-50% FPS</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <details>
+                        <summary>Пример кода: Простой шейдер для VR с оптимизациями</summary>
+                        <div class="content-inside">
+                            <div class="code-block" data-language="HLSL">
+Shader "VR/OptimizedPBR"
+{
+    Properties
+    {
+        _MainTex ("Albedo (RGB)", 2D) = "white" {}
+        _Metallic ("Metallic", Range(0,1)) = 0.0
+        _Glossiness ("Smoothness", Range(0,1)) = 0.5
+    }
+    
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "VRShader"="true" }
+        LOD 200
+        
+        CGPROGRAM
+        #pragma vertex vert
+        #pragma fragment frag
+        #pragma multi_compile_fwdbase
+        
+        #include "UnityCG.cginc"
+        #include "Lighting.cginc"
+        
+        struct appdata {
+            float4 vertex : POSITION;
+            float3 normal : NORMAL;
+            float2 texcoord : TEXCOORD0;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+        };
+        
+        struct v2f {
+            float4 pos : SV_POSITION;
+            float2 uv : TEXCOORD0;
+            float3 worldNormal : TEXCOORD1;
+            float3 worldPos : TEXCOORD2;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+            UNITY_VERTEX_OUTPUT_STEREO // Для стерео рендеринга
+        };
+        
+        sampler2D _MainTex;
+        float _Metallic;
+        float _Glossiness;
+        
+        v2f vert(appdata v)
+        {
+            v2f o;
+            UNITY_SETUP_INSTANCE_ID(v);
+            UNITY_INITIALIZE_OUTPUT(v2f, o);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+            UNITY_TRANSFER_INSTANCE_ID(v, o);
+            
+            o.pos = UnityObjectToClipPos(v.vertex);
+            o.uv = v.texcoord;
+            o.worldNormal = UnityObjectToWorldNormal(v.normal);
+            o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+            
+            return o;
+        }
+        
+        fixed4 frag(v2f i) : SV_Target
+        {
+            UNITY_SETUP_INSTANCE_ID(i);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+            
+            // Чтение текстур и расчет освещения
+            fixed4 albedo = tex2D(_MainTex, i.uv);
+            // ... упрощенный расчет PBR освещения
+            
+            return albedo;
+        }
+        ENDCG
+    }
+    FallBack "Diffuse"
+}
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Раздел 8: Применение -->
+            <div class="section" id="section8">
+                <h2 class="section-title">8. Применение VR/AR технологий</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Области применения</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Применение VR/AR] --> B[Образование]
+                                A --> C[Медицина]
+                                A --> D[Промышленность]
+                                A --> E[Развлечения]
+                                A --> F[Дизайн]
+                                
+                                B --> H["Виртуальные лаборатории<br>Исторические реконструкции<br>Обучение навыкам"]
+                                C --> I["Хирургические симуляторы<br>Реабилитация<br>Психотерапия"]
+                                D --> J["Прототипирование<br>Обучение операторов<br>Удаленная помощь"]
+                                E --> K["Игры VR<br>Виртуальные концерты<br>Интерактивные фильмы"]
+                                F --> L["Архитектурная визуализация<br>Дизайн интерьеров<br>Промышленный дизайн"]
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <div class="example-title">Кейс: VR в медицинском обучении</div>
+                        <div class="text-content">
+                            <p><strong>Проблема:</strong> Обучение хирургов требует практики на реальных пациентах, что связано с рисками и ограниченной доступностью случаев.</p>
+                            <p><strong>Решение:</strong> VR симулятор хирургических операций с тактильной обратной связью, создающий анатомически точную виртуальную среду.</p>
+                            <p><strong>Результаты:</strong> Студенты, использовавшие VR симулятор, показали на 29% лучшие результаты в реальных операциях по сравнению с традиционными методами обучения.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Раздел 9: Будущее VR/AR технологий и Метавселенные -->
+            <div class="section" id="section9">
+                <h2 class="section-title">9. Будущее VR/AR технологий и Метавселенные</h2>
+                
+                <div class="subsection">
+                    <h3 class="subsection-title">Технологические тренды и конвергенция</h3>
+                    
+                    <div class="diagram">
+                        <div class="mermaid">
+                            graph TD
+                                A[Конвергенция технологий] --> B[Иммерсивные интерфейсы]
+                                A --> C[Искусственный интеллект]
+                                A --> D[Блокчейн и Web3]
+                                A --> E[Высокоскоростные сети]
+                                A --> F[Граничные вычисления]
+                                
+                                B --> G["VR/AR/XR устройства<br>Нейроинтерфейсы<br>Тактильная обратная связь"]
+                                C --> H["Генеративный контент<br>Умные аватары и NPC<br>Контекстное понимание"]
+                                D --> I["Децентрализованная экономика<br>Цифровые активы (NFT)<br>Управление идентичностью"]
+                                E --> J["5G/6G сети<br>Минимальные задержки<br>Массовая одновременная связь"]
+                                F --> K["Обработка данных у края сети<br>Потоковая передача сложных миров<br>Снижение нагрузки на устройства"]
+                                
+                                G --> L[Метавселенные как платформа]
+                                H --> L
+                                I --> L
+                                J --> L
+                                K --> L
+                                
+                                L --> M["Постоянные цифровые миры<br>Единая цифровая экономика<br>Глубокие социальные взаимодействия"]
+                        </div>
+                    </div>
+                    
+                    <div class="text-content">
+                        <p>Метавселенная представляет собой эволюцию интернета в постоянное, устойчивое и взаимосвязанное цифровое пространство, которое смешивает физическую и виртуальную реальности. Это не отдельная платформа, а сеть объединенных виртуальных миров с единой экономикой и социальными связями.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Технологическая основа метавселенных</h3>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Технология</th>
+                                <th>Роль в метавселенной</th>
+                                <th>Ключевые реализации</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>VR/AR/XR</strong></td>
+                                <td>Основные интерфейсы для взаимодействия с цифровыми мирами</td>
+                                <td>Meta Quest, Apple Vision Pro, Microsoft HoloLens</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Искусственный интеллект</strong></td>
+                                <td>Генерация контента, умные NPC, персонализация опыта</td>
+                                <td>Neural Radiance Fields (NeRF), генеративные модели</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Блокчейн и NFT</strong></td>
+                                <td>Децентрализованная экономика, владение цифровыми активами</td>
+                                <td>Ethereum, Polygon, Flow blockchain</td>
+                            </tr>
+                            <tr>
+                                <td><strong>5G/6G сети</strong></td>
+                                <td>Обеспечение низкой задержки для массовых подключений</td>
+                                <td>Потоковая передача 3D-контента, облачный рендеринг</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Граничные вычисления</strong></td>
+                                <td>Обработка данных близко к пользователю для снижения задержки</td>
+                                <td>Облачные VR/AR, распределенный рендеринг</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="advanced-section">
+                        <div class="advanced-title">Ключевые характеристики метавселенных</div>
+                        <div class="text-content">
+                            <p>Для понимания метавселенных важно выделить их основные характеристики:</p>
+                            <ul>
+                                <li><strong>Постоянство</strong>: мир существует непрерывно, даже когда пользователи покидают его</li>
+                                <li><strong>Единая идентификация</strong>: цифровая идентичность и аватар сохраняются между разными пространствами</li>
+                                <li><strong>Интероперабельность</strong>: возможность переноса активов и аватаров между разными метавселенными</li>
+                                <li><strong>Децентрализация</strong>: управление и владение распределены между пользователями</li>
+                                <li><strong>Социальность</strong>: глубокие социальные взаимодействия как основная функция</li>
+                                <li><strong>Единая экономика</strong>: сквозная система владения и обмена цифровыми активами</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Существующие платформы и экосистемы</h3>
+                    
+                    <div class="technology-grid">
+                        <div class="technology-card">
+                            <div class="technology-name">Децентрализованные миры (Web3)</div>
+                            <div class="tech-type mr-tech">Blockchain</div>
+                            <div class="text-content">
+                                <p>Платформы на блокчейне с акцентом на владение цифровыми активами.</p>
+                                <p><strong>Примеры:</strong> Decentraland, The Sandbox, Somnium Space</p>
+                                <p><strong>Особенности:</strong> Покупка виртуальной земли, NFT активы, децентрализованное управление</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technology-card">
+                            <div class="technology-name">Игровые/социальные платформы</div>
+                            <div class="tech-type vr-tech">Social VR</div>
+                            <div class="text-content">
+                                <p>Платформы, эволюционировавшие из игр в социальные пространства.</p>
+                                <p><strong>Примеры:</strong> Roblox, Fortnite, VRChat, Rec Room</p>
+                                <p><strong>Особенности:</strong> Массовые мероприятия, пользовательский контент, социальные взаимодействия</p>
+                            </div>
+                        </div>
+                        
+                        <div class="technology-card">
+                            <div class="technology-name">Корпоративные и креативные</div>
+                            <div class="tech-type ar-tech">Enterprise</div>
+                            <div class="text-content">
+                                <p>Платформы для профессионального использования и создания контента.</p>
+                                <p><strong>Примеры:</strong> NVIDIA Omniverse, Unity Metaverse, Microsoft Mesh</p>
+                                <p><strong>Особенности:</strong> Совместная работа над 3D-проектами, промышленные симуляции</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="example-box">
+                        <div class="example-title">Кейс: Виртуальная экономика в Decentraland</div>
+                        <div class="text-content">
+                            <p>Decentraland — децентрализованная виртуальная платформа на блокчейне Ethereum, где пользователи могут покупать землю (LAND), строить на ней и монетизировать свой контент.</p>
+                            <ul>
+                                <li><strong>Токенизация земли</strong>: 90,601 участков земли, каждый представлен как NFT</li>
+                                <li><strong>Виртуальная экономика</strong>: внутренняя криптовалюта MANA для всех транзакций</li>
+                                <li><strong>Реальные бренды</strong>: Samsung, Coca-Cola, Adidas создали свои виртуальные пространства</li>
+                                <li><strong>Ценность активов</strong>: некоторые участки земли продавались за более чем $1 миллион</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Бизнес-модели и экономика метавселенных</h3>
+                    
+                    <div class="text-content">
+                        <p>Метавселенные создают новые экономические возможности и бизнес-модели:</p>
+                    </div>
+                    
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Бизнес-модель</th>
+                                <th>Принцип работы</th>
+                                <th>Примеры</th>
+                                <th>Прогноз рынка</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Виртуальная недвижимость</td>
+                                <td>Покупка, продажа и аренда виртуальных земельных участков</td>
+                                <td>Decentraland, The Sandbox, Somnium Space</td>
+                                <td>$5 млрд к 2026</td>
+                            </tr>
+                            <tr>
+                                <td>Цифровые активы и NFT</td>
+                                <td>Создание и торговля уникальными цифровыми предметами</td>
+                                <td>Виртуальная одежда, искусство, коллекционные предметы</td>
+                                <td>$80 млрд к 2025</td>
+                            </tr>
+                            <tr>
+                                <td>Виртуальные мероприятия</td>
+                                <td>Проведение концертов, конференций, выставок</td>
+                                <td>Концерты в Fortnite, виртуальные fashion-показы</td>
+                                <td>$50 млрд к 2030</td>
+                            </tr>
+                            <tr>
+                                <td>Реклама и брендинг</td>
+                                <td>Интеграция брендов в виртуальные пространства</td>
+                                <td>Nike, Gucci, Balenciaga в Roblox и Fortnite</td>
+                                <td>$15 млрд к 2027</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Социальные и этические вызовы</h3>
+                    
+                    <div class="warning-box">
+                        <div class="warning-title">Критические вопросы развития метавселенных</div>
+                        <div class="text-content">
+                            <p>Развитие метавселенных сталкивается с серьезными этическими и социальными вызовами:</p>
+                            <ul>
+                                <li><strong>Конфиденциальность и безопасность данных</strong>: иммерсивные устройства собирают биометрические данные (движение глаз, эмоциональные реакции)</li>
+                                <li><strong>Цифровое неравенство</strong>: доступ к полноценному опыту требует дорогостоящего оборудования</li>
+                                <li><strong>Психическое здоровье</strong>: риски кибераддикции и влияния на самоидентификацию</li>
+                                <li><strong>Регулирование и право</strong>: необходимость новых правовых рамок для виртуальных активов и взаимодействий</li>
+                                <li><strong>Централизация vs децентрализация</strong>: борьба между корпоративными и открытыми моделями метавселенных</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="key-points">
+                        <div class="key-points-title">Прогноз развития на ближайшее десятилетие</div>
+                        <ul>
+                            <li><strong>2023-2025</strong>: Формирование базовой инфраструктуры и стандартов интероперабельности</li>
+                            <li><strong>2025-2027</strong>: Массовое внедрение AR устройств и рост виртуальной экономики</li>
+                            <li><strong>2027-2030</strong>: Конвергенция физического и цифрового миров, появление "цифровых двойников"</li>
+                            <li><strong>После 2030</strong>: Полноценные метавселенные как основная платформа для работы, обучения и социального взаимодействия</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="key-points">
+                    <div class="key-points-title">Ключевые выводы</div>
+                    <ul>
+                        <li>Метавселенные — это эволюция, а не революция, следующий этап развития интернета</li>
+                        <li>Успех зависит от конвергенции VR/AR, ИИ, блокчейна и высокоскоростных сетей</li>
+                        <li>Интероперабельность и открытые стандарты — ключевые факторы для создания единой метавселенной</li>
+                        <li>Новые экономические модели создают возможности, но требуют новых подходов к регулированию</li>
+                        <li>Этические и социальные аспекты должны рассматриваться на ранних этапах разработки</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+        
+        // Прогресс бар
+        window.addEventListener('scroll', function() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = scrollTop / (docHeight - winHeight);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.transform = `scaleX(${scrollPercent})`;
+        });
+        
+        // Плавная прокрутка для навигации
+        document.querySelectorAll('.nav-item').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        });
+        
+        // Динамическое обновление Mermaid при изменении размера окна
+        window.addEventListener('resize', function() {
+            mermaid.contentLoaded();
+        });
+
+        // Рендеринг формул KaTeX после загрузки DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>
