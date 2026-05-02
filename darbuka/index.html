@@ -48,6 +48,7 @@
     .track-body-visible { display: block; }
     .track-card { transition: all 0.3s ease; }
     .track-card.muted { opacity: 0.4; }
+    .track-card.looping { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.05); }
     input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.15); border-radius: 999px; height: 6px; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #60a5fa; border: 2px solid #fff; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
@@ -114,7 +115,6 @@
       <div id="editorPanel" class="px-2 pb-2">
         <div id="tracksContainer" class="space-y-3"></div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-          <!-- Left: Tracks & Slots -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-medium text-white/40 uppercase tracking-wider">Дорожки</span>
@@ -128,8 +128,6 @@
             </div>
             <button id="openSlotsBtn" class="glass-btn w-full py-2 rounded-xl text-xs font-medium text-white/60">📋 Управление слотами</button>
           </div>
-
-          <!-- Right: File & Actions -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-medium text-white/40 uppercase tracking-wider">Файл</span>
@@ -141,7 +139,7 @@
             </div>
             <input type="file" id="importFile" accept=".json" class="hidden">
             <div class="p-3 rounded-xl bg-black/20 border border-white/10 text-xs text-white/40 leading-relaxed">
-              💡 Данные табулатур сохраняются в слотах. Сэмплы и настройки синтезатора сохраняются отдельно и автоматически.
+              💡 Данные табулатур сохраняются в слотах. Сэмплы сохраняются отдельно и автоматически.
             </div>
           </div>
         </div>
@@ -219,16 +217,17 @@
       }
 
       try {
-        var mf = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: "/darbuka", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
+        var mf = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
         var bf = new Blob([JSON.stringify(mf)], {type: 'application/json'});
         document.head.appendChild(Object.assign(document.createElement('link'), {rel: 'manifest', href: URL.createObjectURL(bf)}));
       } catch(e) {}
 
-      var NUM_SLOTS = 8, currentSlot = 1, selectedSlotInModal = 0;
+      var NUM_SLOTS = 16, currentSlot = 1, selectedSlotInModal = 0;
       var customSamples = {};
-      var samplesLoadedFromStorage = false;
+      var pendingSampleData = null;
       var sampleStorageLimit = 1500000;
       var hasUnsavedChanges = false;
+      var LOOP_MAX_CYCLES = 100;
 
       var els = {
         bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'), tapTempo: document.getElementById('tapTempo'),
@@ -263,7 +262,6 @@
         B:  { label:'Bek',  css:'b' },
         R:  { label:'Rest', css:'r' }
       };
-      
 
       var ctx2d = els.canvas.getContext('2d');
       var resizeCanvas = function() { var r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width * window.devicePixelRatio; els.canvas.height = r.height * window.devicePixelRatio; ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio); } };
@@ -285,7 +283,7 @@
 
       function createTrack(name) {
         trackIdCounter++;
-        return { id: trackIdCounter, name: name || ('Дорожка ' + trackIdCounter), tab: '', volume: 1.0, muted: false, solo: false };
+        return { id: trackIdCounter, name: name || ('Дорожка ' + trackIdCounter), tab: '', volume: 1.0, muted: false, solo: false, loop: false };
       }
 
       function initTracks() { if (tracks.length === 0) tracks.push(createTrack('Основная')); }
@@ -301,7 +299,7 @@
         els.tracksContainer.innerHTML = '';
         tracks.forEach(function(track) {
           var card = document.createElement('div');
-          card.className = 'track-card glass rounded-2xl p-3' + (track.muted ? ' muted' : '');
+          card.className = 'track-card glass rounded-2xl p-3' + (track.muted ? ' muted' : '') + (track.loop ? ' looping' : '');
           var dot = getTrackColor(track.id);
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
@@ -311,6 +309,7 @@
           headerHtml += '<span class="w-2 h-2 rounded-full shrink-0" style="background:' + dot + '"></span>';
           headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-solo="' + track.id + '">S</button>';
           headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-mute="' + track.id + '">M</button>';
+          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.loop ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-loop="' + track.id + '" title="Зацикливание">L</button>';
           headerHtml += '<span class="text-sm font-medium text-white/80 truncate max-w-[120px]">' + track.name + '</span>';
           headerHtml += '</div><div class="flex items-center gap-2 shrink-0">';
           headerHtml += '<span class="text-xs text-white/40 shrink-0">Vol</span>';
@@ -342,6 +341,11 @@
           card.querySelector('[data-toggle-mute="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.muted = !track.muted;
             renderTracks(); updateNoteInfo();
+          });
+
+          card.querySelector('[data-toggle-loop="' + track.id + '"]').addEventListener('click', function(e) {
+            e.stopPropagation(); track.loop = !track.loop;
+            renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
           card.querySelector('[data-track-vol="' + track.id + '"]').addEventListener('input', function(e) {
@@ -390,7 +394,7 @@
             channels.push(b64);
           }
           return JSON.stringify({ sampleRate: buffer.sampleRate, numberOfChannels: buffer.numberOfChannels, length: buffer.length, channels: channels });
-        } catch(e) { console.error('Buffer encode error:', e); return null; }
+        } catch(e) { return null; }
       }
 
       function base64ToAudioBuffer(jsonStr) {
@@ -406,10 +410,8 @@
             buffer.getChannelData(c).set(floatData);
           }
           return buffer;
-        } catch(e) { console.error('Buffer decode error:', e); return null; }
+        } catch(e) { return null; }
       }
-
-      var pendingSampleData = null;
 
       function saveSamplesToStorage() {
         var sampleData = {};
@@ -426,10 +428,7 @@
         try {
           localStorage.setItem('darbuka_samples_v1', JSON.stringify(sampleData));
           return true;
-        } catch(e) {
-          setStatus('⚠️ Превышен лимит localStorage', 'text-red-400');
-          return false;
-        }
+        } catch(e) { return false; }
       }
 
       function loadSamplesFromStorage() {
@@ -456,10 +455,7 @@
           }
         }
         pendingSampleData = null;
-        samplesLoadedFromStorage = true;
-        if (count > 0) {
-          setStatus('📂 Загружено ' + count + ' сэмплов из хранилища', 'text-cyan-300');
-        }
+        if (count > 0) setStatus('📂 Загружено ' + count + ' сэмплов', 'text-cyan-300');
       }
 
       function createImpulseResponse() {
@@ -481,16 +477,10 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') {
           audioCtx.resume().then(function() {
-            if (!masterGain) {
-              setupAudioNodes();
-              decodePendingSamples();
-            }
+            if (!masterGain) { setupAudioNodes(); decodePendingSamples(); }
           });
         } else {
-          if (!masterGain) {
-            setupAudioNodes();
-            decodePendingSamples();
-          }
+          if (!masterGain) { setupAudioNodes(); decodePendingSamples(); }
         }
       }
 
@@ -522,7 +512,7 @@
             var src = audioCtx.createBufferSource(); src.buffer = customSamples[type].buffer;
             var g = audioCtx.createGain(); g.gain.value = trackVolume !== undefined ? trackVolume : 1.0;
             src.connect(g); g.connect(masterGain); src.start(time);
-          } catch(e) { console.warn('Sample play error:', e); }
+          } catch(e) {}
         }
       }
 
@@ -548,11 +538,10 @@
             customSamples[type] = { buffer: buffer, name: file.name };
             updateSampleUI(type, file.name);
             setStatus('✅ ' + type + ': ' + file.name, 'text-green-400');
-            markUnsaved();
-            saveSamplesToStorage();
+            markUnsaved(); saveSamplesToStorage();
           }, function() { setStatus('❌ Ошибка декодирования', 'text-red-400'); });
         };
-        reader.onerror = function() { setStatus('❌ Ошибка чтения файла', 'text-red-400'); };
+        reader.onerror = function() { setStatus('❌ Ошибка чтения', 'text-red-400'); };
         reader.readAsArrayBuffer(file);
       }
       function clearCustomSample(type) { customSamples[type] = null; updateSampleUI(type, null); setStatus('🗑 ' + type + ' очищен', 'text-white/50'); markUnsaved(); }
@@ -586,6 +575,12 @@
         return result;
       }
 
+      function computeTrackDuration(parsedNotes, bpmVal) {
+        var totalBeats = 0;
+        for (var i = 0; i < parsedNotes.length; i++) totalBeats += parsedNotes[i].duration;
+        return (totalBeats * 60.0) / bpmVal;
+      }
+
       function mergeAllTracks() {
         readTrackTabsFromDOM();
         var anySolo = tracks.some(function(t) { return t.solo; });
@@ -593,26 +588,60 @@
           if (anySolo) return t.solo && !t.muted;
           return !t.muted;
         });
+
+        var hasLoop = activeTracks.some(function(t) { return t.loop; });
+        var maxNonLoopDuration = 0;
+        activeTracks.forEach(function(track) {
+          if (!track.loop) {
+            var parsed = parseTab(track.tab);
+            var dur = computeTrackDuration(parsed, bpm);
+            if (dur > maxNonLoopDuration) maxNonLoopDuration = dur;
+          }
+        });
+
+        var effectiveMaxDuration = hasLoop ? Math.max(maxNonLoopDuration, 0.5) * LOOP_MAX_CYCLES : maxNonLoopDuration;
+        if (!hasLoop && effectiveMaxDuration === 0) {
+          // All non-loop tracks are empty, check if any loop tracks exist
+          activeTracks.forEach(function(track) {
+            var parsed = parseTab(track.tab);
+            var dur = computeTrackDuration(parsed, bpm);
+            if (dur > 0) effectiveMaxDuration = dur;
+          });
+        }
+        if (effectiveMaxDuration === 0) return [];
+
         var allEvents = [];
         activeTracks.forEach(function(track) {
           var parsed = parseTab(track.tab);
+          if (parsed.length === 0) return;
+          var trackDuration = computeTrackDuration(parsed, bpm);
+          if (trackDuration === 0) return;
+          
+          var iterations = track.loop ? Math.ceil(effectiveMaxDuration / trackDuration) : 1;
           var currentTime = 0;
-          parsed.forEach(function(noteObj) {
-            var beatDuration = (60.0 / bpm) * noteObj.duration;
-            allEvents.push({
-              time: currentTime,
-              notes: noteObj.notes,
-              duration: noteObj.duration,
-              beatDuration: beatDuration,
-              trackId: track.id,
-              trackName: track.name,
-              trackVolume: track.volume,
-              trackColor: getTrackColor(track.id),
-              isRest: noteObj.notes.length === 1 && (noteObj.notes[0] === '-' || noteObj.notes[0] === 'R')
-            });
-            currentTime += beatDuration;
-          });
+          for (var iter = 0; iter < iterations; iter++) {
+            for (var i = 0; i < parsed.length; i++) {
+              var noteObj = parsed[i];
+              var beatDuration = (60.0 / bpm) * noteObj.duration;
+              if (currentTime > effectiveMaxDuration + 1) break;
+              allEvents.push({
+                time: currentTime,
+                notes: noteObj.notes,
+                duration: noteObj.duration,
+                beatDuration: beatDuration,
+                trackId: track.id,
+                trackName: track.name,
+                trackVolume: track.volume,
+                trackColor: getTrackColor(track.id),
+                isRest: noteObj.notes.length === 1 && (noteObj.notes[0] === '-' || noteObj.notes[0] === 'R'),
+                loopIteration: iter,
+                isLoop: track.loop
+              });
+              currentTime += beatDuration;
+            }
+          }
         });
+
         allEvents.sort(function(a, b) {
           if (Math.abs(a.time - b.time) > 0.0001) return a.time - b.time;
           return a.trackId - b.trackId;
@@ -640,14 +669,10 @@
           var evt = group.events[e];
           if (!evt.isRest) {
             for (var n = 0; n < evt.notes.length; n++) {
-              if (NOTE_INFO[evt.notes[n]]) {
-                playNote(evt.notes[n], playTime, evt.trackVolume);
-              }
+              if (NOTE_INFO[evt.notes[n]]) playNote(evt.notes[n], playTime, evt.trackVolume);
             }
           }
-          for (var n = 0; n < evt.notes.length; n++) {
-            allNoteTypes.push(evt.notes[n]);
-          }
+          for (var n = 0; n < evt.notes.length; n++) allNoteTypes.push(evt.notes[n]);
         }
         var groupIdx = group._groupIdx;
         var delayMs = Math.max(0, (playTime - audioCtx.currentTime) * 1000);
@@ -706,9 +731,7 @@
             if (NOTE_INFO[type] && type !== 'R' && type !== '-' && !customSamples[type] && missingTypes.indexOf(type) === -1) missingTypes.push(type); 
           }); 
         });
-        if (missingTypes.length > 0) {
-          setStatus('⚠️ Не загружены сэмплы: ' + missingTypes.join(', '), 'text-yellow-300');
-        }
+        if (missingTypes.length > 0) setStatus('⚠️ Не загружены сэмплы: ' + missingTypes.join(', '), 'text-yellow-300');
 
         beatGroups = buildBeatGroups(notes);
         beatGroups.forEach(function(grp, idx) { grp._groupIdx = idx; });
@@ -719,7 +742,9 @@
         
         els.playBtn.classList.add('pulse-ring'); els.stopBtn.classList.remove('opacity-50', 'pointer-events-none');
         els.playText.textContent = 'Играет...'; els.playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        buildPreview(); scheduler(); setStatus('▶ Воспроизведение...', 'text-blue-300');
+        buildPreview(); scheduler(); 
+        var hasLoop = notes.some(function(n) { return n.isLoop; });
+        setStatus(hasLoop ? '▶ Воспроизведение (зациклено)' : '▶ Воспроизведение...', 'text-blue-300');
       }
 
       function stopPlayback() {
@@ -794,7 +819,7 @@
           var label = document.createElement('span');
           label.className = 'preview-track-label shrink-0';
           label.style.background = te.color + '30'; label.style.color = te.color; label.style.border = '1px solid ' + te.color + '50';
-          label.textContent = te.name; row.appendChild(label);
+          label.textContent = te.name + (track.loop ? ' 🔁' : ''); row.appendChild(label);
           var notesContainer = document.createElement('div');
           notesContainer.className = 'flex flex-wrap gap-0.5 items-center';
           te.events.forEach(function(item) {
@@ -851,7 +876,6 @@
           html += '</div>';
           div.innerHTML = html; grid.appendChild(div);
         }
-
         grid.querySelectorAll('.preview-btn').forEach(function(btn) { btn.addEventListener('click', function() { playPreview(btn.dataset.type); }); });
         grid.querySelectorAll('.load-sample-btn').forEach(function(btn) {
           btn.addEventListener('click', function() { document.getElementById('file-' + btn.dataset.type).click(); });
@@ -880,9 +904,7 @@
         if (saveSamplesToStorage()) {
           setStatus('✅ Сэмплы сохранены', 'text-green-400');
           setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300);
-        } else {
-          setStatus('❌ Ошибка сохранения (лимит)', 'text-red-400');
-        }
+        } else { setStatus('❌ Ошибка сохранения (лимит)', 'text-red-400'); }
       });
       els.resetAllSamples.addEventListener('click', function() {
         if (confirm('Удалить все загруженные сэмплы?')) {
@@ -898,8 +920,7 @@
           readTrackTabsFromDOM();
           var data = { tracks: tracks, bpm: bpm, volume: volume, ts: Date.now(), trackIdCounter: trackIdCounter };
           localStorage.setItem(getSlotKey(n), JSON.stringify(data));
-          hasUnsavedChanges = false;
-          return true;
+          hasUnsavedChanges = false; return true;
         } catch(e) { return false; }
       }
       function loadFromSlot(n) {
@@ -945,9 +966,7 @@
         } else {
           els.loadSelectedSlot.classList.add('opacity-50'); els.loadSelectedSlot.classList.add('pointer-events-none');
         }
-        els.slotsGrid.querySelectorAll('.slot-card').forEach(function(c) {
-          c.classList.toggle('active', parseInt(c.dataset.slot) === n);
-        });
+        els.slotsGrid.querySelectorAll('.slot-card').forEach(function(c) { c.classList.toggle('active', parseInt(c.dataset.slot) === n); });
       }
       function openSlotsModal() { buildSlotsUI(); els.slotsModal.classList.remove('modal-hidden'); els.slotsModal.classList.add('modal-visible'); requestAnimationFrame(function(){requestAnimationFrame(function(){els.slotsPanel.classList.remove('modal-panel-hidden');els.slotsPanel.classList.add('modal-panel-visible');});}); }
       function closeSlotsModal() { els.slotsPanel.classList.remove('modal-panel-visible');els.slotsPanel.classList.add('modal-panel-hidden'); setTimeout(function(){els.slotsModal.classList.remove('modal-visible');els.slotsModal.classList.add('modal-hidden');},300); }
