@@ -1249,8 +1249,8 @@
         els.previewPanel.classList.remove('hidden'); els.editorPanel.classList.add('hidden'); buildPreview();
       });
 
-      els.bpm.addEventListener('change', function(e) { bpm = Math.min(300, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfo(); });
-      els.bpmUp.addEventListener('click', function() { bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); });
+      els.bpm.addEventListener('change', function(e) { bpm = Math.min(1000, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfo(); });
+      els.bpmUp.addEventListener('click', function() { bpm = Math.min(1000, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); });
       els.bpmDown.addEventListener('click', function() { bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfo(); });
       els.volume.addEventListener('input', function(e) { volume = parseFloat(e.target.value); els.volumeVal.textContent = Math.round(volume*100)+'%'; if (masterGain) masterGain.gain.value = volume; });
       els.swing.addEventListener('input', function(e) { swing = parseInt(e.target.value); els.swingVal.textContent = swing + '%'; markUnsaved(); });
@@ -1273,7 +1273,7 @@
           for (var i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
           var avg = intervals.reduce(function(a,b){return a+b;},0) / intervals.length;
           var newBpm = Math.round(60000 / avg);
-          bpm = Math.min(300, Math.max(30, newBpm));
+          bpm = Math.min(1000, Math.max(30, newBpm));
           els.bpm.value = bpm; updateNoteInfo();
           els.tapTempo.classList.add('tap-pulse');
           setTimeout(function() { els.tapTempo.classList.remove('tap-pulse'); }, 200);
