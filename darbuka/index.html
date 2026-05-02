@@ -6,9 +6,21 @@
   <meta name="theme-color" content="#0b1120">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Darbuka Tab Pro</title>
+  <title>Darbuka Tab Player Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
-   <script src="samples.js"></script>
+  <script src="samples.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            glass: 'rgba(255,255,255,0.06)',
+            glassBorder: 'rgba(255,255,255,0.12)',
+          }
+        }
+      }
+    }
+  </script>
   <style>
     :root { --glass-bg: rgba(255,255,255,0.06); --glass-border: rgba(255,255,255,0.12); }
     * { box-sizing: border-box; }
@@ -25,14 +37,12 @@
     .glass-btn:hover::before { opacity: 1; }
     .glass-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
     .glass-btn:active { transform: translateY(0); }
-    .glass-btn.active { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.4); color: #93c5fd; }
     textarea { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; caret-color: #60a5fa; }
     textarea::-webkit-scrollbar { width: 6px; } textarea::-webkit-scrollbar-track { background: transparent; } textarea::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
     textarea:focus { outline: none; }
-    .note-pill { display: inline-flex; align-items: center; justify-content: center; padding: 0.3em 0.5em; margin: 0.12em; border-radius: 0.5em; font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.88em; transition: all 0.15s ease; border: 1px solid transparent; user-select: none; position: relative; }
+    .note-pill { display: inline-flex; align-items: center; justify-content: center; padding: 0.3em 0.5em; margin: 0.12em; border-radius: 0.5em; font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.88em; transition: all 0.15s ease; border: 1px solid transparent; user-select: none; }
     .note-pill.active { transform: scale(1.15); box-shadow: 0 0 16px currentColor; border-color: rgba(255,255,255,0.4); z-index: 10; }
     .note-pill.missing { border-color: #f87171; animation: flashRed 0.5s ease; }
-    .note-pill .dur-badge { position: absolute; top: -6px; right: -6px; font-size: 0.6em; background: rgba(0,0,0,0.6); border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 1px solid rgba(255,255,255,0.3); }
     @keyframes flashRed { 0%, 100% { background: rgba(239,68,68,0.3); } 50% { background: rgba(239,68,68,0.6); } }
     .note-d { background: rgba(59,130,246,0.3); color: #93c5fd; } .note-t { background: rgba(168,85,247,0.3); color: #c084fc; }
     .note-k { background: rgba(234,179,8,0.3); color: #facc15; } .note-s { background: rgba(239,68,68,0.3); color: #f87171; }
@@ -64,17 +74,19 @@
     .tap-pulse { animation: tapPulse 0.2s ease-out; }
     @keyframes tapPulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     .beat-indicator { transition: transform 0.1s ease; }
-    .beat-indicator.on { transform: scale(1.3); background: #facc15 !important; box-shadow: 0 0 12px rgba(250,204,21,0.6); }
-    .beat-indicator.sub-on { transform: scale(1.1); background: rgba(250,204,21,0.5) !important; }
-    .seq-grid { display: grid; gap: 2px; }
+    .beat-indicator.on { transform: scale(1.2); background: #facc15 !important; box-shadow: 0 0 12px rgba(250,204,21,0.6); }
+    .seq-grid { display: grid; grid-template-columns: auto repeat(16, 1fr); gap: 2px; }
     .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 4px; cursor: pointer; transition: all 0.1s; border: 1px solid rgba(255,255,255,0.1); }
     .seq-cell:hover { border-color: rgba(255,255,255,0.3); }
     .seq-cell.active { background: var(--cell-color, #60a5fa); box-shadow: 0 0 8px var(--cell-color, #60a5fa); border-color: rgba(255,255,255,0.4); }
     .seq-cell.beat { background: rgba(255,255,255,0.05); }
-    .seq-cell.beat-sub { background: rgba(255,255,255,0.025); }
     .seq-label { font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; padding: 4px; }
+    .eq-knob { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); position: relative; cursor: pointer; }
+    .eq-knob::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 2px; height: 12px; background: #60a5fa; border-radius: 2px; }
     .rec-active { animation: recPulse 1s infinite; }
     @keyframes recPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+    .beat-val-btn { transition: all 0.2s ease; }
+    .beat-val-btn.active { background: rgba(96,165,250,0.3) !important; border-color: rgba(96,165,250,0.6) !important; color: #93c5fd !important; box-shadow: 0 0 8px rgba(96,165,250,0.3); }
     @media (max-width: 640px) { .glass-btn { font-size: 0.85rem; padding: 0.5rem 0.75rem; } .note-pill { font-size: 0.82rem; padding: 0.22em 0.45em; } }
   </style>
 </head>
@@ -86,7 +98,7 @@
         <span class="text-3xl" role="img">🥁</span>
         <div class="text-left">
           <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent">Darbuka Tab Pro</h1>
-          <p class="text-white/50 text-xs mt-0.5">Multi-Track • Sequencer • Presets • Recording • Fractions</p>
+          <p class="text-white/50 text-xs mt-0.5">Multi-Track • Sequencer • Presets • Recording</p>
         </div>
       </div>
     </header>
@@ -110,14 +122,14 @@
             <button id="bpmUp" class="w-6 h-3 bg-white/10 rounded-t flex items-center justify-center text-xs hover:bg-white/20 transition-colors">▲</button>
             <button id="bpmDown" class="w-6 h-3 bg-white/10 rounded-b flex items-center justify-center text-xs hover:bg-white/20 transition-colors">▼</button>
           </div>
-          <button id="tapTempo" class="glass-btn px-2 py-1.5 rounded-lg text-xs text-yellow-200 ml-1" title="Tap Tempo">⏱ TAP</button>
         </div>
-        <div class="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-xl px-3 py-2">
-          <label class="text-xs font-medium text-white/60 uppercase tracking-wider">Beat</label>
-          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono active" data-beat="0.25">1/4</button>
-          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono" data-beat="0.125">1/8</button>
-          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono" data-beat="0.0625">1/16</button>
+        <div class="flex items-center gap-1 bg-black/20 border border-white/10 rounded-xl px-2 py-1.5">
+          <label class="text-xs font-medium text-white/60 uppercase tracking-wider mr-1">Дробь</label>
+          <button id="beatVal4" class="beat-val-btn active glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/4</button>
+          <button id="beatVal8" class="beat-val-btn glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/8</button>
+          <button id="beatVal16" class="beat-val-btn glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/16</button>
         </div>
+        <button id="tapTempo" class="glass-btn px-2 py-1.5 rounded-lg text-xs text-yellow-200" title="Tap Tempo">⏱ TAP</button>
         <button id="playBtn" class="glass-btn px-6 py-3 rounded-xl font-semibold text-blue-200 flex items-center gap-2 min-w-[140px] justify-center">
           <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span id="playText">Старт</span>
@@ -181,7 +193,7 @@
             </div>
             <input type="file" id="importFile" accept=".json" class="hidden">
             <div class="p-3 rounded-xl bg-black/20 border border-white/10 text-xs text-white/40 leading-relaxed">
-              💡 Доли: <code class="bg-white/10 px-1 rounded">D</code>=1, <code class="bg-white/10 px-1 rounded">D.</code>=½(1/4), <code class="bg-white/10 px-1 rounded">D:</code>=¼(1/8), <code class="bg-white/10 px-1 rounded">D2</code>=2. (DK)=аккорд, -=Rest.
+              💡 D=Dum, T=Tak, K=Ka, S=Slap, t=tek, k=kak, B=Bek, R/-=Rest. Цифра=длительность. (DK)=аккорд.
             </div>
           </div>
         </div>
@@ -207,14 +219,7 @@
         <span class="note-pill note-b">B</span><span class="text-white/40">Bek</span>
         <span class="note-pill note-r">R</span><span class="text-white/40">Rest</span>
       </div>
-      <div class="flex flex-wrap justify-center gap-3 text-xs mt-1">
-        <span class="text-white/40">Длительность:</span>
-        <span class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-mono">D</span><span class="text-white/40">=1 (♩)</span>
-        <span class="bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-mono">D.</span><span class="text-white/40">=0.5 (♪ 1/4)</span>
-        <span class="bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-mono">D:</span><span class="text-white/40">=0.25 (𝅘𝅥𝅯 1/8)</span>
-        <span class="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded font-mono">D2</span><span class="text-white/40">=2</span>
-      </div>
-      <p class="text-white/30 text-xs mt-1">Горячие клавиши: <code class="bg-white/10 px-1 rounded">Space</code> Старт/Стоп | <code class="bg-white/10 px-1 rounded">Esc</code> Стоп | <code class="bg-white/10 px-1 rounded">↑↓</code> BPM ±5</p>
+      <p class="text-white/30 text-xs">Горячие клавиши: <code class="bg-white/10 px-1 rounded">Space</code> Старт/Стоп | <code class="bg-white/10 px-1 rounded">Esc</code> Стоп | <code class="bg-white/10 px-1 rounded">↑↓</code> BPM ±5</p>
     </footer>
   </main>
 
@@ -286,17 +291,7 @@
   <div id="seqModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
     <div id="seqPanel" class="glass w-full max-w-4xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
       <button id="closeSeq" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10 text-xl leading-none">✕</button>
-      <div class="flex items-center justify-between mb-4 pr-8">
-        <h2 class="text-xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Step Sequencer</h2>
-        <div class="flex gap-2 items-center">
-          <button id="seqStepsBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-white/60">32 шага</button>
-          <select id="seqSubdivision" class="glass-bg bg-black/30 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white/70 outline-none">
-            <option value="1">1/4 (♩)</option>
-            <option value="0.5" selected>1/8 (♪)</option>
-            <option value="0.25">1/16 (𝅘𝅥𝅯)</option>
-          </select>
-        </div>
-      </div>
+      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">Step Sequencer</h2>
       <div id="seqGrid" class="overflow-x-auto pb-2 flex-1"></div>
       <div class="flex gap-2 mt-4 shrink-0">
         <button id="seqPlayBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm text-blue-200">▶ Воспроизвести</button>
@@ -342,6 +337,7 @@
 
       var els = {
         bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'), tapTempo: document.getElementById('tapTempo'),
+        beatVal4: document.getElementById('beatVal4'), beatVal8: document.getElementById('beatVal8'), beatVal16: document.getElementById('beatVal16'),
         volume: document.getElementById('volume'), volumeVal: document.getElementById('volumeVal'),
         swing: document.getElementById('swing'), swingVal: document.getElementById('swingVal'),
         playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), playText: document.getElementById('playText'),
@@ -371,8 +367,7 @@
         resetEQ: document.getElementById('resetEQ'),
         seqModal: document.getElementById('seqModal'), seqPanel: document.getElementById('seqPanel'),
         closeSeq: document.getElementById('closeSeq'), seqGrid: document.getElementById('seqGrid'),
-        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn'),
-        seqStepsBtn: document.getElementById('seqStepsBtn'), seqSubdivision: document.getElementById('seqSubdivision')
+        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn')
       };
 
       var NOTE_INFO = {
@@ -380,47 +375,28 @@
         t:  { label:'tek',  css:'lt' }, k:  { label:'kak',  css:'lk' }, B:  { label:'Bek',  css:'b' }, R:  { label:'Rest', css:'r' }
       };
 
-      var DURATION_SYMBOLS = {
-        '1': '♩',
-        '0.5': '♪',
-        '.5': '♪',
-        '0.25': '𝅘𝅥𝅯',
-        '.25': '𝅘𝅥𝅯'
-      };
-
-      var getDurSymbol = function(dur) {
-        var key = String(dur);
-        if (DURATION_SYMBOLS[key]) return DURATION_SYMBOLS[key];
-        if (dur === 1) return '';
-        if (dur === 2) return '♩♩';
-        return dur < 1 ? '♪' : '';
-      };
-
       var PRESETS = {
-        'Maqsoum': 'D T D : T D T :',
-        'Baladi': 'D : T : D : T D T D',
-        'Saidi': 'D D T D T D : T',
-        'Malfuf': 'D : T : D T D T',
-        'Chiftetelli': 'D : D : T D T : D T : T',
+        'Maqsoum': 'D T D - T D T -',
+        'Baladi': 'D - T - D - T D T D',
+        'Saidi': 'D D T D T D - T',
+        'Malfuf': 'D - T - D T D T',
+        'Chiftetelli': 'D - D - T D T - D T - T',
         'Ayoub': 'D D T D T D T D D T',
-        'Maksoum Saidi': 'D D T D T D : T D D T D T D T',
-        'Samai Thaqil': 'D D D D T D : T D T D : T D : T',
-        'Bolero': 'D D T : D D T : T D T :',
-        'Wahda Kabira': 'D : T D T D : T D D T',
+        'Maksoum Saidi': 'D D T D T D - T D D T D T D T',
+        'Samai Thaqil': 'D D D D T D - T D T D - T D - T',
+        'Bolero': 'D D T - D D T - T D T -',
+        'Wahda Kabira': 'D - T D T D - T D D T',
         'Wahda Sagira': 'D D T D T D T D',
         'Fallahi': 'D T D T D D T D T D T D',
-        'Masmudi Saghir': 'D D : T : T D T',
-        'Masmudi Kabir': 'D D : T : D T D T :',
-        'Dawr Hindi': 'D : T D : T D : T : T D T : T D',
-        'Fast Maqsoum': 'D.T.D:T.DT:T'
+        'Masmudi Saghir': 'D D - T - T D T',
+        'Masmudi Kabir': 'D D - T - D T D T -',
+        'Dawr Hindi': 'D - T D - T D - T - T D T - T D'
       };
 
       var SEQ_NOTES = ['D', 'T', 'K', 'S', 't', 'k', 'B'];
-      var seqSteps = 32;
-      var seqSubdivision = 0.5;
       var seqState = [];
       for (var si = 0; si < SEQ_NOTES.length; si++) {
-        seqState.push(new Array(seqSteps).fill(false));
+        seqState.push(new Array(16).fill(false));
       }
 
       var ctx2d = els.canvas.getContext('2d');
@@ -431,7 +407,8 @@
       var reverbNode = null, reverbGainNode = null, dryGainNode = null, metroGainNode = null;
       var eqLowNode = null, eqMidNode = null, eqHighNode = null;
       var isPlaying = false, currentIdx = 0, playbackStartTime = 0, nextMetroTime = 0;
-      var notes = [], beatGroups = [], bpm = 120, volume = 0.8, swing = 0, beatValue = 0.25;
+      var notes = [], beatGroups = [], bpm = 120, volume = 0.8, swing = 0;
+      var beatValueDenom = 4;
       var activePills = [], impulseBuffer = null, metronomeEnabled = false;
       var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
       var tapTimes = [];
@@ -441,6 +418,10 @@
       var isRecording = false, recordStartTime = 0, recordedEvents = [];
 
       var getTrackColor = function(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; };
+
+      var getBeatDuration = function(bpmVal, bvDenom) {
+        return (60.0 / bpmVal) * (1 / bvDenom);
+      };
 
       var createTrack = function(name) {
         trackIdCounter++;
@@ -479,7 +460,7 @@
           headerHtml += '</div></div>';
 
           var bodyHtml = '<div class="track-body-visible" data-track-body="' + track.id + '">';
-          bodyHtml += '<textarea class="w-full h-20 md:h-24 bg-black/20 border border-white/10 rounded-xl p-3 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/20" data-track-tab="' + track.id + '" placeholder="Пример: D T D. (DK) S : | D.=1/4, D:=1/8"';
+          bodyHtml += '<textarea class="w-full h-20 md:h-24 bg-black/20 border border-white/10 rounded-xl p-3 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/20" data-track-tab="' + track.id + '" placeholder="Пример: D T2 (DK) S - | D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea></div>';
 
@@ -665,6 +646,7 @@
         var convolver = audioCtx.createConvolver();
         if (!impulseBuffer) impulseBuffer = createImpulseResponse();
         convolver.buffer = impulseBuffer;
+        reverbNode = convolver;
         reverbGainNode.connect(reverbNode); reverbNode.connect(analyser);
         metroGainNode.connect(audioCtx.destination);
         drawVisualizer();
@@ -724,56 +706,26 @@
         }, 50); 
       };
 
-      // NEW PARSER: Supports fractions
-      // D = 1 (quarter), D. = 0.5 (eighth/1/4), D: = 0.25 (sixteenth/1/8)
-      // D2 = 2, D.5 = 0.5, D0.25 = 0.25
       var parseTab = function(text) {
         if (!text || !text.trim()) return [];
         var cleaned = text.replace(/[\\\/]/g, '').trim();
-        var result = [];
-        // Match chords or single notes with optional duration suffix
-        // Duration suffix: number (e.g., 2, 0.5, .5), or . (means 0.5), or : (means 0.25)
-        var regex = /(\([A-ZtkB-]+\))|([A-ZtkB-])([\.:]|\d*\.?\d+)?/g;
-        var match;
+        var result = [], regex = /(\([A-ZtkB-]+\))|([A-ZtkB-])(\d*\.?\d+)?/g, match;
         while ((match = regex.exec(cleaned)) !== null) {
           if (match[1]) {
-            // Chord: (DK), (DB), etc.
             var chars = match[1].slice(1, -1).split('').filter(function(c) { return NOTE_INFO[c] || c === '-'; });
             if (chars.length > 0) result.push({ notes: chars, duration: 1 });
           } else if (match[2]) {
-            var noteType = match[2];
-            var durStr = match[3];
-            var dur = 1;
-            if (durStr) {
-              if (durStr === '.') {
-                dur = 0.5;
-              } else if (durStr === ':') {
-                dur = 0.25;
-              } else {
-                var parsed = parseFloat(durStr);
-                dur = isNaN(parsed) ? 1 : Math.max(0.1, parsed);
-              }
-            }
-            result.push({ notes: [noteType], duration: dur });
+            var t = match[2]; var dur = match[3] ? parseFloat(match[3]) : 1;
+            result.push({ notes: [t], duration: Math.max(0.1, isNaN(dur) ? 1 : dur) });
           }
         }
         return result;
       };
 
-      var formatDuration = function(dur) {
-        if (dur === 1) return '';
-        if (dur === 0.5) return '♪';
-        if (dur === 0.25) return '𝅘𝅥𝅯';
-        if (dur === 2) return '♩♩';
-        if (dur === 0.75) return '♪.';
-        if (dur === 1.5) return '♩.';
-        return String(dur);
-      };
-
-      var computeTrackDuration = function(parsedNotes, bpmVal) {
+      var computeTrackDuration = function(parsedNotes, bpmVal, bvDenom) {
         var totalBeats = 0;
         for (var i = 0; i < parsedNotes.length; i++) totalBeats += parsedNotes[i].duration;
-        return (totalBeats * 60.0) / bpmVal;
+        return totalBeats * getBeatDuration(bpmVal, bvDenom);
       };
 
       var mergeAllTracks = function() {
@@ -789,7 +741,7 @@
         activeTracks.forEach(function(track) {
           if (!track.loop) {
             var parsed = parseTab(track.tab);
-            var dur = computeTrackDuration(parsed, bpm);
+            var dur = computeTrackDuration(parsed, bpm, beatValueDenom);
             if (dur > maxNonLoopDuration) maxNonLoopDuration = dur;
           }
         });
@@ -801,7 +753,7 @@
         activeTracks.forEach(function(track) {
           var parsed = parseTab(track.tab);
           if (parsed.length === 0) return;
-          var trackDuration = computeTrackDuration(parsed, bpm);
+          var trackDuration = computeTrackDuration(parsed, bpm, beatValueDenom);
           if (trackDuration === 0) return;
           
           var iterations = track.loop ? Math.ceil(effectiveMaxDuration / trackDuration) : 1;
@@ -809,19 +761,19 @@
           for (var iter = 0; iter < iterations; iter++) {
             for (var i = 0; i < parsed.length; i++) {
               var noteObj = parsed[i];
-              var beatDuration = (60.0 / bpm) * noteObj.duration * (beatValue);
+              var beatDur = getBeatDuration(bpm, beatValueDenom) * noteObj.duration;
               if (currentTime > effectiveMaxDuration + 1) break;
               allEvents.push({
                 time: currentTime,
                 notes: noteObj.notes,
                 duration: noteObj.duration,
-                beatDuration: beatDuration,
+                beatDuration: beatDur,
                 trackId: track.id, trackName: track.name, trackVolume: track.volume,
                 trackColor: getTrackColor(track.id),
                 isRest: noteObj.notes.length === 1 && (noteObj.notes[0] === '-' || noteObj.notes[0] === 'R'),
                 loopIteration: iter, isLoop: track.loop
               });
-              currentTime += beatDuration;
+              currentTime += beatDur;
             }
           }
         });
@@ -850,7 +802,7 @@
       var scheduleBeatGroup = function(group, playTime, swingAmount) {
         var swingOffset = 0;
         if (swingAmount > 0 && group._groupIdx % 2 === 1) {
-          swingOffset = (60.0 / bpm) * (swingAmount / 100) * 0.33;
+          swingOffset = getBeatDuration(bpm, beatValueDenom) * (swingAmount / 100) * 0.33;
         }
         var adjustedPlayTime = playTime + swingOffset;
 
@@ -875,14 +827,14 @@
       var scheduler = function() {
         if (!isPlaying || !audioCtx) return;
         var now = audioCtx.currentTime;
-        var beatDuration = 60.0 / bpm;
+        var beatDur = getBeatDuration(bpm, beatValueDenom);
         
         while (nextMetroTime < now + SCHEDULE_AHEAD_S) {
           if (metronomeEnabled) {
-            var metroAccent = Math.round(nextMetroTime / beatDuration) % 4 === 0;
+            var metroAccent = Math.round(nextMetroTime / beatDur) % 4 === 0;
             playMetronomeClick(nextMetroTime, metroAccent);
           }
-          nextMetroTime += beatDuration;
+          nextMetroTime += beatDur;
         }
 
         while (currentIdx < beatGroups.length) {
@@ -1025,18 +977,10 @@
           te.events.forEach(function(item) {
             var n = item.event, gi = item.groupIdx;
             if (n.notes.length === 1) {
-              var type = n.notes[0]; 
-              var el = document.createElement('span');
+              var type = n.notes[0]; var el = document.createElement('span');
               el.className = 'note-pill note-' + getNoteClass(type);
               if (!customSamples[type] && type !== 'R' && type !== '-') el.style.borderStyle = 'dashed';
-              var durSymbol = formatDuration(n.duration);
-              el.textContent = type;
-              if (durSymbol) {
-                var badge = document.createElement('span');
-                badge.className = 'dur-badge';
-                badge.textContent = durSymbol;
-                el.appendChild(badge);
-              }
+              el.textContent = type + (n.duration > 1 ? n.duration : '');
               el.dataset.grp = gi; notesContainer.appendChild(el);
             } else {
               var wrap = document.createElement('span');
@@ -1047,8 +991,7 @@
                 if (!customSamples[type] && type !== 'R' && type !== '-') e.style.borderStyle = 'dashed';
                 e.dataset.grp = gi; e.textContent = type; wrap.appendChild(e); 
               });
-              var durSymbol = formatDuration(n.duration);
-              if (durSymbol) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.grp = gi; d.textContent = durSymbol; wrap.appendChild(d); }
+              if (n.duration > 1) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.grp = gi; d.textContent = n.duration; wrap.appendChild(d); }
               notesContainer.appendChild(wrap);
             }
           });
@@ -1063,8 +1006,10 @@
       var updateNoteInfo = function() { 
         var n = isPlaying ? notes : mergeAllTracks();
         var count = n.length; 
-        var dur = n.reduce(function(s,x){return s+(x.duration||1);},0); 
-        els.noteCount.textContent = 'Нот: ' + count + ' | Длительность: ' + ((dur/bpm)*60).toFixed(1) + 'с'; 
+        var dur = 0;
+        for (var i = 0; i < n.length; i++) dur += (n[i].duration || 1);
+        var sec = dur * getBeatDuration(bpm, beatValueDenom);
+        els.noteCount.textContent = 'Нот: ' + count + ' | Длительность: ' + sec.toFixed(1) + 'с'; 
       };
 
       var buildSettingsUI = function() {
@@ -1127,7 +1072,7 @@
       var saveToSlot = function(n) {
         try {
           readTrackTabsFromDOM();
-          var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter, beatValue: beatValue };
+          var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
           localStorage.setItem(getSlotKey(n), JSON.stringify(data));
           hasUnsavedChanges = false; return true;
         } catch(e) { return false; }
@@ -1141,10 +1086,7 @@
         volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume;
         els.volumeVal.textContent = Math.round(volume * 100) + '%';
         if (d.swing !== undefined) { swing = d.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
-        if (d.beatValue !== undefined) {
-          beatValue = d.beatValue;
-          updateBeatValueUI();
-        }
+        if (d.beatValueDenom !== undefined) { setBeatValue(d.beatValueDenom); }
         if (masterGain) masterGain.gain.value = volume;
         renderTracks(); updateNoteInfo(); hasUnsavedChanges = false; return true;
       };
@@ -1200,7 +1142,7 @@
 
       els.exportBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
-        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter, beatValue: beatValue };
+        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
         var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + '.json';
@@ -1218,10 +1160,7 @@
             if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
             if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
             if (data.swing !== undefined) { swing = data.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
-            if (data.beatValue !== undefined) {
-              beatValue = data.beatValue;
-              updateBeatValueUI();
-            }
+            if (data.beatValueDenom !== undefined) { setBeatValue(data.beatValueDenom); }
             renderTracks(); updateNoteInfo(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
           } catch(err) { setStatus('❌ Ошибка импорта', 'text-red-400'); }
         };
@@ -1331,27 +1270,24 @@
       els.bpm.addEventListener('change', function(e) { bpm = Math.min(300, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfo(); });
       els.bpmUp.addEventListener('click', function() { bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); });
       els.bpmDown.addEventListener('click', function() { bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfo(); });
+
+      var setBeatValue = function(denom) {
+        beatValueDenom = denom;
+        els.beatVal4.classList.toggle('active', denom === 4);
+        els.beatVal8.classList.toggle('active', denom === 8);
+        els.beatVal16.classList.toggle('active', denom === 16);
+        updateNoteInfo();
+        markUnsaved();
+      };
+
+      els.beatVal4.addEventListener('click', function() { setBeatValue(4); });
+      els.beatVal8.addEventListener('click', function() { setBeatValue(8); });
+      els.beatVal16.addEventListener('click', function() { setBeatValue(16); });
+
       els.volume.addEventListener('input', function(e) { volume = parseFloat(e.target.value); els.volumeVal.textContent = Math.round(volume*100)+'%'; if (masterGain) masterGain.gain.value = volume; });
       els.swing.addEventListener('input', function(e) { swing = parseInt(e.target.value); els.swingVal.textContent = swing + '%'; markUnsaved(); });
       els.playBtn.addEventListener('click', startPlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
-
-      // Beat value selector logic
-      var updateBeatValueUI = function() {
-        document.querySelectorAll('.beat-value-btn').forEach(function(btn) {
-          var bv = parseFloat(btn.dataset.beat);
-          btn.classList.toggle('active', Math.abs(bv - beatValue) < 0.0001);
-        });
-        updateNoteInfo();
-      };
-
-      document.querySelectorAll('.beat-value-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          beatValue = parseFloat(btn.dataset.beat);
-          updateBeatValueUI();
-          markUnsaved();
-        });
-      });
 
       els.metronomeBtn.addEventListener('click', function() {
         metronomeEnabled = !metronomeEnabled;
@@ -1394,7 +1330,7 @@
         recordedEvents = [];
         els.recBtn.classList.add('rec-active');
         els.recIcon.textContent = '⏹';
-        setStatus('⏺ Запись... Нажмите ноты на клавиатуре (d,t,k,s,b)', 'text-red-300');
+        setStatus('⏺ Запись... Нажмите ноты на клавиатуре', 'text-red-300');
         
         document.addEventListener('keydown', recordKeyHandler);
       };
@@ -1403,23 +1339,25 @@
         if (!isRecording) return;
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         
-        var keyMap = { 'd': 'D', 'D': 'D',
-                       't': 'T', 'T': 'T',
-                       'k': 'K', 'K': 'K',
-                       's': 'S', 'S': 'S',
-                       'b': 'B', 'B': 'B',
-                       'r': 'R', 'R': 'R' };
+        var keyMap = { 'd': 'D', 'D': 'D', 'т': 'D', 'Т': 'D',
+                       't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T',
+                       'k': 'K', 'K': 'K', 'л': 'K', 'Л': 'K',
+                       's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S',
+                       'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B',
+                       'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
         
         var type = keyMap[e.key];
         if (type && NOTE_INFO[type]) {
           var now = audioCtx.currentTime;
           recordedEvents.push({ time: now, type: type });
           playNote(type, now, 1);
+          
           setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
         }
       };
 
       var stopRecording = function() {
+        if (!isRecording) return;
         isRecording = false;
         els.recBtn.classList.remove('rec-active');
         els.recIcon.textContent = '⏺';
@@ -1443,41 +1381,35 @@
         events.sort(function(a, b) { return a.time - b.time; });
         var tab = '';
         var startTime = events[0].time;
-        var beatDuration = 60.0 / bpm;
+        var beatDur = getBeatDuration(bpm, beatValueDenom);
         var groups = [];
         var currentGroup = { time: 0, notes: [] };
         
         for (var i = 0; i < events.length; i++) {
           var evt = events[i];
-          var beatTime = Math.round((evt.time - startTime) / beatDuration * 4) / 4;
+          var beatTime = Math.round((evt.time - startTime) / beatDur * 2) / 2;
           
-          if (Math.abs(beatTime - currentGroup.time) < 0.1) {
+          if (Math.abs(beatTime - currentGroup.time) < 0.15) {
             if (currentGroup.notes.indexOf(evt.type) === -1) {
               currentGroup.notes.push(evt.type);
             }
           } else {
             if (currentGroup.notes.length > 0) {
               var notesStr = currentGroup.notes.length === 1 ? currentGroup.notes[0] : '(' + currentGroup.notes.join('') + ')';
-              var dur = beatTime - currentGroup.time;
-              if (Math.abs(dur - 0.25) < 0.1) {
-                tab += notesStr + ': ';
-              } else if (Math.abs(dur - 0.5) < 0.1) {
-                tab += notesStr + '. ';
-              } else if (Math.abs(dur - 1.0) < 0.15) {
-                tab += notesStr + ' ';
-              } else {
-                tab += notesStr + dur + ' ';
-              }
+              tab += notesStr + ' ';
             }
             currentGroup = { time: beatTime, notes: [evt.type] };
           }
         }
         if (currentGroup.notes.length > 0) {
-          var notesStr = currentGroup.notes.length === 1 ? currentGroup.notes[0] : '(' + currentGroup.notes.join('') + ')';
-          tab += notesStr;
+          tab += (currentGroup.notes.length === 1 ? currentGroup.notes[0] : '(' + currentGroup.notes.join('') + ')');
         }
         return tab.trim();
       };
+
+      els.recBtn.addEventListener('dblclick', function() {
+        if (isRecording) stopRecording();
+      });
 
       els.openPresets.addEventListener('click', function() { buildPresetsUI(); openModal(els.presetsModal, els.presetsPanel); });
       els.closePresets.addEventListener('click', function() { closeModal(els.presetsModal, els.presetsPanel); });
@@ -1534,38 +1466,22 @@
       els.closeSeq.addEventListener('click', function() { closeModal(els.seqModal, els.seqPanel); });
       els.seqModal.addEventListener('click', function(e) { if (e.target === els.seqModal) closeModal(els.seqModal, els.seqPanel); });
 
-      els.seqStepsBtn.addEventListener('click', function() {
-        seqSteps = seqSteps === 16 ? 32 : seqSteps === 32 ? 64 : 16;
-        els.seqStepsBtn.textContent = seqSteps + ' шагов';
-        // Resize seqState
-        for (var r = 0; r < seqState.length; r++) {
-          while (seqState[r].length < seqSteps) seqState[r].push(false);
-          if (seqState[r].length > seqSteps) seqState[r].length = seqSteps;
-        }
-        buildSeqUI();
-      });
-
-      els.seqSubdivision.addEventListener('change', function() {
-        seqSubdivision = parseFloat(els.seqSubdivision.value);
-      });
-
       var buildSeqUI = function() {
         var grid = els.seqGrid; grid.innerHTML = '';
         
         var headerRow = document.createElement('div');
         headerRow.className = 'seq-grid';
-        headerRow.style.gridTemplateColumns = 'auto repeat(' + seqSteps + ', minmax(28px, 1fr))';
+        headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
         
         var corner = document.createElement('div');
         corner.className = 'seq-label';
         headerRow.appendChild(corner);
         
-        for (var s = 0; s < seqSteps; s++) {
+        for (var s = 0; s < 16; s++) {
           var lbl = document.createElement('div');
           lbl.className = 'seq-label text-white/30 text-xs';
           lbl.textContent = s + 1;
-          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.6)';
-          else if (s % 2 === 0) lbl.style.color = 'rgba(255,255,255,0.35)';
+          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.5)';
           headerRow.appendChild(lbl);
         }
         grid.appendChild(headerRow);
@@ -1574,20 +1490,16 @@
           var noteType = SEQ_NOTES[r];
           var row = document.createElement('div');
           row.className = 'seq-grid';
-          row.style.gridTemplateColumns = 'auto repeat(' + seqSteps + ', minmax(28px, 1fr))';
+          row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
           
           var noteLabel = document.createElement('div');
           noteLabel.className = 'seq-label';
           noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>';
           row.appendChild(noteLabel);
           
-          for (var c = 0; c < seqSteps; c++) {
+          for (var c = 0; c < 16; c++) {
             var cell = document.createElement('div');
-            var cellClass = 'seq-cell';
-            if (seqState[r][c]) cellClass += ' active';
-            if (c % 4 === 0) cellClass += ' beat';
-            else if (c % 2 === 0) cellClass += ' beat-sub';
-            cell.className = cellClass;
+            cell.className = 'seq-cell' + (seqState[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
             cell.style.setProperty('--cell-color', getTrackColor(r + 1));
             cell.dataset.row = r;
             cell.dataset.col = c;
@@ -1611,23 +1523,23 @@
       });
 
       var playSeq = function() {
-        var stepDuration = (60.0 / bpm) * seqSubdivision;
+        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4;
         var startTime = audioCtx.currentTime + 0.05;
         
         for (var r = 0; r < SEQ_NOTES.length; r++) {
-          for (var c = 0; c < seqSteps; c++) {
+          for (var c = 0; c < 16; c++) {
             if (seqState[r][c]) {
               var playTime = startTime + c * stepDuration;
               playNote(SEQ_NOTES[r], playTime, 1);
             }
           }
         }
-        setStatus('▶ Секвенсор: ' + seqSteps + ' шагов (1/' + (1/seqSubdivision) + ')', 'text-green-300');
+        setStatus('▶ Секвенсор: 16 шагов', 'text-green-300');
       };
 
       els.seqClearBtn.addEventListener('click', function() {
         for (var r = 0; r < seqState.length; r++) {
-          for (var c = 0; c < seqSteps; c++) {
+          for (var c = 0; c < 16; c++) {
             seqState[r][c] = false;
           }
         }
@@ -1636,9 +1548,7 @@
 
       els.seqExportTabBtn.addEventListener('click', function() {
         var tab = '';
-        var durSymbol = seqSubdivision === 1 ? '' : seqSubdivision === 0.5 ? '.' : ':';
-        
-        for (var c = 0; c < seqSteps; c++) {
+        for (var c = 0; c < 16; c++) {
           var activeNotes = [];
           for (var r = 0; r < SEQ_NOTES.length; r++) {
             if (seqState[r][c]) {
@@ -1647,9 +1557,9 @@
           }
           if (activeNotes.length > 0) {
             if (activeNotes.length === 1) {
-              tab += activeNotes[0] + durSymbol + ' ';
+              tab += activeNotes[0] + ' ';
             } else {
-              tab += '(' + activeNotes.join('') + ')' + durSymbol + ' ';
+              tab += '(' + activeNotes.join('') + ') ';
             }
           } else {
             tab += '- ';
@@ -1683,7 +1593,6 @@
 
       loadSamplesFromStorage(); initTracks(); renderTracks();
       els.currentSlotBtn.textContent = 'Слот ' + currentSlot; updateNoteInfo();
-      updateBeatValueUI();
       window.addEventListener('load', resizeCanvas);
     })();
   </script>
