@@ -25,6 +25,7 @@
     .glass-btn:hover::before { opacity: 1; }
     .glass-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
     .glass-btn:active { transform: translateY(0); }
+    .glass-btn.active { background: rgba(96,165,250,0.2); border-color: rgba(96,165,250,0.4); color: #93c5fd; }
     textarea { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; caret-color: #60a5fa; }
     textarea::-webkit-scrollbar { width: 6px; } textarea::-webkit-scrollbar-track { background: transparent; } textarea::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
     textarea:focus { outline: none; }
@@ -110,6 +111,12 @@
             <button id="bpmDown" class="w-6 h-3 bg-white/10 rounded-b flex items-center justify-center text-xs hover:bg-white/20 transition-colors">▼</button>
           </div>
           <button id="tapTempo" class="glass-btn px-2 py-1.5 rounded-lg text-xs text-yellow-200 ml-1" title="Tap Tempo">⏱ TAP</button>
+        </div>
+        <div class="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-xl px-3 py-2">
+          <label class="text-xs font-medium text-white/60 uppercase tracking-wider">Beat</label>
+          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono active" data-beat="0.25">1/4</button>
+          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono" data-beat="0.125">1/8</button>
+          <button class="beat-value-btn glass-btn px-2 py-1 rounded-lg text-xs font-mono" data-beat="0.0625">1/16</button>
         </div>
         <button id="playBtn" class="glass-btn px-6 py-3 rounded-xl font-semibold text-blue-200 flex items-center gap-2 min-w-[140px] justify-center">
           <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -424,7 +431,7 @@
       var reverbNode = null, reverbGainNode = null, dryGainNode = null, metroGainNode = null;
       var eqLowNode = null, eqMidNode = null, eqHighNode = null;
       var isPlaying = false, currentIdx = 0, playbackStartTime = 0, nextMetroTime = 0;
-      var notes = [], beatGroups = [], bpm = 120, volume = 0.8, swing = 0;
+      var notes = [], beatGroups = [], bpm = 120, volume = 0.8, swing = 0, beatValue = 0.25;
       var activePills = [], impulseBuffer = null, metronomeEnabled = false;
       var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
       var tapTimes = [];
@@ -658,7 +665,6 @@
         var convolver = audioCtx.createConvolver();
         if (!impulseBuffer) impulseBuffer = createImpulseResponse();
         convolver.buffer = impulseBuffer;
-        reverbNode = convolver;
         reverbGainNode.connect(reverbNode); reverbNode.connect(analyser);
         metroGainNode.connect(audioCtx.destination);
         drawVisualizer();
@@ -803,7 +809,7 @@
           for (var iter = 0; iter < iterations; iter++) {
             for (var i = 0; i < parsed.length; i++) {
               var noteObj = parsed[i];
-              var beatDuration = (60.0 / bpm) * noteObj.duration;
+              var beatDuration = (60.0 / bpm) * noteObj.duration * (beatValue);
               if (currentTime > effectiveMaxDuration + 1) break;
               allEvents.push({
                 time: currentTime,
@@ -1121,7 +1127,7 @@
       var saveToSlot = function(n) {
         try {
           readTrackTabsFromDOM();
-          var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter };
+          var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter, beatValue: beatValue };
           localStorage.setItem(getSlotKey(n), JSON.stringify(data));
           hasUnsavedChanges = false; return true;
         } catch(e) { return false; }
@@ -1135,6 +1141,10 @@
         volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume;
         els.volumeVal.textContent = Math.round(volume * 100) + '%';
         if (d.swing !== undefined) { swing = d.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
+        if (d.beatValue !== undefined) {
+          beatValue = d.beatValue;
+          updateBeatValueUI();
+        }
         if (masterGain) masterGain.gain.value = volume;
         renderTracks(); updateNoteInfo(); hasUnsavedChanges = false; return true;
       };
@@ -1190,7 +1200,7 @@
 
       els.exportBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
-        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter };
+        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, ts: Date.now(), trackIdCounter: trackIdCounter, beatValue: beatValue };
         var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + '.json';
@@ -1208,6 +1218,10 @@
             if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
             if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
             if (data.swing !== undefined) { swing = data.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
+            if (data.beatValue !== undefined) {
+              beatValue = data.beatValue;
+              updateBeatValueUI();
+            }
             renderTracks(); updateNoteInfo(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
           } catch(err) { setStatus('❌ Ошибка импорта', 'text-red-400'); }
         };
@@ -1321,6 +1335,23 @@
       els.swing.addEventListener('input', function(e) { swing = parseInt(e.target.value); els.swingVal.textContent = swing + '%'; markUnsaved(); });
       els.playBtn.addEventListener('click', startPlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
+
+      // Beat value selector logic
+      var updateBeatValueUI = function() {
+        document.querySelectorAll('.beat-value-btn').forEach(function(btn) {
+          var bv = parseFloat(btn.dataset.beat);
+          btn.classList.toggle('active', Math.abs(bv - beatValue) < 0.0001);
+        });
+        updateNoteInfo();
+      };
+
+      document.querySelectorAll('.beat-value-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          beatValue = parseFloat(btn.dataset.beat);
+          updateBeatValueUI();
+          markUnsaved();
+        });
+      });
 
       els.metronomeBtn.addEventListener('click', function() {
         metronomeEnabled = !metronomeEnabled;
@@ -1652,6 +1683,7 @@
 
       loadSamplesFromStorage(); initTracks(); renderTracks();
       els.currentSlotBtn.textContent = 'Слот ' + currentSlot; updateNoteInfo();
+      updateBeatValueUI();
       window.addEventListener('load', resizeCanvas);
     })();
   </script>
