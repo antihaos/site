@@ -149,6 +149,12 @@
         
         <div class="flex items-center gap-1.5">
           <button id="playBtn" class="glass-btn px-5 py-2.5 rounded-xl font-semibold text-blue-200 flex items-center gap-2 min-w-[120px] justify-center">
+            <div class="flex items-center gap-1.5">
+              <div id="beatInd1" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
+              <div id="beatInd2" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
+              <div id="beatInd3" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
+              <div id="beatInd4" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
+            </div>
             <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             <span id="playText">Старт</span>
           </button>
@@ -158,7 +164,7 @@
           </button>
         </div>
         
-        <button id="recBtn" class="glass-btn px-3 py-2.5 rounded-xl font-semibold text-red-300/80 flex items-center gap-1.5" title="Live Record">
+        <button id="recBtn" class="glass-btn px-3 py-2.5 rounded-xl font-semibold text-red-300/80 flex items-center gap-1.5" title="Живая запись">
           <span id="recIcon">⏺</span>
           <span class="hidden sm:inline text-xs">Запись</span>
         </button>
@@ -180,12 +186,7 @@
           <span id="swingVal" class="font-mono text-white/60 w-8">0%</span>
         </div>
         <div class="ml-auto flex flex-wrap gap-1.5">
-          <div class="bottom-3 left-3 flex gap-1.5">
-            <div id="beatInd1" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
-            <div id="beatInd2" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
-            <div id="beatInd3" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
-            <div id="beatInd4" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
-          </div>
+          
           <button id="openSettings" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-white/60 border-white/15">🎛 Сэмплы</button>
           <button id="openPresets" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-purple-200/70 border-purple-500/15">🎵 Пресеты</button>
           <button id="openEQ" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-cyan-200/70 border-cyan-500/15">🔊 EQ</button>
