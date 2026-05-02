@@ -207,7 +207,8 @@
 
       var NUM_SLOTS = 8, currentSlot = 1, selectedSlotInModal = 0;
       var customSamples = {};
-      var sampleStorageLimit = 1500000; // 1.5MB per sample to safely fit in localStorage
+      var samplesLoadedFromStorage = false;
+      var sampleStorageLimit = 1500000;
       var hasUnsavedChanges = false;
 
       var els = {
@@ -373,6 +374,7 @@
       }
 
       function base64ToAudioBuffer(jsonStr) {
+        if (!audioCtx) return null;
         try {
           var data = JSON.parse(jsonStr);
           var buffer = audioCtx.createBuffer(data.numberOfChannels, data.length, data.sampleRate);
@@ -387,22 +389,23 @@
         } catch(e) { console.error('Buffer decode error:', e); return null; }
       }
 
+      // Raw base64 data loaded from storage (before audioCtx is ready)
+      var pendingSampleData = null;
+
       function saveSamplesToStorage() {
         var sampleData = {};
-        var totalSize = 0;
         for (var key in customSamples) {
           if (customSamples[key] && customSamples[key].buffer) {
             try {
               var b64 = audioBufferToBase64(customSamples[key].buffer);
               if (b64 && b64.length < sampleStorageLimit) {
                 sampleData[key] = { name: customSamples[key].name, bufferB64: b64 };
-                totalSize += b64.length;
               }
             } catch(e) {}
           }
         }
         try {
-          localStorage.setItem('darbuka_samples_v10', JSON.stringify(sampleData));
+          localStorage.setItem('darbuka_samples_v11', JSON.stringify(sampleData));
           return true;
         } catch(e) {
           setStatus('⚠️ Превышен лимит localStorage', 'text-red-400');
@@ -412,16 +415,29 @@
 
       function loadSamplesFromStorage() {
         try {
-          var raw = localStorage.getItem('darbuka_samples_v10');
+          var raw = localStorage.getItem('darbuka_samples_v11');
           if (!raw) return;
-          var data = JSON.parse(raw);
-          for (var key in data) {
-            if (data[key] && data[key].bufferB64) {
-              var buf = base64ToAudioBuffer(data[key].bufferB64);
-              if (buf) customSamples[key] = { buffer: buf, name: data[key].name };
+          pendingSampleData = JSON.parse(raw);
+        } catch(e) { console.error('Sample load parse error:', e); }
+      }
+
+      function decodePendingSamples() {
+        if (!audioCtx || !pendingSampleData) return;
+        var count = 0;
+        for (var key in pendingSampleData) {
+          if (pendingSampleData[key] && pendingSampleData[key].bufferB64) {
+            var buf = base64ToAudioBuffer(pendingSampleData[key].bufferB64);
+            if (buf) {
+              customSamples[key] = { buffer: buf, name: pendingSampleData[key].name };
+              count++;
             }
           }
-        } catch(e) {}
+        }
+        pendingSampleData = null;
+        samplesLoadedFromStorage = true;
+        if (count > 0) {
+          setStatus('📂 Загружено ' + count + ' сэмплов из хранилища', 'text-cyan-300');
+        }
       }
 
       function createImpulseResponse() {
@@ -442,8 +458,18 @@
       function initAudio() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') {
-          audioCtx.resume().then(function() { if (!masterGain) setupAudioNodes(); });
-        } else { if (!masterGain) setupAudioNodes(); }
+          audioCtx.resume().then(function() {
+            if (!masterGain) {
+              setupAudioNodes();
+              decodePendingSamples(); // Декодируем после готовности audioCtx
+            }
+          });
+        } else {
+          if (!masterGain) {
+            setupAudioNodes();
+            decodePendingSamples(); // Декодируем после готовности audioCtx
+          }
+        }
       }
 
       function setupAudioNodes() {
@@ -501,7 +527,7 @@
             updateSampleUI(type, file.name);
             setStatus('✅ ' + type + ': ' + file.name, 'text-green-400');
             markUnsaved();
-            saveSamplesToStorage(); // Auto-save on load
+            saveSamplesToStorage();
           }, function() { setStatus('❌ Ошибка декодирования', 'text-red-400'); });
         };
         reader.onerror = function() { setStatus('❌ Ошибка чтения файла', 'text-red-400'); };
@@ -613,13 +639,11 @@
         if (!isPlaying || !audioCtx) return;
         var now = audioCtx.currentTime;
         
-        // 1. Schedule metronome clicks at steady BPM rate
         while (nextMetroTime < now + SCHEDULE_AHEAD_S) {
           if (metronomeEnabled) playMetronomeClick(nextMetroTime);
           nextMetroTime += (60.0 / bpm);
         }
 
-        // 2. Schedule note groups
         while (currentIdx < beatGroups.length) {
           var grp = beatGroups[currentIdx];
           var evtTime = playbackStartTime + grp.time;
@@ -631,7 +655,6 @@
           }
         }
 
-        // 3. Stop if playback finished
         if (isPlaying && currentIdx >= beatGroups.length) {
           var lastGrp = beatGroups[beatGroups.length - 1];
           if (lastGrp) {
