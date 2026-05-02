@@ -497,9 +497,12 @@
 
       function loadSamplesFromStorage() {
         try {
-          var raw = localStorage.getItem('darbuka_samples_v1')? localStorage.getItem('darbuka_samples_v1') : SAMPLES;
-          if (!raw) return;
-          pendingSampleData = JSON.parse(raw);
+          var raw = localStorage.getItem('darbuka_samples_v1');
+          if (!raw) {
+            pendingSampleData = SAMPLES;
+          } else {
+            pendingSampleData = JSON.parse(raw);
+          }
         } catch(e) { console.error('Sample load parse error:', e); }
       }
 
