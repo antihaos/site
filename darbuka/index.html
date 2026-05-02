@@ -219,7 +219,7 @@
       }
 
       try {
-        var mf = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
+        var mf = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: "/darbuka", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
         var bf = new Blob([JSON.stringify(mf)], {type: 'application/json'});
         document.head.appendChild(Object.assign(document.createElement('link'), {rel: 'manifest', href: URL.createObjectURL(bf)}));
       } catch(e) {}
