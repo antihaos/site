@@ -45,6 +45,10 @@
     input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.15); border-radius: 999px; height: 6px; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #60a5fa; border: 2px solid #fff; }
+    .slot-card { transition: all 0.2s ease; }
+    .slot-card:hover { border-color: rgba(96,165,250,0.4); background: rgba(255,255,255,0.08); }
+    .slot-card.active { border-color: rgba(96,165,250,0.6); background: rgba(96,165,250,0.1); }
+    .slot-card.empty { opacity: 0.5; }
     @media (max-width: 640px) { .glass-btn { font-size: 0.85rem; padding: 0.5rem 0.75rem; } .note-pill { font-size: 0.85rem; padding: 0.25em 0.5em; } }
   </style>
 </head>
@@ -104,6 +108,14 @@
       
       <div id="editorPanel" class="px-2 pb-2">
         <textarea id="tab" class="w-full h-48 md:h-56 bg-black/20 border border-white/10 rounded-xl p-4 font-mono text-base leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/20" placeholder="Введите табулатуру: D T K S D T..."></textarea>
+        
+        <!-- Current Slot Display -->
+        <div class="flex items-center gap-2 mt-2 mb-2 px-1">
+          <span class="text-xs text-white/50">Слот:</span>
+          <button id="currentSlotBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-blue-200 font-mono">Слот 1</button>
+          <button id="openSlotsBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-white/70">📋 Управление слотами</button>
+        </div>
+
         <div class="flex gap-2 mt-2 flex-wrap">
           <button id="saveBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm font-medium text-white/70 border-white/20 min-w-[100px]">💾 Сохранить</button>
           <button id="loadBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm font-medium text-white/70 border-white/20 min-w-[100px]">📂 Загрузить</button>
@@ -137,6 +149,7 @@
     </footer>
   </main>
 
+  <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
     <div id="settingsPanel" class="glass w-full max-w-3xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
       <button id="closeSettings" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10">✕</button>
@@ -149,19 +162,38 @@
     </div>
   </div>
 
+  <!-- Slots Management Modal -->
+  <div id="slotsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="slotsPanel" class="glass w-full max-w-2xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closeSlots" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10">✕</button>
+      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Управление слотами</h2>
+      <div id="slotsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
+      <div class="flex justify-between border-t border-white/10 pt-4">
+        <button id="deleteSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-red-200/80 border-red-500/20">🗑 Удалить слот</button>
+        <div class="flex gap-2">
+          <button id="selectSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200">Выбрать</button>
+          <button id="loadSelectedSlot" class="glass-btn px-4 py-2 rounded-xl text-sm text-green-200">📂 Загрузить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function() {
       'use strict';
 
-      // --- PWA Manifest ---
+      // PWA
       try {
-        const manifest = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
-        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const link = document.createElement('link'); link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
-        document.head.appendChild(link);
+        const m = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
+        const b = new Blob([JSON.stringify(m)], {type: 'application/json'});
+        document.head.appendChild(Object.assign(document.createElement('link'), {rel: 'manifest', href: URL.createObjectURL(b)}));
       } catch(e) {}
 
-      // --- DOM ---
+      const NUM_SLOTS = 8;
+      let currentSlot = 1;
+      let selectedSlotInModal = 0; // 0 = not selected
+
+      // DOM
       const els = {
         bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'),
         volume: document.getElementById('volume'), volumeVal: document.getElementById('volumeVal'),
@@ -174,43 +206,47 @@
         canvas: document.getElementById('visualizer'),
         settingsModal: document.getElementById('settingsModal'), settingsPanel: document.getElementById('settingsPanel'),
         closeSettings: document.getElementById('closeSettings'), settingsGrid: document.getElementById('settingsGrid'),
-        saveSettings: document.getElementById('saveSettings'), resetAllSettings: document.getElementById('resetAllSettings')
+        saveSettings: document.getElementById('saveSettings'), resetAllSettings: document.getElementById('resetAllSettings'),
+        currentSlotBtn: document.getElementById('currentSlotBtn'), openSlotsBtn: document.getElementById('openSlotsBtn'),
+        slotsModal: document.getElementById('slotsModal'), slotsPanel: document.getElementById('slotsPanel'),
+        closeSlots: document.getElementById('closeSlots'), slotsGrid: document.getElementById('slotsGrid'),
+        selectSlotBtn: document.getElementById('selectSlotBtn'), loadSelectedSlot: document.getElementById('loadSelectedSlot'),
+        deleteSlotBtn: document.getElementById('deleteSlotBtn')
       };
 
       const ctx2d = els.canvas.getContext('2d');
-      const resizeCanvas = () => { const r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width; els.canvas.height = r.height; } };
+      const resizeCanvas = function() { var r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width; els.canvas.height = r.height; } };
       resizeCanvas(); window.addEventListener('resize', resizeCanvas);
 
-      // --- Audio State ---
-      let audioCtx = null, masterGain = null, analyser = null, schedulerTimer = null;
-      let isPlaying = false, nextNoteTime = 0.0, currentIdx = 0;
-      let notes = [], bpm = 120, volume = 0.8;
-      let activePills = [];
-      const LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
+      // Audio
+      var audioCtx = null, masterGain = null, analyser = null, schedulerTimer = null;
+      var isPlaying = false, nextNoteTime = 0.0, currentIdx = 0;
+      var notes = [], bpm = 120, volume = 0.8;
+      var activePills = [];
+      var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
 
-      // --- Synth Configuration ---
-      const DEFAULT_SYNTH = {
+      // Synth
+      var DEFAULT_SYNTH = {
         D: { freq: 82, decay: 0.45, noise: 0.03, q: 1.2, midi: 35, label: 'Dum' },
         T: { freq: 260, decay: 0.15, noise: 0.08, q: 2.5, midi: 38, label: 'Tak' },
         K: { freq: 15, decay: 0.06, noise: 0.85, q: 0.8, midi: 39, label: 'Ka' },
         S: { freq: 180, decay: 0.20, noise: 0.25, q: 3.0, midi: 40, label: 'Slap' }
       };
-
-      let synthConfig = {};
-      let settingsInitialized = false;
+      var synthConfig = {};
 
       function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-      // Load synth settings from localStorage
       function loadSynthConfig() {
         try {
-          const saved = localStorage.getItem('darbuka_synth_v3');
+          var saved = localStorage.getItem('darbuka_synth_v3');
           if (saved) {
-            const parsed = JSON.parse(saved);
-            for (const k in DEFAULT_SYNTH) {
-              synthConfig[k] = {...DEFAULT_SYNTH[k]};
+            var parsed = JSON.parse(saved);
+            var k;
+            for (k in DEFAULT_SYNTH) {
+              synthConfig[k] = Object.assign({}, DEFAULT_SYNTH[k]);
               if (parsed[k]) {
-                for (const p in DEFAULT_SYNTH[k]) {
+                var p;
+                for (p in DEFAULT_SYNTH[k]) {
                   if (parsed[k][p] !== undefined && parsed[k][p] !== null) {
                     synthConfig[k][p] = parsed[k][p];
                   }
@@ -220,37 +256,21 @@
           } else {
             synthConfig = deepCopy(DEFAULT_SYNTH);
           }
-        } catch(e) {
-          synthConfig = deepCopy(DEFAULT_SYNTH);
-        }
+        } catch(e) { synthConfig = deepCopy(DEFAULT_SYNTH); }
       }
 
-      // Save synth settings to localStorage
       function saveSynthConfig() {
-        try {
-          localStorage.setItem('darbuka_synth_v3', JSON.stringify(synthConfig));
-          return true;
-        } catch(e) {
-          console.error('Failed to save synth config:', e);
-          return false;
-        }
+        try { localStorage.setItem('darbuka_synth_v3', JSON.stringify(synthConfig)); return true; } catch(e) { return false; }
       }
 
-      // --- Audio Init ---
       function initAudio() {
         if (!audioCtx) {
           audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
         if (audioCtx.state === 'suspended') {
-          audioCtx.resume().then(() => {
-            if (!masterGain) {
-              setupAudioNodes();
-            }
-          });
+          audioCtx.resume().then(function() { if (!masterGain) setupAudioNodes(); });
         } else {
-          if (!masterGain) {
-            setupAudioNodes();
-          }
+          if (!masterGain) setupAudioNodes();
         }
       }
 
@@ -269,88 +289,84 @@
 
       function playNote(type, time) {
         if (!audioCtx || !masterGain) return;
-        const cfg = synthConfig[type];
+        var cfg = synthConfig[type];
         if (!cfg) return;
-        
         try {
-          const osc = audioCtx.createOscillator();
+          var osc = audioCtx.createOscillator();
           osc.type = 'sine';
-          const baseFreq = Math.max(20, cfg.freq);
+          var baseFreq = Math.max(20, cfg.freq);
           osc.frequency.setValueAtTime(baseFreq, time);
-          const targetFreq = Math.max(20, baseFreq * 0.88);
+          var targetFreq = Math.max(20, baseFreq * 0.88);
           osc.frequency.exponentialRampToValueAtTime(targetFreq, time + Math.max(0.01, cfg.decay));
           
-          const noiseLen = Math.max(0.02, cfg.decay * 0.7);
-          const bufSize = Math.ceil(audioCtx.sampleRate * noiseLen);
-          const nBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-          const d = nBuf.getChannelData(0);
-          for(let i=0; i<bufSize; i++) d[i] = Math.random()*2-1;
-          const noise = audioCtx.createBufferSource();
+          var noiseLen = Math.max(0.02, cfg.decay * 0.7);
+          var bufSize = Math.ceil(audioCtx.sampleRate * noiseLen);
+          var nBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+          var d = nBuf.getChannelData(0);
+          var i;
+          for (i = 0; i < bufSize; i++) d[i] = Math.random() * 2 - 1;
+          var noise = audioCtx.createBufferSource();
           noise.buffer = nBuf;
           
-          const oscGain = audioCtx.createGain();
+          var oscGain = audioCtx.createGain();
           oscGain.gain.setValueAtTime(Math.max(0, 1 - cfg.noise * 0.6), time);
           oscGain.gain.exponentialRampToValueAtTime(0.001, time + Math.max(0.01, cfg.decay));
           
-          const noiseGain = audioCtx.createGain();
+          var noiseGain = audioCtx.createGain();
           noiseGain.gain.setValueAtTime(Math.min(1, cfg.noise), time);
           noiseGain.gain.exponentialRampToValueAtTime(0.001, time + Math.max(0.01, noiseLen));
           
-          const filt = audioCtx.createBiquadFilter();
+          var filt = audioCtx.createBiquadFilter();
           filt.type = cfg.noise > 0.4 ? 'bandpass' : 'lowpass';
           filt.frequency.value = baseFreq > 50 ? baseFreq * 3.2 : 800;
           filt.Q.value = Math.max(0.1, cfg.q);
           
-          osc.connect(oscGain);
-          oscGain.connect(filt);
-          noise.connect(noiseGain);
-          noiseGain.connect(filt);
+          osc.connect(oscGain); oscGain.connect(filt);
+          noise.connect(noiseGain); noiseGain.connect(filt);
           filt.connect(masterGain);
           
-          osc.start(time);
-          osc.stop(time + cfg.decay + 0.05);
-          noise.start(time);
-          noise.stop(time + noiseLen + 0.05);
-        } catch(err) {
-          console.error('Ошибка синтеза:', err);
-        }
+          osc.start(time); osc.stop(time + cfg.decay + 0.05);
+          noise.start(time); noise.stop(time + noiseLen + 0.05);
+        } catch(err) { console.error('Синтез:', err); }
       }
 
       function playPreview(type) {
         initAudio();
-        setTimeout(() => {
-          if (audioCtx && audioCtx.state === 'running') {
-            playNote(type, audioCtx.currentTime + 0.02);
-          }
+        setTimeout(function() {
+          if (audioCtx && audioCtx.state === 'running') playNote(type, audioCtx.currentTime + 0.02);
         }, 100);
       }
 
-      // --- Parser ---
+      // Parser
       function parseTab(text) {
         if (!text || !text.trim()) return [];
-        const cleaned = text.replace(/[\\\/]/g, '').trim();
-        const result = [];
-        const regex = /(\([A-Z.]+\))|([A-Z.])(\d*\.?\d+)?/g;
-        let match;
+        var cleaned = text.replace(/[\\\/]/g, '').trim();
+        var result = [];
+        var regex = /(\([A-Z.]+\))|([A-Z.])(\d*\.?\d+)?/g;
+        var match;
         while ((match = regex.exec(cleaned)) !== null) {
           if (match[1]) {
-            const chars = match[1].slice(1, -1).split('').filter(c => DEFAULT_SYNTH[c] || c === '.');
+            var chars = match[1].slice(1, -1).split('').filter(function(c) { return DEFAULT_SYNTH[c] || c === '.'; });
             if (chars.length > 0) result.push({ notes: chars, duration: 1 });
           } else if (match[2]) {
-            const t = match[2];
-            const dur = match[3] ? parseFloat(match[3]) : 1;
+            var t = match[2];
+            var dur = match[3] ? parseFloat(match[3]) : 1;
             result.push({ notes: [t], duration: Math.max(0.1, isNaN(dur) ? 1 : dur) });
           }
         }
         return result;
       }
 
-      // --- Sequencer ---
+      // Sequencer
       function scheduleEvent(noteObj, time) {
-        for (const n of noteObj.notes) { if (DEFAULT_SYNTH[n]) playNote(n, time); }
-        const idx = currentIdx;
-        const delayMs = Math.max(0, (time - audioCtx.currentTime) * 1000);
-        setTimeout(() => { if (!isPlaying) return; updateVisualPill(idx); }, delayMs);
+        var n;
+        for (var i = 0; i < noteObj.notes.length; i++) {
+          n = noteObj.notes[i];
+          if (DEFAULT_SYNTH[n]) playNote(n, time);
+        }
+        var idx = currentIdx;
+        var delayMs = Math.max(0, (time - audioCtx.currentTime) * 1000);
+        setTimeout(function() { if (!isPlaying) return; updateVisualPill(idx); }, delayMs);
       }
 
       function scheduler() {
@@ -366,12 +382,8 @@
       function startPlayback() {
         if (isPlaying) return;
         initAudio();
-        
-        if (!audioCtx) { setTimeout(() => startPlayback(), 200); return; }
-        if (audioCtx.state !== 'running') {
-          audioCtx.resume().then(() => startPlayback());
-          return;
-        }
+        if (!audioCtx) { setTimeout(startPlayback, 200); return; }
+        if (audioCtx.state !== 'running') { audioCtx.resume().then(startPlayback); return; }
         
         notes = parseTab(els.tab.value);
         if (notes.length === 0) { setStatus('⚠️ Введите корректную табулатуру', 'text-yellow-300'); return; }
@@ -382,8 +394,7 @@
         els.stopBtn.classList.remove('opacity-50', 'pointer-events-none');
         els.playText.textContent = 'Играет...';
         els.playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        buildPreview();
-        scheduler();
+        buildPreview(); scheduler();
         setStatus('▶ Воспроизведение...', 'text-blue-300');
       }
 
@@ -395,244 +406,430 @@
         els.stopBtn.classList.add('opacity-50', 'pointer-events-none');
         els.playText.textContent = 'Старт';
         els.playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-        clearActivePills();
-        setStatus('Готово', 'text-white/60');
-        updateNoteInfo();
+        clearActivePills(); setStatus('Готово', 'text-white/60'); updateNoteInfo();
       }
 
-      // --- Visuals ---
+      // Visuals
       function updateVisualPill(idx) {
         clearActivePills();
-        const pills = els.noteDisplay.querySelectorAll('.note-pill[data-idx="' + idx + '"]');
-        pills.forEach(p => { p.classList.add('active'); activePills.push(p); });
+        var pills = els.noteDisplay.querySelectorAll('.note-pill[data-idx="' + idx + '"]');
+        pills.forEach(function(p) { p.classList.add('active'); activePills.push(p); });
       }
-      function clearActivePills() { activePills.forEach(p => p.classList.remove('active')); activePills = []; }
+      function clearActivePills() { activePills.forEach(function(p) { p.classList.remove('active'); }); activePills = []; }
       
       function drawVisualizer() {
         if (!analyser) return;
-        const frame = () => {
+        function frame() {
           requestAnimationFrame(frame);
           if (!analyser) return;
-          const bufLen = analyser.frequencyBinCount;
-          const dataArray = new Uint8Array(bufLen);
+          var bufLen = analyser.frequencyBinCount;
+          var dataArray = new Uint8Array(bufLen);
           analyser.getByteFrequencyData(dataArray);
-          const w = els.canvas.width, h = els.canvas.height;
+          var w = els.canvas.width, h = els.canvas.height;
           if (w === 0 || h === 0) return;
           ctx2d.clearRect(0, 0, w, h);
-          const barCount = 32, barW = w / barCount, step = Math.floor(bufLen / barCount);
-          for (let i = 0; i < barCount; i++) {
-            const val = dataArray[i * step] / 255, barH = Math.max(1, val * h * 0.85);
-            const grad = ctx2d.createLinearGradient(0, h, 0, h - barH);
+          var barCount = 32, barW = w / barCount, step = Math.floor(bufLen / barCount);
+          for (var i = 0; i < barCount; i++) {
+            var val = dataArray[i * step] / 255, barH = Math.max(1, val * h * 0.85);
+            var grad = ctx2d.createLinearGradient(0, h, 0, h - barH);
             grad.addColorStop(0, 'rgba(59,130,246,0.8)'); grad.addColorStop(1, 'rgba(168,85,247,0.9)');
             ctx2d.fillStyle = grad;
-            const x = i * barW + 1;
+            var x = i * barW + 1;
             ctx2d.beginPath(); ctx2d.roundRect(x, h - barH, barW - 2, barH, 2); ctx2d.fill();
           }
-        };
+        }
         frame();
       }
 
       function buildPreview() {
         els.noteDisplay.innerHTML = '';
-        notes.forEach((n, i) => {
+        notes.forEach(function(n, i) {
           if (n.notes.length === 1) {
-            const type = n.notes[0];
-            const el = document.createElement('span');
+            var type = n.notes[0];
+            var el = document.createElement('span');
             if (type === '.') { el.className = 'note-pill note-p'; el.textContent = '·' + (n.duration > 1 ? n.duration : ''); }
             else { el.className = 'note-pill note-' + type.toLowerCase(); el.textContent = type + (n.duration > 1 ? n.duration : ''); }
             el.dataset.idx = i; els.noteDisplay.appendChild(el);
           } else {
-            const wrap = document.createElement('span');
+            var wrap = document.createElement('span');
             wrap.className = 'inline-flex items-center bg-white/5 border border-white/10 rounded-lg px-1 py-0.5 gap-1';
-            n.notes.forEach(type => { const e = document.createElement('span'); e.className = 'note-pill note-' + type.toLowerCase(); e.dataset.idx = i; e.textContent = type; wrap.appendChild(e); });
-            if (n.duration > 1) { const d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.idx = i; d.textContent = n.duration; wrap.appendChild(d); }
+            n.notes.forEach(function(type) { var e = document.createElement('span'); e.className = 'note-pill note-' + type.toLowerCase(); e.dataset.idx = i; e.textContent = type; wrap.appendChild(e); });
+            if (n.duration > 1) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.idx = i; d.textContent = n.duration; wrap.appendChild(d); }
             els.noteDisplay.appendChild(wrap);
           }
         });
       }
 
       function setStatus(msg, color) { els.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-current"></span> ' + msg; els.status.className = 'text-sm font-medium flex items-center gap-2 ' + (color || 'text-white/60'); }
-      function updateNoteInfo() { const n = notes.length; let tb = notes.reduce((s,x)=>s+x.duration,0); els.noteCount.textContent = 'Нот: ' + n + ' | Длительность: ' + ((tb/bpm)*60).toFixed(1) + 'с'; }
-      function updateNoteInfoForText() { const p = parseTab(els.tab.value); const n = p.length; let tb = p.reduce((s,x)=>s+x.duration,0); els.noteCount.textContent = 'Нот: ' + n + ' | Длительность: ' + ((tb/bpm)*60).toFixed(1) + 'с'; }
+      function updateNoteInfo() { var n = notes.length; var tb = notes.reduce(function(s,x){return s+x.duration;},0); els.noteCount.textContent = 'Нот: ' + n + ' | Длительность: ' + ((tb/bpm)*60).toFixed(1) + 'с'; }
+      function updateNoteInfoForText() { var p = parseTab(els.tab.value); var n = p.length; var tb = p.reduce(function(s,x){return s+x.duration;},0); els.noteCount.textContent = 'Нот: ' + n + ' | Длительность: ' + ((tb/bpm)*60).toFixed(1) + 'с'; }
 
-      // --- Settings UI ---
+      // Settings UI
       function buildSettingsUI() {
-        const grid = els.settingsGrid;
+        var grid = els.settingsGrid;
         grid.innerHTML = '';
-        
-        const params = [
+        var params = [
           { id: 'freq', label: 'Частота (Hz)', min: 30, max: 400, step: 1, unit: 'Hz' },
           { id: 'decay', label: 'Затухание (с)', min: 0.02, max: 1.5, step: 0.01, unit: 'с' },
           { id: 'noise', label: 'Шум/Хлопок', min: 0, max: 1, step: 0.01, unit: '' },
           { id: 'q', label: 'Резонанс', min: 0.5, max: 10, step: 0.1, unit: '' }
         ];
-        
-        for (const [key, cfg] of Object.entries(synthConfig)) {
-          const def = DEFAULT_SYNTH[key];
-          const div = document.createElement('div');
+        var key, cfg, def;
+        for (key in synthConfig) {
+          cfg = synthConfig[key];
+          def = DEFAULT_SYNTH[key];
+          var div = document.createElement('div');
           div.className = 'glass rounded-2xl p-4 space-y-3';
-          div.innerHTML = `
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="note-pill note-${key.toLowerCase()}">${key}</span>
-                <span class="text-sm text-white/60">${def.label}</span>
-              </div>
-              <div class="flex gap-1">
-                <button class="glass-btn px-2 py-1 rounded text-xs text-blue-200 preview-btn" data-type="${key}">🔊 Слушать</button>
-                <button class="glass-btn px-2 py-1 rounded text-xs text-white/60 reset-btn" data-type="${key}">↺</button>
-              </div>
-            </div>
-            ${params.map(p => {
-              const val = cfg[p.id];
-              return `<div class="flex flex-col gap-1">
-                <label class="text-xs text-white/60 flex justify-between"><span>${p.label}</span><span class="font-mono text-white/80 val-display" id="val-${key}-${p.id}">${val}${p.unit}</span></label>
-                <input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${val}" data-sound="${key}" data-param="${p.id}" class="w-full cursor-pointer">
-              </div>`;
-            }).join('')}
-          `;
+          var innerHtml = '<div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="note-pill note-' + key.toLowerCase() + '">' + key + '</span><span class="text-sm text-white/60">' + def.label + '</span></div><div class="flex gap-1"><button class="glass-btn px-2 py-1 rounded text-xs text-blue-200 preview-btn" data-type="' + key + '">🔊 Слушать</button><button class="glass-btn px-2 py-1 rounded text-xs text-white/60 reset-btn" data-type="' + key + '">↺</button></div></div>';
+          params.forEach(function(p) {
+            var val = cfg[p.id];
+            innerHtml += '<div class="flex flex-col gap-1"><label class="text-xs text-white/60 flex justify-between"><span>' + p.label + '</span><span class="font-mono text-white/80 val-display" id="val-' + key + '-' + p.id + '">' + val + p.unit + '</span></label><input type="range" min="' + p.min + '" max="' + p.max + '" step="' + p.step + '" value="' + val + '" data-sound="' + key + '" data-param="' + p.id + '" class="w-full cursor-pointer"></div>';
+          });
+          div.innerHTML = innerHtml;
           grid.appendChild(div);
         }
 
-        // Attach event listeners using regular functions to preserve `this` context
         grid.querySelectorAll('input[type="range"]').forEach(function(inp) {
           inp.addEventListener('input', function(e) {
-            const s = e.target.dataset.sound, p = e.target.dataset.param;
-            const v = parseFloat(e.target.value);
+            var s = e.target.dataset.sound, p = e.target.dataset.param;
+            var v = parseFloat(e.target.value);
             if (synthConfig[s] && synthConfig[s][p] !== undefined) {
               synthConfig[s][p] = v;
-              const pm = params.find(x => x.id === p);
-              const display = document.getElementById('val-' + s + '-' + p);
+              var pm = params.find(function(x){return x.id === p;});
+              var display = document.getElementById('val-' + s + '-' + p);
               if (display) display.textContent = v + (pm ? pm.unit : '');
             }
           });
         });
-        
         grid.querySelectorAll('.preview-btn').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
-            playPreview(e.target.dataset.type);
-          });
+          btn.addEventListener('click', function(e) { playPreview(e.target.dataset.type); });
         });
-        
         grid.querySelectorAll('.reset-btn').forEach(function(btn) {
           btn.addEventListener('click', function(e) {
-            const t = e.target.dataset.type;
-            if (DEFAULT_SYNTH[t]) {
-              synthConfig[t] = {...DEFAULT_SYNTH[t]};
-              buildSettingsUI();
-            }
+            var t = e.target.dataset.type;
+            if (DEFAULT_SYNTH[t]) { synthConfig[t] = Object.assign({}, DEFAULT_SYNTH[t]); buildSettingsUI(); }
           });
         });
-        
-        settingsInitialized = true;
       }
 
-      function openModal() {
-        settingsInitialized = false;
+      function openModal(modal, panel) {
         buildSettingsUI();
-        els.settingsModal.classList.remove('modal-hidden');
-        els.settingsModal.classList.add('modal-visible');
-        requestAnimationFrame(function() {
-          requestAnimationFrame(function() {
-            els.settingsPanel.classList.remove('modal-panel-hidden');
-            els.settingsPanel.classList.add('modal-panel-visible');
+        modal.classList.remove('modal-hidden'); modal.classList.add('modal-visible');
+        requestAnimationFrame(function() { requestAnimationFrame(function() { panel.classList.remove('modal-panel-hidden'); panel.classList.add('modal-panel-visible'); }); });
+      }
+      function closeModal(modal, panel) {
+        panel.classList.remove('modal-panel-visible'); panel.classList.add('modal-panel-hidden');
+        setTimeout(function() { modal.classList.remove('modal-visible'); modal.classList.add('modal-hidden'); }, 300);
+      }
+
+      els.openSettings.addEventListener('click', function() { openModal(els.settingsModal, els.settingsPanel); });
+      els.closeSettings.addEventListener('click', function() { closeModal(els.settingsModal, els.settingsPanel); });
+      els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(els.settingsModal, els.settingsPanel); });
+      els.saveSettings.addEventListener('click', function() {
+        if (saveSynthConfig()) { setStatus('✅ Настройки звуков сохранены', 'text-green-400'); setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 400); }
+        else setStatus('❌ Ошибка сохранения', 'text-red-400');
+      });
+      els.resetAllSettings.addEventListener('click', function() { synthConfig = deepCopy(DEFAULT_SYNTH); buildSettingsUI(); });
+
+      // --- SLOT MANAGEMENT ---
+      function getSlotKey(slotNum) { return 'darbuka_slot_' + slotNum; }
+      
+      function getSlotInfo(slotNum) {
+        try {
+          var raw = localStorage.getItem(getSlotKey(slotNum));
+          if (raw) {
+            var d = JSON.parse(raw);
+            return { exists: true, tab: d.tab || '', bpm: d.bpm || 120, volume: d.volume ?? 0.8, ts: d.ts || 0, noteCount: parseTab(d.tab || '').length };
+          }
+        } catch(e) {}
+        return { exists: false, tab: '', bpm: 120, volume: 0.8, ts: 0, noteCount: 0 };
+      }
+
+      function saveToSlot(slotNum) {
+        try {
+          var data = { tab: els.tab.value, bpm: bpm, volume: volume, ts: Date.now() };
+          localStorage.setItem(getSlotKey(slotNum), JSON.stringify(data));
+          return true;
+        } catch(e) { return false; }
+      }
+
+      function loadFromSlot(slotNum) {
+        var info = getSlotInfo(slotNum);
+        if (info.exists) {
+          els.tab.value = info.tab;
+          bpm = info.bpm; els.bpm.value = bpm;
+          volume = info.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume*100)+'%';
+          updateNoteInfoForText();
+          return true;
+        }
+        return false;
+      }
+
+      function deleteSlot(slotNum) {
+        try { localStorage.removeItem(getSlotKey(slotNum)); return true; } catch(e) { return false; }
+      }
+
+      function buildSlotsUI() {
+        var grid = els.slotsGrid;
+        grid.innerHTML = '';
+        selectedSlotInModal = 0;
+        els.selectSlotBtn.classList.add('opacity-50', 'pointer-events-none');
+        els.loadSelectedSlot.classList.add('opacity-50', 'pointer-events-none');
+        els.deleteSlotBtn.classList.add('opacity-50', 'pointer-events-none');
+
+        for (var i = 1; i <= NUM_SLOTS; i++) {
+          var info = getSlotInfo(i);
+          var card = document.createElement('div');
+          card.className = 'slot-card glass rounded-xl p-3 cursor-pointer border border-transparent';
+          card.dataset.slot = i;
+          
+          var timeStr = info.ts ? new Date(info.ts).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+          var dateStr = info.ts ? new Date(info.ts).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}) : '';
+          
+          card.innerHTML = '<div class="flex items-center justify-between mb-2"><span class="text-sm font-bold text-white/80">Слот ' + i + '</span>' + (info.exists ? '<span class="w-2 h-2 rounded-full bg-green-400/80"></span>' : '<span class="w-2 h-2 rounded-full bg-white/20"></span>') + '</div>';
+          
+          if (info.exists) {
+            var preview = info.tab.length > 30 ? info.tab.substring(0, 30) + '...' : info.tab;
+            card.innerHTML += '<div class="text-xs text-white/50 font-mono truncate mb-1" title="' + info.tab.replace(/"/g, '&quot;') + '">' + (preview || '(пусто)') + '</div>';
+            card.innerHTML += '<div class="flex items-center justify-between text-xs text-white/40"><span>' + info.noteCount + ' нот</span><span>' + timeStr + '</span></div>';
+          } else {
+            card.innerHTML += '<div class="text-xs text-white/30 text-center py-2">Пусто</div>';
+          }
+          
+          if (i === currentSlot) {
+            card.classList.add('active');
+          }
+          if (!info.exists) {
+            card.classList.add('empty');
+          }
+
+          card.addEventListener('click', function(e) {
+            var s = parseInt(e.currentTarget.dataset.slot);
+            selectSlotInModal(s);
           });
+
+          grid.appendChild(card);
+        }
+      }
+
+      function selectSlotInModal(slotNum) {
+        selectedSlotInModal = slotNum;
+        els.selectSlotBtn.classList.remove('opacity-50', 'pointer-events-none');
+        els.deleteSlotBtn.classList.remove('opacity-50', 'pointer-events-none');
+        
+        var info = getSlotInfo(slotNum);
+        if (info.exists) {
+          els.loadSelectedSlot.classList.remove('opacity-50', 'pointer-events-none');
+        } else {
+          els.loadSelectedSlot.classList.add('opacity-50', 'pointer-events-none');
+        }
+
+        var cards = els.slotsGrid.querySelectorAll('.slot-card');
+        cards.forEach(function(c) {
+          c.classList.remove('active');
+          if (parseInt(c.dataset.slot) === slotNum) c.classList.add('active');
         });
       }
-      
-      function closeModal() {
-        els.settingsPanel.classList.remove('modal-panel-visible');
-        els.settingsPanel.classList.add('modal-panel-hidden');
-        setTimeout(function() {
-          els.settingsModal.classList.remove('modal-visible');
-          els.settingsModal.classList.add('modal-hidden');
-        }, 300);
+
+      function openSlotsModal() {
+        buildSlotsUI();
+        els.slotsModal.classList.remove('modal-hidden'); els.slotsModal.classList.add('modal-visible');
+        requestAnimationFrame(function() { requestAnimationFrame(function() { els.slotsPanel.classList.remove('modal-panel-hidden'); els.slotsPanel.classList.add('modal-panel-visible'); }); });
       }
+      function closeSlotsModal() {
+        els.slotsPanel.classList.remove('modal-panel-visible'); els.slotsPanel.classList.add('modal-panel-hidden');
+        setTimeout(function() { els.slotsModal.classList.remove('modal-visible'); els.slotsModal.classList.add('modal-hidden'); }, 300);
+      }
+
+      els.openSlotsBtn.addEventListener('click', openSlotsModal);
+      els.closeSlots.addEventListener('click', closeSlotsModal);
+      els.slotsModal.addEventListener('click', function(e) { if (e.target === els.slotsModal) closeSlotsModal(); });
       
-      els.openSettings.addEventListener('click', openModal);
-      els.closeSettings.addEventListener('click', closeModal);
-      els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(); });
-      
-      // Save settings to localStorage when "Применить" is clicked
-      els.saveSettings.addEventListener('click', function() {
-        const success = saveSynthConfig();
-        if (success) {
-          setStatus('✅ Настройки звуков сохранены в LocalStorage', 'text-green-400');
-          setTimeout(closeModal, 400);
-        } else {
-          setStatus('❌ Ошибка сохранения настроек', 'text-red-400');
+      els.selectSlotBtn.addEventListener('click', function() {
+        if (selectedSlotInModal > 0) {
+          currentSlot = selectedSlotInModal;
+          els.currentSlotBtn.textContent = 'Слот ' + currentSlot;
+          setStatus('📌 Активный слот: ' + currentSlot, 'text-blue-300');
+          closeSlotsModal();
         }
       });
       
-      els.resetAllSettings.addEventListener('click', function() {
-        synthConfig = deepCopy(DEFAULT_SYNTH);
-        buildSettingsUI();
+      els.loadSelectedSlot.addEventListener('click', function() {
+        if (selectedSlotInModal > 0) {
+          if (loadFromSlot(selectedSlotInModal)) {
+            setStatus('📂 Загружено из слота ' + selectedSlotInModal, 'text-green-400');
+          } else {
+            setStatus('⚠️ Слот ' + selectedSlotInModal + ' пуст', 'text-yellow-300');
+          }
+        }
+      });
+      
+      els.deleteSlotBtn.addEventListener('click', function() {
+        if (selectedSlotInModal > 0) {
+          if (confirm('Удалить содержимое слота ' + selectedSlotInModal + '?')) {
+            deleteSlot(selectedSlotInModal);
+            buildSlotsUI();
+            setStatus('🗑 Слот ' + selectedSlotInModal + ' очищен', 'text-red-300');
+          }
+        }
       });
 
-      // --- Persistence ---
-      function saveData() { try { localStorage.setItem('darbuka_v3', JSON.stringify({ tab: els.tab.value, bpm, volume, ts: Date.now() })); setStatus('✅ Сохранено', 'text-green-400'); } catch(e) { setStatus('❌ Ошибка', 'text-red-400'); } }
-      function loadData() { try { const raw = localStorage.getItem('darbuka_v3'); if (raw) { const d = JSON.parse(raw); els.tab.value = d.tab || ''; bpm = d.bpm || 120; els.bpm.value = bpm; volume = d.volume ?? 0.8; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume*100)+'%'; updateNoteInfoForText(); setStatus('✅ Загружено', 'text-green-400'); } } catch(e) {} }
+      // Slot-based save/load
+      els.saveBtn.addEventListener('click', function() {
+        if (saveToSlot(currentSlot)) {
+          setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400');
+        } else {
+          setStatus('❌ Ошибка сохранения', 'text-red-400');
+        }
+      });
+      
+      els.loadBtn.addEventListener('click', function() {
+        if (loadFromSlot(currentSlot)) {
+          setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400');
+        } else {
+          setStatus('⚠️ Слот ' + currentSlot + ' пуст', 'text-yellow-300');
+        }
+      });
 
+      // --- MIDI Export (FIXED) ---
       function exportMidi() {
-        const parsed = parseTab(els.tab.value);
+        var parsed = parseTab(els.tab.value);
         if (!parsed.length) return alert('Нет данных для экспорта');
-        const division = 480, mpqn = Math.round(60000000 / bpm);
-        let trackEvents = [], absTick = 0;
-        const addEvt = function(delta, bytes) { trackEvents.push({ delta, bytes: new Uint8Array(bytes) }); };
-        addEvt(0, [0xFF, 0x51, 0x03, (mpqn>>16)&0xFF, (mpqn>>8)&0xFF, mpqn&0xFF]);
-        let lastAbs = 0;
-        for (const n of parsed) {
-          const dur = Math.round(n.duration * division);
+        
+        var division = 480;
+        var mpqn = Math.round(60000000 / bpm);
+        
+        // Collect events as (absoluteTick, data) pairs
+        var events = [];
+        var absTick = 0;
+        
+        // Tempo meta event at tick 0
+        events.push({ tick: 0, data: [0xFF, 0x51, 0x03, (mpqn>>16)&0xFF, (mpqn>>8)&0xFF, mpqn&0xFF] });
+        
+        var i, j, note, dur, noteOn, noteOff;
+        for (i = 0; i < parsed.length; i++) {
+          var n = parsed[i];
+          dur = Math.round(n.duration * division);
+          
           if (n.notes.length === 1 && n.notes[0] !== '.') {
-            const note = synthConfig[n.notes[0]]?.midi || 38;
-            addEvt(absTick - lastAbs, [0x99, note, 100]); lastAbs = absTick;
-            addEvt(dur, [0x89, note, 0]); lastAbs = absTick + dur;
+            note = synthConfig[n.notes[0]] ? synthConfig[n.notes[0]].midi : 38;
+            events.push({ tick: absTick, data: [0x99, note, 100] }); // Note On Ch10
+            events.push({ tick: absTick + dur, data: [0x89, note, 0] }); // Note Off Ch10
           } else if (n.notes.length > 1) {
-            for (let i = 0; i < n.notes.length; i++) {
-              if (DEFAULT_SYNTH[n.notes[i]]) { addEvt(absTick - lastAbs, [0x99, synthConfig[n.notes[i]].midi, 100]); lastAbs = absTick; }
+            for (j = 0; j < n.notes.length; j++) {
+              if (synthConfig[n.notes[j]]) {
+                note = synthConfig[n.notes[j]].midi;
+                events.push({ tick: absTick, data: [0x99, note, 100] });
+              }
             }
-            const offTick = absTick + dur;
-            for (let i = 0; i < n.notes.length; i++) {
-              if (DEFAULT_SYNTH[n.notes[i]]) { addEvt(offTick - lastAbs, [0x89, synthConfig[n.notes[i]].midi, 0]); lastAbs = offTick; }
+            for (j = 0; j < n.notes.length; j++) {
+              if (synthConfig[n.notes[j]]) {
+                note = synthConfig[n.notes[j]].midi;
+                events.push({ tick: absTick + dur, data: [0x89, note, 0] });
+              }
             }
           }
           absTick += dur;
         }
-        addEvt(absTick - lastAbs, [0xFF, 0x2F, 0x00]);
-        function encodeVarLen(v) { const out = []; do { out.unshift(v & 0x7F); v >>= 7; } while (v > 0); for (let i = 0; i < out.length - 1; i++) out[i] |= 0x80; return out; }
-        let trackBytes = []; for (const e of trackEvents) { trackBytes.push(...encodeVarLen(e.delta)); trackBytes.push(...e.bytes); }
-        const tLen = trackBytes.length;
-        const midi = new Uint8Array(14 + 8 + tLen);
-        let off = 0;
-        midi.set([0x4D,0x54,0x68,0x64,0x00,0x00,0x00,0x06,0x00,0x00,0x00,0x01,0x00,(division>>8)&0xFF,division&0xFF], off); off+=14;
-        midi.set([0x4D,0x54,0x72,0x6B, (tLen>>24)&0xFF, (tLen>>16)&0xFF, (tLen>>8)&0xFF, tLen&0xFF], off); off+=8;
-        midi.set(trackBytes, off);
-        const blob = new Blob([midi], {type: 'audio/midi'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'darbuka_' + Date.now() + '.mid';
+        
+        // End of Track
+        events.push({ tick: absTick, data: [0xFF, 0x2F, 0x00] });
+        
+        // Sort by tick, then by data order
+        events.sort(function(a, b) { return a.tick - b.tick; });
+        
+        // Convert to delta times
+        var deltaEvents = [];
+        var prevTick = 0;
+        for (i = 0; i < events.length; i++) {
+          var delta = events[i].tick - prevTick;
+          deltaEvents.push({ delta: delta, data: events[i].data });
+          prevTick = events[i].tick;
+        }
+        
+        // Variable Length Quantity encoding
+        function encodeVarLen(value) {
+          var buffer = [];
+          var v = value >>> 0; // Ensure unsigned
+          buffer.push(v & 0x7F);
+          while ((v >>= 7) > 0) {
+            buffer.push((buffer[buffer.length - 1] | 0x80) & 0xFF);
+            buffer.push(v & 0x7F);
+            buffer.pop(); // Remove the one we just modified
+            buffer.push(v & 0x7F);
+          }
+          // Actually let's do it properly:
+          var result = [];
+          v = value >>> 0;
+          do {
+            result.unshift(v & 0x7F);
+            v >>= 7;
+          } while (v > 0);
+          for (var k = 0; k < result.length - 1; k++) {
+            result[k] |= 0x80;
+          }
+          return result;
+        }
+        
+        // Build track data
+        var trackData = [];
+        for (i = 0; i < deltaEvents.length; i++) {
+          var vlq = encodeVarLen(deltaEvents[i].delta);
+          trackData.push.apply(trackData, vlq);
+          trackData.push.apply(trackData, deltaEvents[i].data);
+        }
+        
+        var trackLen = trackData.length;
+        var midiLen = 14 + 8 + trackLen; // Header (14) + Track header (8) + Track data
+        var midiData = new Uint8Array(midiLen);
+        var off = 0;
+        
+        // Header Chunk: MThd
+        midiData[0] = 0x4D; midiData[1] = 0x54; midiData[2] = 0x68; midiData[3] = 0x64;
+        midiData[4] = 0x00; midiData[5] = 0x00; midiData[6] = 0x00; midiData[7] = 0x06; // Length: 6
+        midiData[8] = 0x00; midiData[9] = 0x00; // Format: 0
+        midiData[10] = 0x00; midiData[11] = 0x01; // Tracks: 1
+        midiData[12] = (division >> 8) & 0xFF; midiData[13] = division & 0xFF; // Division
+        off = 14;
+        
+        // Track Chunk: MTrk
+        midiData[off] = 0x4D; midiData[off+1] = 0x54; midiData[off+2] = 0x72; midiData[off+3] = 0x6B;
+        off += 4;
+        midiData[off] = (trackLen >> 24) & 0xFF; midiData[off+1] = (trackLen >> 16) & 0xFF;
+        midiData[off+2] = (trackLen >> 8) & 0xFF; midiData[off+3] = trackLen & 0xFF;
+        off += 4;
+        
+        // Track data
+        for (i = 0; i < trackData.length; i++) {
+          midiData[off + i] = trackData[i];
+        }
+        
+        var blob = new Blob([midiData], {type: 'audio/midi'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'darbuka_' + Date.now() + '.mid';
         document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
         setStatus('🎵 MIDI сохранён', 'text-yellow-300');
       }
 
-      // --- Bindings ---
+      els.clearBtn.addEventListener('click', function() { els.tab.value = ''; updateNoteInfoForText(); setStatus('🗑 Очищено', 'text-white/50'); });
+      els.midiBtn.addEventListener('click', exportMidi);
+      els.tab.addEventListener('input', updateNoteInfoForText);
+      
       els.bpm.addEventListener('change', function(e) { bpm = Math.min(300, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfoForText(); });
       els.bpmUp.addEventListener('click', function() { bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfoForText(); });
       els.bpmDown.addEventListener('click', function() { bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfoForText(); });
       els.volume.addEventListener('input', function(e) { volume = parseFloat(e.target.value); els.volumeVal.textContent = Math.round(volume*100)+'%'; if (masterGain) masterGain.gain.value = volume; });
       els.playBtn.addEventListener('click', startPlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
-      els.saveBtn.addEventListener('click', saveData);
-      els.loadBtn.addEventListener('click', loadData);
-      els.clearBtn.addEventListener('click', function() { els.tab.value = ''; updateNoteInfoForText(); setStatus('🗑 Очищено', 'text-white/50'); });
-      els.midiBtn.addEventListener('click', exportMidi);
-      els.tab.addEventListener('input', updateNoteInfoForText);
       
       els.tabEditor.addEventListener('click', function() { els.tabEditor.classList.replace('text-white/60','text-blue-200'); els.tabEditor.classList.add('bg-white/10'); els.tabPreview.classList.replace('text-blue-200','text-white/60'); els.tabPreview.classList.remove('bg-white/10'); els.editorPanel.classList.remove('hidden'); els.previewPanel.classList.add('hidden'); });
       els.tabPreview.addEventListener('click', function() { els.tabPreview.classList.replace('text-white/60','text-blue-200'); els.tabPreview.classList.add('bg-white/10'); els.tabEditor.classList.replace('text-blue-200','text-white/60'); els.tabEditor.classList.remove('bg-white/10'); els.previewPanel.classList.remove('hidden'); els.editorPanel.classList.add('hidden'); buildPreview(); });
 
-      // --- Init ---
+      // Init
       loadSynthConfig();
-      loadData();
+      els.currentSlotBtn.textContent = 'Слот ' + currentSlot;
       updateNoteInfoForText();
-      
       window.addEventListener('load', resizeCanvas);
     })();
   </script>
