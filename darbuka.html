@@ -29,6 +29,8 @@
     textarea:focus { outline: none; }
     .note-pill { display: inline-flex; align-items: center; justify-content: center; padding: 0.3em 0.5em; margin: 0.12em; border-radius: 0.5em; font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.88em; transition: all 0.15s ease; border: 1px solid transparent; user-select: none; }
     .note-pill.active { transform: scale(1.15); box-shadow: 0 0 16px currentColor; border-color: rgba(255,255,255,0.4); z-index: 10; }
+    .note-pill.missing { border-color: #f87171; animation: flashRed 0.5s ease; }
+    @keyframes flashRed { 0%, 100% { background: rgba(239,68,68,0.3); } 50% { background: rgba(239,68,68,0.6); } }
     .note-d { background: rgba(59,130,246,0.3); color: #93c5fd; } .note-t { background: rgba(168,85,247,0.3); color: #c084fc; }
     .note-k { background: rgba(234,179,8,0.3); color: #facc15; } .note-s { background: rgba(239,68,68,0.3); color: #f87171; }
     .note-lt { background: rgba(192,132,252,0.3); color: #c084fc; } .note-lk { background: rgba(250,204,21,0.3); color: #facc15; }
@@ -47,25 +49,28 @@
     .track-card.muted { opacity: 0.4; }
     input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.15); border-radius: 999px; height: 6px; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #60a5fa; border: 2px solid #fff; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #60a5fa; border: 2px solid #fff; box-shadow: 0 0 6px rgba(96,165,250,0.5); }
     .slot-card { transition: all 0.2s ease; }
     .slot-card:hover { border-color: rgba(96,165,250,0.4); background: rgba(255,255,255,0.08); }
     .slot-card.active { border-color: rgba(96,165,250,0.6); background: rgba(96,165,250,0.1); }
     .slot-card.empty { opacity: 0.5; }
     .preview-track-row { margin-bottom: 0.75em; }
     .preview-track-label { font-size: 0.75em; font-weight: 600; margin-right: 0.5em; padding: 0.15em 0.5em; border-radius: 0.35em; display: inline-flex; align-items: center; gap: 0.4em; }
+    .metro-active { background: rgba(250,204,21,0.2) !important; border-color: rgba(250,204,21,0.4) !important; }
+    .tap-pulse { animation: tapPulse 0.2s ease-out; }
+    @keyframes tapPulse { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     @media (max-width: 640px) { .glass-btn { font-size: 0.85rem; padding: 0.5rem 0.75rem; } .note-pill { font-size: 0.82rem; padding: 0.22em 0.45em; } }
   </style>
 </head>
 <body class="text-white">
   <div class="liquid-bg"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
-  <main class="relative z-10 w-full max-w-3xl mx-auto p-4 md:p-6">
+  <main class="relative z-10 w-full max-w-3xl mx-auto p-4 md:p-6 pb-20">
     <header class="text-center mb-6">
       <div class="glass inline-flex items-center gap-3 px-6 py-3 rounded-2xl">
         <span class="text-3xl" role="img">🥁</span>
         <div class="text-left">
           <h1 class="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent">Darbuka Tab</h1>
-          <p class="text-white/50 text-xs mt-0.5">Multi-Track • Web Audio Synthesizer • PWA</p>
+          <p class="text-white/50 text-xs mt-0.5">Multi-Track • Sample Engine • PWA</p>
         </div>
       </div>
     </header>
@@ -76,9 +81,10 @@
           <label for="bpm" class="text-xs font-medium text-white/60 uppercase tracking-wider">BPM</label>
           <input type="number" id="bpm" value="120" min="30" max="300" step="1" class="bg-transparent w-14 text-center font-mono text-lg outline-none focus:ring-1 focus:ring-blue-400/50 rounded">
           <div class="flex flex-col gap-0.5">
-            <button id="bpmUp" class="w-6 h-3 bg-white/10 rounded-t flex items-center justify-center text-xs hover:bg-white/20">▲</button>
-            <button id="bpmDown" class="w-6 h-3 bg-white/10 rounded-b flex items-center justify-center text-xs hover:bg-white/20">▼</button>
+            <button id="bpmUp" class="w-6 h-3 bg-white/10 rounded-t flex items-center justify-center text-xs hover:bg-white/20 transition-colors">▲</button>
+            <button id="bpmDown" class="w-6 h-3 bg-white/10 rounded-b flex items-center justify-center text-xs hover:bg-white/20 transition-colors">▼</button>
           </div>
+          <button id="tapTempo" class="glass-btn px-2 py-1.5 rounded-lg text-xs text-yellow-200 ml-1" title="Tap Tempo">⏱ TAP</button>
         </div>
         <button id="playBtn" class="glass-btn px-6 py-3 rounded-xl font-semibold text-blue-200 flex items-center gap-2 min-w-[140px] justify-center">
           <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -88,12 +94,15 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
           Стоп
         </button>
+        <button id="metronomeBtn" class="glass-btn px-3 py-3 rounded-xl font-semibold text-white/60 flex items-center gap-1" title="Метроном">
+          <span id="metroIcon">🔇</span>
+        </button>
       </div>
       <div class="mt-3 flex items-center gap-2 text-xs text-white/50">
         <span>Громкость:</span>
         <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" class="flex-1">
         <span id="volumeVal">80%</span>
-        <button id="openSettings" class="ml-auto glass-btn px-3 py-1.5 rounded-lg text-xs text-white/70 border-white/20">⚙️ Звуки</button>
+        <button id="openSettings" class="ml-auto glass-btn px-3 py-1.5 rounded-lg text-xs text-white/70 border-white/20">⚙️ Сэмплы</button>
       </div>
     </div>
     <div class="glass rounded-2xl p-1 mb-4">
@@ -105,6 +114,9 @@
         <div id="tracksContainer" class="space-y-3"></div>
         <div class="flex gap-2 mt-3 flex-wrap">
           <button id="addTrackBtn" class="glass-btn px-4 py-2 rounded-xl text-sm font-medium text-green-200/80 border-green-500/20">+ Дорожка</button>
+          <button id="exportBtn" class="glass-btn px-3 py-2 rounded-xl text-sm font-medium text-cyan-200/80 border-cyan-500/20">📤 Экспорт</button>
+          <button id="importBtn" class="glass-btn px-3 py-2 rounded-xl text-sm font-medium text-purple-200/80 border-purple-500/20">📥 Импорт</button>
+          <input type="file" id="importFile" accept=".json" class="hidden">
           <button id="saveBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm font-medium text-white/70 border-white/20 min-w-[100px]">💾 Сохранить</button>
           <button id="loadBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm font-medium text-white/70 border-white/20 min-w-[100px]">📂 Загрузить</button>
           <button id="clearBtn" class="glass-btn flex-1 py-2 rounded-xl text-sm font-medium text-red-200/80 border-red-500/20 min-w-[100px]">🗑 Очистить</button>
@@ -112,7 +124,7 @@
         <div class="flex items-center gap-2 mt-2 mb-2 px-1">
           <span class="text-xs text-white/50">Слот:</span>
           <button id="currentSlotBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-blue-200 font-mono">Слот 1</button>
-          <button id="openSlotsBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-white/70">📋 Управление слотами</button>
+          <button id="openSlotsBtn" class="glass-btn px-3 py-1.5 rounded-lg text-xs text-white/70">📋 Слоты</button>
         </div>
       </div>
       <div id="previewPanel" class="hidden px-2 pb-2">
@@ -132,40 +144,34 @@
         <span class="note-pill note-lt">t</span><span class="text-white/40">tek</span>
         <span class="note-pill note-lk">k</span><span class="text-white/40">kak</span>
         <span class="note-pill note-b">B</span><span class="text-white/40">Bek</span>
-        <span class="note-pill note-r">-</span><span class="text-white/40">Rest</span>
+        <span class="note-pill note-r">R</span><span class="text-white/40">Rest</span>
       </div>
-      <p class="text-white/30 text-xs">Цифра = длительность (D2=2 доли). Пробелы игнорируются. <code class="bg-white/10 px-1 rounded">(DB)</code> = аккорд.</p>
+      <p class="text-white/30 text-xs">Цифра = длительность (D2=2 доли). Пробелы игнорируются. <code class="bg-white/10 px-1 rounded">(DB)</code> = аккорд. Загрузите сэмплы в ⚙️ для воспроизведения.</p>
     </footer>
   </main>
 
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
-      <button id="closeSettings" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10">✕</button>
-      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Настройка синтеза и сэмплов</h2>
-      <div class="flex gap-3 mb-4 flex-wrap items-center">
-        <label class="text-xs text-white/50">Реверберация:</label>
-        <input type="range" id="reverbMix" min="0" max="1" step="0.05" value="0.25" class="w-32 accent-blue-400"><span id="reverbVal" class="text-xs text-white/60">25%</span>
-        <label class="text-xs text-white/50 ml-2">Тон:</label>
-        <input type="range" id="toneControl" min="1000" max="12000" step="500" value="6000" class="w-32 accent-blue-400"><span id="toneVal" class="text-xs text-white/60">6kHz</span>
-      </div>
-      <div id="settingsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 max-h-[45vh] overflow-y-auto pr-2"></div>
-      <div class="flex justify-end gap-3 border-t border-white/10 pt-4">
-        <button id="resetAllSettings" class="glass-btn px-4 py-2 rounded-xl text-sm text-white/70">Сбросить всё</button>
-        <button id="saveSettings" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200">Применить</button>
+    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
+      <button id="closeSettings" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10 text-xl leading-none">✕</button>
+      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">Управление сэмплами</h2>
+      <div id="settingsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 overflow-y-auto pr-2 pb-2 flex-1"></div>
+      <div class="flex justify-between border-t border-white/10 pt-4 shrink-0">
+        <button id="resetAllSamples" class="glass-btn px-4 py-2 rounded-xl text-sm text-white/70">🗑 Очистить все</button>
+        <button id="saveSettings" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200">💾 Применить</button>
       </div>
     </div>
   </div>
 
   <div id="slotsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
     <div id="slotsPanel" class="glass w-full max-w-2xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
-      <button id="closeSlots" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10">✕</button>
+      <button id="closeSlots" class="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10 text-xl leading-none">✕</button>
       <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Управление слотами</h2>
       <div id="slotsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-      <div class="flex justify-between border-t border-white/10 pt-4">
-        <button id="deleteSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-red-200/80 border-red-500/20">🗑 Удалить слот</button>
+      <div class="flex justify-between border-t border-white/10 pt-4 flex-wrap gap-2">
+        <button id="deleteSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-red-200/80 border-red-500/20 opacity-50 pointer-events-none">🗑 Удалить</button>
         <div class="flex gap-2">
-          <button id="selectSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200">Выбрать</button>
-          <button id="loadSelectedSlot" class="glass-btn px-4 py-2 rounded-xl text-sm text-green-200">📂 Загрузить</button>
+          <button id="selectSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200 opacity-50 pointer-events-none">Выбрать</button>
+          <button id="loadSelectedSlot" class="glass-btn px-4 py-2 rounded-xl text-sm text-green-200 opacity-50 pointer-events-none">📂 Загрузить</button>
         </div>
       </div>
     </div>
@@ -174,23 +180,44 @@
   <script>
     (function() {
       'use strict';
+
+      if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+          if (typeof r === 'number') r = [r, r, r, r];
+          var rad = r || [0,0,0,0];
+          this.moveTo(x + rad[0], y);
+          this.lineTo(x + w - rad[1], y);
+          this.quadraticCurveTo(x + w, y, x + w, y + rad[1]);
+          this.lineTo(x + w, y + h - rad[2]);
+          this.quadraticCurveTo(x + w, y + h, x + w - rad[2], y + h);
+          this.lineTo(x + rad[3], y + h);
+          this.quadraticCurveTo(x, y + h, x, y + h - rad[3]);
+          this.lineTo(x, y + rad[0]);
+          this.quadraticCurveTo(x, y, x + rad[0], y);
+          this.closePath();
+          return this;
+        };
+      }
+
       try {
-        var m = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
-        var b = new Blob([JSON.stringify(m)], {type: 'application/json'});
-        document.head.appendChild(Object.assign(document.createElement('link'), {rel: 'manifest', href: URL.createObjectURL(b)}));
+        var mf = { name: "Darbuka Tab Player", short_name: "Darbuka", start_url: ".", display: "standalone", background_color: "#0b1120", theme_color: "#0b1120" };
+        var bf = new Blob([JSON.stringify(mf)], {type: 'application/json'});
+        document.head.appendChild(Object.assign(document.createElement('link'), {rel: 'manifest', href: URL.createObjectURL(bf)}));
       } catch(e) {}
 
       var NUM_SLOTS = 8, currentSlot = 1, selectedSlotInModal = 0;
       var customSamples = {};
-      var sampleStorageLimit = 2000000;
+      var sampleStorageLimit = 3000000;
+      var hasUnsavedChanges = false;
 
       var els = {
-        bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'),
+        bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'), tapTempo: document.getElementById('tapTempo'),
         volume: document.getElementById('volume'), volumeVal: document.getElementById('volumeVal'),
         playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), playText: document.getElementById('playText'),
-        stopBtn: document.getElementById('stopBtn'), openSettings: document.getElementById('openSettings'),
+        stopBtn: document.getElementById('stopBtn'), metronomeBtn: document.getElementById('metronomeBtn'), metroIcon: document.getElementById('metroIcon'),
+        openSettings: document.getElementById('openSettings'),
         saveBtn: document.getElementById('saveBtn'), loadBtn: document.getElementById('loadBtn'), clearBtn: document.getElementById('clearBtn'),
-        addTrackBtn: document.getElementById('addTrackBtn'),
+        addTrackBtn: document.getElementById('addTrackBtn'), exportBtn: document.getElementById('exportBtn'), importBtn: document.getElementById('importBtn'), importFile: document.getElementById('importFile'),
         tabEditor: document.getElementById('tabEditor'), tabPreview: document.getElementById('tabPreview'),
         editorPanel: document.getElementById('editorPanel'), previewPanel: document.getElementById('previewPanel'),
         noteDisplay: document.getElementById('noteDisplay'), tracksContainer: document.getElementById('tracksContainer'),
@@ -198,93 +225,51 @@
         canvas: document.getElementById('visualizer'),
         settingsModal: document.getElementById('settingsModal'), settingsPanel: document.getElementById('settingsPanel'),
         closeSettings: document.getElementById('closeSettings'), settingsGrid: document.getElementById('settingsGrid'),
-        saveSettings: document.getElementById('saveSettings'), resetAllSettings: document.getElementById('resetAllSettings'),
+        saveSettings: document.getElementById('saveSettings'), resetAllSamples: document.getElementById('resetAllSamples'),
         currentSlotBtn: document.getElementById('currentSlotBtn'), openSlotsBtn: document.getElementById('openSlotsBtn'),
         slotsModal: document.getElementById('slotsModal'), slotsPanel: document.getElementById('slotsPanel'),
         closeSlots: document.getElementById('closeSlots'), slotsGrid: document.getElementById('slotsGrid'),
         selectSlotBtn: document.getElementById('selectSlotBtn'), loadSelectedSlot: document.getElementById('loadSelectedSlot'),
-        deleteSlotBtn: document.getElementById('deleteSlotBtn'),
-        reverbMix: document.getElementById('reverbMix'), reverbVal: document.getElementById('reverbVal'),
-        toneControl: document.getElementById('toneControl'), toneVal: document.getElementById('toneVal')
+        deleteSlotBtn: document.getElementById('deleteSlotBtn')
+      };
+
+      var NOTE_INFO = {
+        D:  { label:'Dum',  css:'d' },
+        T:  { label:'Tak',  css:'t' },
+        K:  { label:'Ka',   css:'k' },
+        S:  { label:'Slap', css:'s' },
+        t:  { label:'tek',  css:'lt' },
+        k:  { label:'kak',  css:'lk' },
+        B:  { label:'Bek',  css:'b' },
+        R:  { label:'Rest', css:'r' }
       };
 
       var ctx2d = els.canvas.getContext('2d');
-      var resizeCanvas = function() { var r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width; els.canvas.height = r.height; } };
+      var resizeCanvas = function() { var r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width * window.devicePixelRatio; els.canvas.height = r.height * window.devicePixelRatio; ctx2d.scale(window.devicePixelRatio, window.devicePixelRatio); } };
       resizeCanvas(); window.addEventListener('resize', resizeCanvas);
 
-      var audioCtx = null, masterGain = null, analyser = null, schedulerTimer = null;
-      var reverbNode = null, reverbGain = null, dryGain = null, toneFilter = null;
-      var isPlaying = false, nextNoteTime = 0.0, currentIdx = 0;
-      var notes = [], bpm = 120, volume = 0.8, reverbAmount = 0.25, toneFreq = 6000;
-      var activePills = [], impulseBuffer = null;
+      var audioCtx = null, masterGain = null, analyser = null, schedulerTimer = null, animFrameId = null;
+      var reverbNode = null, reverbGainNode = null, dryGainNode = null, toneFilterNode = null, metroGainNode = null;
+      var isPlaying = false, currentIdx = 0, playbackStartTime = 0;
+      var notes = [], bpm = 120, volume = 0.8;
+      var activePills = [], impulseBuffer = null, metronomeEnabled = false;
       var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
-
-      var NOTE_DEFS = {
-        D:  { label:'Dum',  css:'d',  midi:35 },
-        T:  { label:'Tak',  css:'t',  midi:38 },
-        K:  { label:'Ka',   css:'k',  midi:39 },
-        S:  { label:'Slap', css:'s',  midi:40 },
-        t:  { label:'tek',  css:'lt', midi:42 },
-        k:  { label:'kak',  css:'lk', midi:43 },
-        B:  { label:'Bek',  css:'b',  midi:44 },
-        R:  { label:'Rest', css:'r',  midi:0 }
-      };
-
+      var tapTimes = [];
       var TRACK_COLORS = ['#60a5fa','#c084fc','#facc15','#f87171','#34d399','#fb923c','#38bdf8','#e879f9'];
 
-      var synthConfig = {};
       var tracks = [];
       var trackIdCounter = 0;
 
       function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-      function defaultSynthConfig() {
-        return {
-          D:  { freq:82,  decay:0.50, noise:0.02, q:1.5, pitchDrop:0.85, attack:0.005, harm2:0.4, harm3:0.2 },
-          T:  { freq:280, decay:0.12, noise:0.10, q:2.0, pitchDrop:0.90, attack:0.002, harm2:0.3, harm3:0.1 },
-          K:  { freq:120, decay:0.05, noise:0.80, q:0.8, pitchDrop:0.95, attack:0.001, harm2:0.1, harm3:0.0 },
-          S:  { freq:200, decay:0.15, noise:0.30, q:3.0, pitchDrop:0.88, attack:0.002, harm2:0.5, harm3:0.2 },
-          t:  { freq:320, decay:0.08, noise:0.08, q:2.5, pitchDrop:0.92, attack:0.001, harm2:0.2, harm3:0.0 },
-          k:  { freq:100, decay:0.04, noise:0.70, q:0.6, pitchDrop:0.97, attack:0.001, harm2:0.1, harm3:0.0 },
-          B:  { freq:180, decay:0.04, noise:0.50, q:1.8, pitchDrop:0.90, attack:0.002, harm2:0.3, harm3:0.1 }
-        };
-      }
-
-      function loadSynthConfig() {
-        try {
-          var saved = localStorage.getItem('darbuka_synth_v8');
-          if (saved) {
-            var parsed = JSON.parse(saved);
-            synthConfig = defaultSynthConfig();
-            for (var key in parsed) {
-              if (synthConfig[key]) {
-                for (var p in synthConfig[key]) {
-                  if (parsed[key][p] !== undefined && parsed[key][p] !== null) synthConfig[key][p] = parsed[key][p];
-                }
-              }
-            }
-          } else { synthConfig = defaultSynthConfig(); }
-        } catch(e) { synthConfig = defaultSynthConfig(); }
-      }
-      function saveSynthConfig() { try { localStorage.setItem('darbuka_synth_v8', JSON.stringify(synthConfig)); return true; } catch(e) { return false; } }
-
       function getTrackColor(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; }
 
       function createTrack(name) {
         trackIdCounter++;
-        return {
-          id: trackIdCounter,
-          name: name || ('Дорожка ' + trackIdCounter),
-          tab: '',
-          volume: 1.0,
-          muted: false,
-          solo: false
-        };
+        return { id: trackIdCounter, name: name || ('Дорожка ' + trackIdCounter), tab: '', volume: 1.0, muted: false, solo: false };
       }
 
-      function initTracks() {
-        if (tracks.length === 0) tracks.push(createTrack('Основная'));
-      }
+      function initTracks() { if (tracks.length === 0) tracks.push(createTrack('Основная')); }
 
       function readTrackTabsFromDOM() {
         tracks.forEach(function(track) {
@@ -303,15 +288,15 @@
           var isActive = !anySolo || track.solo;
 
           var headerHtml = '<div class="flex items-center justify-between mb-2 px-1 py-1.5 rounded-lg cursor-pointer select-none hover:bg-white/5" data-track-header="' + track.id + '">';
-          headerHtml += '<div class="flex items-center gap-2">';
+          headerHtml += '<div class="flex items-center gap-2 flex-wrap">';
           headerHtml += '<span class="w-2 h-2 rounded-full shrink-0" style="background:' + dot + '"></span>';
-          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40') + '" data-toggle-solo="' + track.id + '">S</button>';
-          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40') + '" data-toggle-mute="' + track.id + '">M</button>';
-          headerHtml += '<span class="text-sm font-medium text-white/80 truncate max-w-[100px]">' + track.name + '</span>';
-          headerHtml += '</div><div class="flex items-center gap-2">';
+          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-solo="' + track.id + '">S</button>';
+          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-mute="' + track.id + '">M</button>';
+          headerHtml += '<span class="text-sm font-medium text-white/80 truncate max-w-[120px]">' + track.name + '</span>';
+          headerHtml += '</div><div class="flex items-center gap-2 shrink-0">';
           headerHtml += '<span class="text-xs text-white/40 shrink-0">Vol</span>';
-          headerHtml += '<input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '" class="w-20 accent-blue-400" onclick="event.stopPropagation()">';
-          headerHtml += '<button class="text-white/40 hover:text-red-400 transition-colors text-xs shrink-0" data-remove-track="' + track.id + '">✕</button>';
+          headerHtml += '<input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '" class="w-16 accent-blue-400" onclick="event.stopPropagation()">';
+          headerHtml += '<button class="text-white/40 hover:text-red-400 transition-colors text-xs shrink-0 p-1" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
           headerHtml += '</div></div>';
 
           var bodyHtml = '<div class="track-body-visible" data-track-body="' + track.id + '">';
@@ -330,45 +315,56 @@
           });
 
           card.querySelector('[data-toggle-solo="' + track.id + '"]').addEventListener('click', function(e) {
-            e.stopPropagation();
-            track.solo = !track.solo;
+            e.stopPropagation(); track.solo = !track.solo;
             if (track.solo) tracks.forEach(function(t) { if (t.id !== track.id) t.solo = false; });
-            renderTracks();
+            renderTracks(); updateNoteInfoForText();
           });
 
           card.querySelector('[data-toggle-mute="' + track.id + '"]').addEventListener('click', function(e) {
-            e.stopPropagation();
-            track.muted = !track.muted;
-            renderTracks();
+            e.stopPropagation(); track.muted = !track.muted;
+            renderTracks(); updateNoteInfoForText();
           });
 
           card.querySelector('[data-track-vol="' + track.id + '"]').addEventListener('input', function(e) {
-            e.stopPropagation();
-            track.volume = parseFloat(e.target.value);
+            e.stopPropagation(); track.volume = parseFloat(e.target.value);
           });
 
           card.querySelector('[data-remove-track="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             if (tracks.length <= 1) { setStatus('⚠️ Нужна минимум 1 дорожка', 'text-yellow-300'); return; }
             tracks = tracks.filter(function(t) { return t.id !== track.id; });
-            renderTracks();
+            renderTracks(); updateNoteInfoForText(); markUnsaved();
           });
 
           card.querySelector('[data-track-tab="' + track.id + '"]').addEventListener('input', function(e) {
             track.tab = e.target.value;
+            markUnsaved(); updateNoteInfoForText();
           });
         });
       }
 
+      function markUnsaved() { hasUnsavedChanges = true; }
+
       function audioBufferToBase64(buffer) {
-        var channels = [];
-        for (var c = 0; c < buffer.numberOfChannels; c++) {
-          var data = buffer.getChannelData(c);
-          var f32 = new Float32Array(data);
-          var b64 = btoa(String.fromCharCode.apply(null, new Uint8Array(f32.buffer)));
-          channels.push(b64);
-        }
-        return JSON.stringify({ sampleRate: buffer.sampleRate, numberOfChannels: buffer.numberOfChannels, length: buffer.length, channels: channels });
+        try {
+          var channels = [];
+          for (var c = 0; c < buffer.numberOfChannels; c++) {
+            var data = buffer.getChannelData(c);
+            var chunkSize = 32768;
+            var binary = '';
+            for (var i = 0; i < data.length; i += chunkSize) {
+              var chunk = data.subarray(i, Math.min(i + chunkSize, data.length));
+              var bytes = new Uint8Array(chunk.length * 4);
+              for (var j = 0; j < chunk.length; j++) {
+                var view = new DataView(bytes.buffer, j * 4);
+                view.setFloat32(0, chunk[j], true);
+              }
+              binary += String.fromCharCode.apply(null, bytes);
+            }
+            channels.push(btoa(binary));
+          }
+          return JSON.stringify({ sampleRate: buffer.sampleRate, numberOfChannels: buffer.numberOfChannels, length: buffer.length, channels: channels });
+        } catch(e) { return null; }
       }
 
       function base64ToAudioBuffer(jsonStr) {
@@ -379,7 +375,7 @@
             var raw = atob(data.channels[c]);
             var bytes = new Uint8Array(raw.length);
             for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-            var floatData = new Float32Array(bytes.buffer);
+            var floatData = new Float32Array(bytes.buffer, 0, data.length);
             buffer.getChannelData(c).set(floatData);
           }
           return buffer;
@@ -392,42 +388,40 @@
           if (customSamples[key] && customSamples[key].buffer) {
             try {
               var b64 = audioBufferToBase64(customSamples[key].buffer);
-              if (b64.length < sampleStorageLimit) {
+              if (b64 && b64.length < sampleStorageLimit) {
                 sampleData[key] = { name: customSamples[key].name, bufferB64: b64 };
               }
-            } catch(e) { console.warn('Failed to serialize sample:', key, e); }
+            } catch(e) {}
           }
         }
-        localStorage.setItem('darbuka_samples_v8', JSON.stringify(sampleData));
+        localStorage.setItem('darbuka_samples_v10', JSON.stringify(sampleData));
       }
 
       function loadSamplesFromStorage() {
         try {
-          var raw = localStorage.getItem('darbuka_samples_v8');
+          var raw = localStorage.getItem('darbuka_samples_v10');
           if (!raw) return;
           var data = JSON.parse(raw);
           for (var key in data) {
             if (data[key] && data[key].bufferB64) {
               var buf = base64ToAudioBuffer(data[key].bufferB64);
-              if (buf) {
-                customSamples[key] = { buffer: buf, name: data[key].name };
-              }
+              if (buf) customSamples[key] = { buffer: buf, name: data[key].name };
             }
           }
-        } catch(e) { console.warn('Failed to load samples:', e); }
+        } catch(e) {}
       }
 
       function createImpulseResponse() {
         if (!audioCtx || audioCtx.sampleRate <= 0) return null;
-        var length = audioCtx.sampleRate * 2.5;
+        var length = Math.floor(audioCtx.sampleRate * 2.0);
         var impulse = audioCtx.createBuffer(2, length, audioCtx.sampleRate);
         var left = impulse.getChannelData(0), right = impulse.getChannelData(1);
         for (var i = 0; i < length; i++) {
           var t = i / audioCtx.sampleRate;
-          var decay = Math.exp(-t * 3.5) * (1 + Math.sin(t * 15) * 0.3);
+          var decay = Math.exp(-t * 4.0) * (1 + Math.sin(t * 12) * 0.2);
           left[i] = (Math.random() * 2 - 1) * decay;
-          right[i] = (Math.random() * 2 - 1) * decay * 0.95;
-          if (i < 100) { left[i] *= i / 100; right[i] *= i / 100; }
+          right[i] = (Math.random() * 2 - 1) * decay * 0.9;
+          if (i < 50) { left[i] *= i / 50; right[i] *= i / 50; }
         }
         return impulse;
       }
@@ -442,102 +436,43 @@
       function setupAudioNodes() {
         if (masterGain) return;
         masterGain = audioCtx.createGain(); masterGain.gain.value = volume;
-        toneFilter = audioCtx.createBiquadFilter(); toneFilter.type = 'lowpass'; toneFilter.frequency.value = toneFreq; toneFilter.Q.value = 0.7;
-        dryGain = audioCtx.createGain(); dryGain.gain.value = 1.0 - reverbAmount;
-        reverbGain = audioCtx.createGain(); reverbGain.gain.value = reverbAmount;
+        toneFilterNode = audioCtx.createBiquadFilter(); toneFilterNode.type = 'lowpass'; toneFilterNode.frequency.value = 8000; toneFilterNode.Q.value = 0.7;
+        dryGainNode = audioCtx.createGain(); dryGainNode.gain.value = 0.85;
+        reverbGainNode = audioCtx.createGain(); reverbGainNode.gain.value = 0.15;
+        metroGainNode = audioCtx.createGain(); metroGainNode.gain.value = 0.3;
+
         var convolver = audioCtx.createConvolver();
         if (!impulseBuffer) impulseBuffer = createImpulseResponse();
         convolver.buffer = impulseBuffer;
         reverbNode = convolver;
+
         analyser = audioCtx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.85;
-        masterGain.connect(toneFilter);
-        toneFilter.connect(dryGain); dryGain.connect(analyser); analyser.connect(audioCtx.destination);
-        toneFilter.connect(reverbGain); reverbGain.connect(reverbNode); reverbNode.connect(analyser);
+        masterGain.connect(toneFilterNode);
+        toneFilterNode.connect(dryGainNode); dryGainNode.connect(analyser); analyser.connect(audioCtx.destination);
+        toneFilterNode.connect(reverbGainNode); reverbGainNode.connect(reverbNode); reverbNode.connect(analyser);
+        metroGainNode.connect(audioCtx.destination);
         drawVisualizer();
       }
 
       function playNote(type, time, trackVolume) {
-        if (!audioCtx || !masterGain || type === 'R') return;
-        var cfg = synthConfig[type]; if (!cfg) return;
-        var tv = trackVolume !== undefined ? trackVolume : 1.0;
+        if (!audioCtx || !masterGain || type === 'R' || type === '-') return;
         if (customSamples[type] && customSamples[type].buffer) {
           try {
             var src = audioCtx.createBufferSource(); src.buffer = customSamples[type].buffer;
-            var gain = audioCtx.createGain(); gain.gain.value = tv;
-            src.connect(gain); gain.connect(masterGain); src.start(time);
-          } catch(e) { console.warn('Sample error:', e); }
-          return;
+            var g = audioCtx.createGain(); g.gain.value = trackVolume !== undefined ? trackVolume : 1.0;
+            src.connect(g); g.connect(masterGain); src.start(time);
+          } catch(e) { console.warn('Sample play error:', e); }
         }
+      }
+
+      function playMetronomeClick(time) {
+        if (!audioCtx || !metroGainNode || !metronomeEnabled) return;
         try {
-          var bf = Math.max(20, cfg.freq), dcy = cfg.decay;
-          var atk = Math.max(0.001, cfg.attack || 0.003);
-          var noiseAmt = Math.min(1, Math.max(0, cfg.noise));
-          var pitchR = Math.min(1, Math.max(0.5, cfg.pitchDrop || 0.9));
-          var h2 = Math.max(0, cfg.harm2 || 0), h3 = Math.max(0, cfg.harm3 || 0);
-          
-          var osc1 = audioCtx.createOscillator(); osc1.type = 'sine';
-          osc1.frequency.setValueAtTime(bf, time);
-          osc1.frequency.exponentialRampToValueAtTime(Math.max(20, bf * pitchR), time + dcy * 0.5);
-          var oscGain1 = audioCtx.createGain();
-          oscGain1.gain.setValueAtTime(0, time);
-          oscGain1.gain.linearRampToValueAtTime((1 - noiseAmt * 0.5) * tv, time + atk);
-          oscGain1.gain.exponentialRampToValueAtTime(0.001, time + dcy);
-
-          var osc2 = null, oscGain2 = null;
-          if (h2 > 0.01) {
-            osc2 = audioCtx.createOscillator(); osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(bf * 2.01, time);
-            osc2.frequency.exponentialRampToValueAtTime(Math.max(20, bf * 2.01 * pitchR), time + dcy * 0.3);
-            oscGain2 = audioCtx.createGain();
-            oscGain2.gain.setValueAtTime(0, time);
-            oscGain2.gain.linearRampToValueAtTime(h2 * tv, time + atk);
-            oscGain2.gain.exponentialRampToValueAtTime(0.001, time + dcy * 0.7);
-          }
-
-          var osc3 = null, oscGain3 = null;
-          if (h3 > 0.01) {
-            osc3 = audioCtx.createOscillator(); osc3.type = 'sine';
-            osc3.frequency.setValueAtTime(bf * 3.02, time);
-            osc3.frequency.exponentialRampToValueAtTime(Math.max(20, bf * 3.02 * pitchR), time + dcy * 0.2);
-            oscGain3 = audioCtx.createGain();
-            oscGain3.gain.setValueAtTime(0, time);
-            oscGain3.gain.linearRampToValueAtTime(h3 * tv, time + atk * 0.5);
-            oscGain3.gain.exponentialRampToValueAtTime(0.001, time + dcy * 0.5);
-          }
-
-          var nLen = Math.max(0.015, dcy * 0.4);
-          var bufSize = Math.ceil(audioCtx.sampleRate * nLen);
-          var nBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-          var nd = nBuf.getChannelData(0);
-          for (var i = 0; i < bufSize; i++) { nd[i] = (Math.random() * 2 - 1) * Math.exp(-i / audioCtx.sampleRate / nLen * 4); }
-          var noiseSrc = audioCtx.createBufferSource(); noiseSrc.buffer = nBuf;
-          var nGain = audioCtx.createGain();
-          nGain.gain.setValueAtTime(0, time);
-          nGain.gain.linearRampToValueAtTime(noiseAmt * tv, time + atk);
-          nGain.gain.exponentialRampToValueAtTime(0.001, time + nLen);
-
-          var filt = audioCtx.createBiquadFilter();
-          filt.type = noiseAmt > 0.4 ? 'bandpass' : 'lowpass';
-          filt.frequency.value = bf > 60 ? bf * 3.5 : 900;
-          filt.Q.value = Math.max(0.1, cfg.q);
-          
-          var clickGain = audioCtx.createGain();
-          clickGain.gain.setValueAtTime(0.3 * tv, time); clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.008);
-          var clickOsc = audioCtx.createOscillator(); clickOsc.type = 'triangle'; clickOsc.frequency.value = bf * 6;
-          
-          osc1.connect(oscGain1); oscGain1.connect(filt);
-          clickOsc.connect(clickGain); clickGain.connect(filt);
-          noiseSrc.connect(nGain); nGain.connect(filt);
-          if (osc2 && oscGain2) { osc2.connect(oscGain2); oscGain2.connect(filt); }
-          if (osc3 && oscGain3) { osc3.connect(oscGain3); oscGain3.connect(filt); }
-          filt.connect(masterGain);
-          
-          osc1.start(time); osc1.stop(time + dcy + 0.1);
-          clickOsc.start(time); clickOsc.stop(time + 0.015);
-          noiseSrc.start(time); noiseSrc.stop(time + nLen + 0.05);
-          if (osc2 && oscGain2) { osc2.start(time); osc2.stop(time + dcy * 0.8 + 0.05); }
-          if (osc3 && oscGain3) { osc3.start(time); osc3.stop(time + dcy * 0.6 + 0.05); }
-        } catch(err) { console.error('Synth error:', err); }
+          var osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.value = 1000;
+          var g = audioCtx.createGain(); g.gain.setValueAtTime(0.35, time); g.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+          osc.connect(g); g.connect(metroGainNode);
+          osc.start(time); osc.stop(time + 0.05);
+        } catch(e) {}
       }
 
       function loadCustomSample(type, file) {
@@ -551,21 +486,27 @@
           audioCtx.decodeAudioData(e.target.result, function(buffer) {
             customSamples[type] = { buffer: buffer, name: file.name };
             updateSampleUI(type, file.name);
-            setStatus('✅ Сэмпл ' + type + ' загружен: ' + file.name, 'text-green-400');
+            setStatus('✅ ' + type + ': ' + file.name, 'text-green-400');
+            markUnsaved();
           }, function() { setStatus('❌ Ошибка декодирования', 'text-red-400'); });
         };
         reader.onerror = function() { setStatus('❌ Ошибка чтения файла', 'text-red-400'); };
         reader.readAsArrayBuffer(file);
       }
-      function clearCustomSample(type) { customSamples[type] = null; updateSampleUI(type, null); setStatus('🗑 Сэмпл ' + type + ' очищен', 'text-white/50'); }
+      function clearCustomSample(type) { customSamples[type] = null; updateSampleUI(type, null); setStatus('🗑 ' + type + ' очищен', 'text-white/50'); markUnsaved(); }
       function updateSampleUI(type, fileName) {
         var s = document.getElementById('sample-status-' + type), c = document.getElementById('clear-btn-' + type);
         if (!s || !c) return;
-        s.innerHTML = fileName ? '📁 <span class="text-white/80">' + fileName + '</span>' : '🔊 Синтез';
+        s.innerHTML = fileName ? '📁 <span class="text-white/80">' + fileName + '</span>' : '❌ Не загружен';
         fileName ? c.classList.remove('hidden') : c.classList.add('hidden');
       }
 
-      function playPreview(type) { initAudio(); setTimeout(function() { if (audioCtx && audioCtx.state === 'running') playNote(type, audioCtx.currentTime + 0.02, 1); }, 100); }
+      function playPreview(type) { 
+        initAudio(); 
+        setTimeout(function() { 
+          if (audioCtx && audioCtx.state === 'running') playNote(type, audioCtx.currentTime + 0.01, 1); 
+        }, 50); 
+      }
 
       function parseTab(text) {
         if (!text || !text.trim()) return [];
@@ -573,7 +514,7 @@
         var result = [], regex = /(\([A-ZtkB-]+\))|([A-ZtkB-])(\d*\.?\d+)?/g, match;
         while ((match = regex.exec(cleaned)) !== null) {
           if (match[1]) {
-            var chars = match[1].slice(1, -1).split('').filter(function(c) { return NOTE_DEFS[c] || c === '-'; });
+            var chars = match[1].slice(1, -1).split('').filter(function(c) { return NOTE_INFO[c] || c === '-'; });
             if (chars.length > 0) result.push({ notes: chars, duration: 1 });
           } else if (match[2]) {
             var t = match[2]; var dur = match[3] ? parseFloat(match[3]) : 1;
@@ -605,7 +546,7 @@
               trackName: track.name,
               trackVolume: track.volume,
               trackColor: getTrackColor(track.id),
-              isRest: noteObj.notes.length === 1 && noteObj.notes[0] === '-'
+              isRest: noteObj.notes.length === 1 && (noteObj.notes[0] === '-' || noteObj.notes[0] === 'R')
             });
             currentTime += beatDuration;
           });
@@ -614,26 +555,37 @@
         return allEvents;
       }
 
-      function scheduleEvent(event, time) {
+      function scheduleEvent(event, playTime) {
         if (!event.isRest) {
           for (var i = 0; i < event.notes.length; i++) {
-            if (NOTE_DEFS[event.notes[i]]) playNote(event.notes[i], time, event.trackVolume);
+            if (NOTE_INFO[event.notes[i]]) {
+              playNote(event.notes[i], playTime, event.trackVolume);
+            }
           }
         }
-        var idx = currentIdx;
-        var delayMs = Math.max(0, (time - audioCtx.currentTime) * 1000);
-        setTimeout(function() { if (!isPlaying) return; updateVisualPill(idx); }, delayMs);
+        var idx = event._globalIdx;
+        var delayMs = Math.max(0, (playTime - audioCtx.currentTime) * 1000);
+        setTimeout(function() { 
+          if (!isPlaying) return; 
+          updateVisualPill(idx, event.notes); 
+        }, delayMs);
       }
 
       function scheduler() {
-        while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD_S) {
-          if (currentIdx >= notes.length) { stopPlayback(); return; }
-          scheduleEvent(notes[currentIdx], nextNoteTime);
-          var currentEvt = notes[currentIdx];
-          nextNoteTime = currentEvt.time + currentEvt.beatDuration;
-          currentIdx++;
+        if (!isPlaying || !audioCtx) return;
+        var now = audioCtx.currentTime;
+        while (currentIdx < notes.length) {
+          var evt = notes[currentIdx];
+          var evtTime = playbackStartTime + evt.time;
+          if (evtTime < now + SCHEDULE_AHEAD_S) {
+            if (metronomeEnabled && currentIdx === 0) playMetronomeClick(evtTime);
+            scheduleEvent(evt, evtTime);
+            currentIdx++;
+          } else {
+            break;
+          }
         }
-        schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+        if (isPlaying) schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
       }
 
       function startPlayback() {
@@ -641,10 +593,23 @@
         initAudio();
         if (!audioCtx) { setTimeout(startPlayback, 200); return; }
         if (audioCtx.state !== 'running') { audioCtx.resume().then(startPlayback); return; }
+        
         notes = mergeAllTracks();
         if (notes.length === 0) { setStatus('⚠️ Введите корректную табулатуру', 'text-yellow-300'); return; }
+        
+        var missingTypes = [];
+        notes.forEach(function(n) { 
+          n.notes.forEach(function(type) { 
+            if (NOTE_INFO[type] && type !== 'R' && type !== '-' && !customSamples[type] && missingTypes.indexOf(type) === -1) missingTypes.push(type); 
+          }); 
+        });
+        if (missingTypes.length > 0) {
+          setStatus('⚠️ Не загружены сэмплы: ' + missingTypes.join(', '), 'text-yellow-300');
+        }
+
+        notes.forEach(function(n, idx) { n._globalIdx = idx; });
         isPlaying = true; currentIdx = 0;
-        nextNoteTime = audioCtx.currentTime + 0.1;
+        playbackStartTime = audioCtx.currentTime + 0.05;
         els.playBtn.classList.add('pulse-ring'); els.stopBtn.classList.remove('opacity-50', 'pointer-events-none');
         els.playText.textContent = 'Играет...'; els.playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
         buildPreview(); scheduler(); setStatus('▶ Воспроизведение...', 'text-blue-300');
@@ -657,21 +622,36 @@
         clearActivePills(); setStatus('Готово', 'text-white/60'); updateNoteInfo();
       }
 
-      function updateVisualPill(idx) {
+      function updateVisualPill(idx, noteTypes) {
         clearActivePills();
         var pills = els.noteDisplay.querySelectorAll('.note-pill[data-idx="' + idx + '"]');
-        pills.forEach(function(p) { p.classList.add('active'); activePills.push(p); });
+        pills.forEach(function(p) { 
+          p.classList.add('active'); activePills.push(p); 
+          if (noteTypes && noteTypes.length === 1 && !customSamples[noteTypes[0]]) p.classList.add('missing');
+        });
+        if (pills.length > 0) {
+          var container = els.noteDisplay;
+          var pillRect = pills[0].getBoundingClientRect();
+          var containerRect = container.getBoundingClientRect();
+          var targetScroll = (pillRect.top - containerRect.top + container.scrollTop) - containerRect.height / 3;
+          container.scrollTop = Math.max(0, targetScroll);
+        }
       }
-      function clearActivePills() { activePills.forEach(function(p) { p.classList.remove('active'); }); activePills = []; }
-      
+      function clearActivePills() { activePills.forEach(function(p) { p.classList.remove('active'); p.classList.remove('missing'); }); activePills = []; }
+
+      var visualizerRunning = false;
       function drawVisualizer() {
-        if (!analyser) return;
+        if (!analyser || visualizerRunning) return;
+        visualizerRunning = true;
         function frame() {
-          requestAnimationFrame(frame); if (!analyser) return;
+          animFrameId = requestAnimationFrame(frame); if (!analyser) return;
           var bufLen = analyser.frequencyBinCount; var dataArray = new Uint8Array(bufLen);
-          analyser.getByteFrequencyData(dataArray); var w = els.canvas.width, h = els.canvas.height;
-          if (w === 0 || h === 0) return; ctx2d.clearRect(0, 0, w, h);
-          var barCount = 32, barW = w / barCount, step = Math.floor(bufLen / barCount);
+          analyser.getByteFrequencyData(dataArray);
+          var dpr = window.devicePixelRatio || 1;
+          var w = els.canvas.width / dpr, h = els.canvas.height / dpr;
+          if (w === 0 || h === 0) return;
+          ctx2d.clearRect(0, 0, w, h);
+          var barCount = 32, barW = w / barCount, step = Math.max(1, Math.floor(bufLen / barCount));
           for (var i = 0; i < barCount; i++) {
             var val = dataArray[i * step] / 255, barH = Math.max(1, val * h * 0.85);
             var grad = ctx2d.createLinearGradient(0, h, 0, h - barH);
@@ -682,14 +662,14 @@
         } frame();
       }
 
-      function getNoteClass(type) { return NOTE_DEFS[type] ? NOTE_DEFS[type].css : 'r'; }
+      function getNoteClass(type) { return NOTE_INFO[type] ? NOTE_INFO[type].css : 'r'; }
       function buildPreview() {
         els.noteDisplay.innerHTML = '';
         var trackEvents = {};
         notes.forEach(function(n, idx) {
           var tid = n.trackId;
           if (!trackEvents[tid]) trackEvents[tid] = { name: n.trackName, color: n.trackColor, events: [] };
-          trackEvents[tid].events.push({ event: n, idx: idx });
+          trackEvents[tid].events.push({ event: n, idx: n._globalIdx });
         });
         var firstTrack = true;
         tracks.forEach(function(track) {
@@ -699,11 +679,8 @@
           row.className = 'preview-track-row flex items-start gap-2';
           var label = document.createElement('span');
           label.className = 'preview-track-label shrink-0';
-          label.style.background = te.color + '30';
-          label.style.color = te.color;
-          label.style.border = '1px solid ' + te.color + '50';
-          label.textContent = te.name;
-          row.appendChild(label);
+          label.style.background = te.color + '30'; label.style.color = te.color; label.style.border = '1px solid ' + te.color + '50';
+          label.textContent = te.name; row.appendChild(label);
           var notesContainer = document.createElement('div');
           notesContainer.className = 'flex flex-wrap gap-0.5 items-center';
           te.events.forEach(function(item) {
@@ -711,23 +688,24 @@
             if (n.notes.length === 1) {
               var type = n.notes[0]; var el = document.createElement('span');
               el.className = 'note-pill note-' + getNoteClass(type);
+              if (!customSamples[type] && type !== 'R' && type !== '-') el.style.borderStyle = 'dashed';
               el.textContent = type + (n.duration > 1 ? n.duration : '');
-              el.dataset.idx = i;
-              notesContainer.appendChild(el);
+              el.dataset.idx = i; notesContainer.appendChild(el);
             } else {
               var wrap = document.createElement('span');
               wrap.className = 'inline-flex items-center bg-white/5 border rounded-lg px-1 py-0.5 gap-1';
               wrap.style.borderColor = te.color;
-              n.notes.forEach(function(type) { var e = document.createElement('span'); e.className = 'note-pill note-' + getNoteClass(type); e.dataset.idx = i; e.textContent = type; wrap.appendChild(e); });
+              n.notes.forEach(function(type) { 
+                var e = document.createElement('span'); e.className = 'note-pill note-' + getNoteClass(type); 
+                if (!customSamples[type] && type !== 'R' && type !== '-') e.style.borderStyle = 'dashed';
+                e.dataset.idx = i; e.textContent = type; wrap.appendChild(e); 
+              });
               if (n.duration > 1) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.idx = i; d.textContent = n.duration; wrap.appendChild(d); }
               notesContainer.appendChild(wrap);
             }
           });
           row.appendChild(notesContainer);
-          if (!firstTrack) {
-            var sep = document.createElement('div'); sep.className = 'w-full h-px bg-white/10 my-1';
-            els.noteDisplay.appendChild(sep);
-          }
+          if (!firstTrack) { var sep = document.createElement('div'); sep.className = 'w-full h-px bg-white/10 my-1'; els.noteDisplay.appendChild(sep); }
           els.noteDisplay.appendChild(row);
           firstTrack = false;
         });
@@ -743,66 +721,32 @@
 
       function buildSettingsUI() {
         var grid = els.settingsGrid; grid.innerHTML = '';
-        var params = [
-          { id: 'freq', label: 'Частота (Hz)', min: 30, max: 400, step: 1, unit: 'Hz' },
-          { id: 'decay', label: 'Затухание (с)', min: 0.02, max: 2.0, step: 0.01, unit: 'с' },
-          { id: 'noise', label: 'Шум/Хлопок', min: 0, max: 1, step: 0.01, unit: '' },
-          { id: 'q', label: 'Резонанс', min: 0.5, max: 10, step: 0.1, unit: '' },
-          { id: 'pitchDrop', label: 'Питч-дроп', min: 0.5, max: 1.0, step: 0.01, unit: '' },
-          { id: 'attack', label: 'Атака (мс)', min: 0.5, max: 10, step: 0.5, unit: 'мс' },
-          { id: 'harm2', label: 'Обертон 2x', min: 0, max: 1, step: 0.05, unit: '' },
-          { id: 'harm3', label: 'Обертон 3x', min: 0, max: 1, step: 0.05, unit: '' }
-        ];
-        for (var key in synthConfig) {
-          var cfg = synthConfig[key]; var def = NOTE_DEFS[key]; if (!def) continue;
-          var div = document.createElement('div'); div.className = 'glass rounded-2xl p-4 space-y-3';
-          var h = '<div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="note-pill note-' + def.css + '">' + key + '</span>';
-          h += '<span class="text-sm text-white/60">' + def.label + '</span></div><div class="flex gap-1">';
-          h += '<button class="glass-btn px-2 py-1 rounded text-xs text-blue-200 preview-btn" data-type="' + key + '">🔊</button>';
-          h += '<button class="glass-btn px-2 py-1 rounded text-xs text-white/60 reset-btn" data-type="' + key + '">↺</button>';
-          h += '</div></div>';
-          params.forEach(function(p) {
-            var val = cfg[p.id];
-            h += '<div class="flex flex-col gap-1"><label class="text-xs text-white/60 flex justify-between"><span>' + p.label + '</span>';
-            h += '<span class="font-mono text-white/80 val-display" id="val-' + key + '-' + p.id + '">' + val + p.unit + '</span></label>';
-            h += '<input type="range" min="' + p.min + '" max="' + p.max + '" step="' + p.step + '" value="' + val + '" data-sound="' + key + '" data-param="' + p.id + '" class="w-full cursor-pointer"></div>';
-          });
-          var hasSample = !!customSamples[key];
-          h += '<div class="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">';
-          h += '<div id="sample-status-' + key + '" class="text-xs text-white/50 w-full truncate">';
-          h += hasSample ? '📁 <span class="text-white/80">' + customSamples[key].name + '</span>' : '🔊 Синтез';
-          h += '</div><div class="flex gap-1 shrink-0">';
-          h += '<button class="glass-btn px-2 py-1 rounded text-xs text-blue-200 load-sample-btn" data-type="' + key + '">📁 Файл</button>';
-          h += '<button id="clear-btn-' + key + '" class="glass-btn px-2 py-1 rounded text-xs text-red-200/70 ' + (hasSample ? '' : 'hidden') + '">✕</button>';
-          h += '<input type="file" accept="audio/*" class="hidden" id="file-' + key + '" data-type="' + key + '">';
-          h += '</div></div>';
-          div.innerHTML = h; grid.appendChild(div);
+        for (var type in NOTE_INFO) {
+          var info = NOTE_INFO[type];
+          var div = document.createElement('div'); div.className = 'glass rounded-2xl p-4 space-y-2';
+          var hasSample = !!customSamples[type];
+          var html = '<div class="flex items-center justify-between mb-1"><div class="flex items-center gap-2">';
+          html += '<span class="note-pill note-' + info.css + '">' + type + '</span>';
+          html += '<span class="text-sm text-white/60">' + info.label + '</span></div>';
+          html += '<button class="glass-btn px-2 py-1 rounded text-xs text-blue-200 preview-btn" data-type="' + type + '">🔊</button></div>';
+          html += '<div id="sample-status-' + type + '" class="text-xs text-white/50 truncate h-5">' + (hasSample ? '📁 <span class="text-white/80">' + customSamples[type].name + '</span>' : '❌ Не загружен') + '</div>';
+          html += '<div class="flex gap-2 mt-2">';
+          html += '<button class="glass-btn flex-1 py-2 rounded-xl text-xs text-blue-200 load-sample-btn" data-type="' + type + '">📁 Файл</button>';
+          html += '<button id="clear-btn-' + type + '" class="glass-btn px-3 py-2 rounded-xl text-xs text-red-200/70 ' + (hasSample ? '' : 'hidden') + '">✕</button>';
+          html += '<input type="file" accept="audio/*" class="hidden" id="file-' + type + '" data-type="' + type + '">';
+          html += '</div>';
+          div.innerHTML = html; grid.appendChild(div);
         }
-        grid.querySelectorAll('input[type="range"]').forEach(function(inp) {
-          inp.addEventListener('input', function(e) {
-            var s = e.target.dataset.sound, p = e.target.dataset.param, v = parseFloat(e.target.value);
-            if (synthConfig[s] && synthConfig[s][p] !== undefined) {
-              synthConfig[s][p] = v; var pm = params.find(function(x){return x.id === p;});
-              var display = document.getElementById('val-' + s + '-' + p);
-              if (display) display.textContent = v + (pm ? pm.unit : '');
-            }
-          });
-        });
-        grid.querySelectorAll('.preview-btn').forEach(function(btn) { btn.addEventListener('click', function(e) { playPreview(e.target.dataset.type); }); });
-        grid.querySelectorAll('.reset-btn').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
-            var t = e.target.dataset.type; var defaults = defaultSynthConfig();
-            if (defaults[t]) { synthConfig[t] = deepCopy(defaults[t]); buildSettingsUI(); }
-          });
-        });
+
+        grid.querySelectorAll('.preview-btn').forEach(function(btn) { btn.addEventListener('click', function() { playPreview(btn.dataset.type); }); });
         grid.querySelectorAll('.load-sample-btn').forEach(function(btn) {
-          btn.addEventListener('click', function(e) { var fi = document.getElementById('file-' + e.target.dataset.type); if (fi) fi.click(); });
+          btn.addEventListener('click', function() { document.getElementById('file-' + btn.dataset.type).click(); });
         });
         grid.querySelectorAll('input[type="file"]').forEach(function(inp) {
-          inp.addEventListener('change', function(e) { if (e.target.files[0]) loadCustomSample(e.target.dataset.type, e.target.files[0]); e.target.value = ''; });
+          inp.addEventListener('change', function() { if (inp.files[0]) loadCustomSample(inp.dataset.type, inp.files[0]); inp.value = ''; });
         });
         grid.querySelectorAll('[id^="clear-btn-"]').forEach(function(btn) {
-          btn.addEventListener('click', function(e) { clearCustomSample(e.target.id.replace('clear-btn-', '')); });
+          btn.addEventListener('click', function() { clearCustomSample(btn.id.replace('clear-btn-', '')); });
         });
       }
 
@@ -819,21 +763,15 @@
       els.closeSettings.addEventListener('click', function() { closeModal(els.settingsModal, els.settingsPanel); });
       els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(els.settingsModal, els.settingsPanel); });
       els.saveSettings.addEventListener('click', function() {
-        if (saveSynthConfig()) {
-          saveSamplesToStorage();
-          setStatus('✅ Настройки и сэмплы сохранены', 'text-green-400');
-          setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 400);
-        } else setStatus('❌ Ошибка сохранения', 'text-red-400');
+        saveSamplesToStorage();
+        setStatus('✅ Сэмплы сохранены', 'text-green-400');
+        setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300);
       });
-      els.resetAllSettings.addEventListener('click', function() { synthConfig = defaultSynthConfig(); customSamples = {}; buildSettingsUI(); });
-
-      els.reverbMix.addEventListener('input', function(e) {
-        reverbAmount = parseFloat(e.target.value); els.reverbVal.textContent = Math.round(reverbAmount * 100) + '%';
-        if (dryGain) dryGain.gain.value = 1.0 - reverbAmount; if (reverbGain) reverbGain.gain.value = reverbAmount;
-      });
-      els.toneControl.addEventListener('input', function(e) {
-        toneFreq = parseInt(e.target.value); els.toneVal.textContent = (toneFreq >= 1000 ? (toneFreq/1000) + 'kHz' : toneFreq + 'Hz');
-        if (toneFilter) toneFilter.frequency.value = toneFreq;
+      els.resetAllSamples.addEventListener('click', function() {
+        if (confirm('Удалить все загруженные сэмплы?')) {
+          for (var k in customSamples) delete customSamples[k];
+          buildSettingsUI(); markUnsaved();
+        }
       });
 
       function getSlotKey(n) { return 'darbuka_slot_' + n; }
@@ -843,6 +781,7 @@
           readTrackTabsFromDOM();
           var data = { tracks: tracks, bpm: bpm, volume: volume, ts: Date.now(), trackIdCounter: trackIdCounter };
           localStorage.setItem(getSlotKey(n), JSON.stringify(data));
+          hasUnsavedChanges = false;
           return true;
         } catch(e) { return false; }
       }
@@ -851,10 +790,10 @@
         if (d.tracks && d.tracks.length > 0) {
           tracks = d.tracks; trackIdCounter = d.trackIdCounter || tracks.length;
         }
-        bpm=d.bpm||120; els.bpm.value=bpm;
-        volume=d.volume!==undefined?d.volume:0.8; els.volume.value=volume;
-        els.volumeVal.textContent=Math.round(volume*100)+'%';
-        renderTracks(); updateNoteInfoForText(); return true;
+        bpm = d.bpm || 120; els.bpm.value = bpm;
+        volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume;
+        els.volumeVal.textContent = Math.round(volume * 100) + '%';
+        renderTracks(); updateNoteInfoForText(); hasUnsavedChanges = false; return true;
       }
       function deleteSlot(n) { try { localStorage.removeItem(getSlotKey(n)); return true; } catch(e) { return false; } }
 
@@ -882,26 +821,52 @@
       function selectSlotInModal(n) {
         selectedSlotInModal = n; els.selectSlotBtn.classList.remove('opacity-50', 'pointer-events-none');
         els.deleteSlotBtn.classList.remove('opacity-50', 'pointer-events-none');
-        els.loadSelectedSlot.classList.toggle('opacity-50', !getSlotInfo(n)).classList.toggle('pointer-events-none', !getSlotInfo(n));
-        els.slotsGrid.querySelectorAll('.slot-card').forEach(function(c) { c.classList.toggle('active', parseInt(c.dataset.slot)===n); });
+        var info = getSlotInfo(n);
+        els.loadSelectedSlot.classList.toggle('opacity-50', !info).classList.toggle('pointer-events-none', !info);
+        els.slotsGrid.querySelectorAll('.slot-card').forEach(function(c) { c.classList.toggle('active', parseInt(c.dataset.slot) === n); });
       }
       function openSlotsModal() { buildSlotsUI(); els.slotsModal.classList.remove('modal-hidden'); els.slotsModal.classList.add('modal-visible'); requestAnimationFrame(function(){requestAnimationFrame(function(){els.slotsPanel.classList.remove('modal-panel-hidden');els.slotsPanel.classList.add('modal-panel-visible');});}); }
       function closeSlotsModal() { els.slotsPanel.classList.remove('modal-panel-visible');els.slotsPanel.classList.add('modal-panel-hidden'); setTimeout(function(){els.slotsModal.classList.remove('modal-visible');els.slotsModal.classList.add('modal-hidden');},300); }
       els.openSlotsBtn.addEventListener('click', openSlotsModal);
       els.closeSlots.addEventListener('click', closeSlotsModal);
       els.slotsModal.addEventListener('click', function(e) { if (e.target === els.slotsModal) closeSlotsModal(); });
-      els.selectSlotBtn.addEventListener('click', function() { if (selectedSlotInModal>0) { currentSlot=selectedSlotInModal; els.currentSlotBtn.textContent='Слот '+currentSlot; setStatus('📌 Слот: '+currentSlot, 'text-blue-300'); closeSlotsModal(); } });
-      els.loadSelectedSlot.addEventListener('click', function() { if (selectedSlotInModal>0 && loadFromSlot(selectedSlotInModal)) setStatus('📂 Загружено из слота '+selectedSlotInModal, 'text-green-400'); else setStatus('⚠️ Слот пуст', 'text-yellow-300'); });
-      els.deleteSlotBtn.addEventListener('click', function() { if (selectedSlotInModal>0 && confirm('Удалить слот '+selectedSlotInModal+'?')) { deleteSlot(selectedSlotInModal); buildSlotsUI(); setStatus('🗑 Удалено', 'text-red-300'); } });
+      els.selectSlotBtn.addEventListener('click', function() { if (selectedSlotInModal > 0) { currentSlot = selectedSlotInModal; els.currentSlotBtn.textContent = 'Слот ' + currentSlot; setStatus('📌 Слот: ' + currentSlot, 'text-blue-300'); closeSlotsModal(); } });
+      els.loadSelectedSlot.addEventListener('click', function() { if (selectedSlotInModal > 0 && loadFromSlot(selectedSlotInModal)) setStatus('📂 Загружено из слота ' + selectedSlotInModal, 'text-green-400'); else setStatus('⚠️ Слот пуст', 'text-yellow-300'); });
+      els.deleteSlotBtn.addEventListener('click', function() { if (selectedSlotInModal > 0 && confirm('Удалить слот ' + selectedSlotInModal + '?')) { deleteSlot(selectedSlotInModal); buildSlotsUI(); setStatus('🗑 Удалено', 'text-red-300'); } });
 
       els.clearBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
         tracks.forEach(function(t) { t.tab = ''; });
-        renderTracks(); updateNoteInfoForText(); setStatus('🗑 Очищено', 'text-white/50');
+        renderTracks(); updateNoteInfoForText(); setStatus('🗑 Очищено', 'text-white/50'); markUnsaved();
       });
       els.saveBtn.addEventListener('click', function() { if (saveToSlot(currentSlot)) setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400'); else setStatus('❌ Ошибка', 'text-red-400'); });
       els.loadBtn.addEventListener('click', function() { if (loadFromSlot(currentSlot)) setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400'); else setStatus('⚠️ Пусто', 'text-yellow-300'); });
-      els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); });
+      els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); updateNoteInfoForText(); markUnsaved(); });
+
+      els.exportBtn.addEventListener('click', function() {
+        readTrackTabsFromDOM();
+        var data = { tracks: tracks, bpm: bpm, volume: volume, ts: Date.now(), trackIdCounter: trackIdCounter };
+        var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        setStatus('📤 Экспортировано', 'text-cyan-300');
+      });
+      els.importBtn.addEventListener('click', function() { els.importFile.click(); });
+      els.importFile.addEventListener('change', function(e) {
+        var file = e.target.files[0]; if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          try {
+            var data = JSON.parse(ev.target.result);
+            if (data.tracks && data.tracks.length > 0) { tracks = data.tracks; trackIdCounter = data.trackIdCounter || tracks.length; }
+            if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
+            if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
+            renderTracks(); updateNoteInfoForText(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
+          } catch(err) { setStatus('❌ Ошибка импорта', 'text-red-400'); }
+        };
+        reader.readAsText(file); e.target.value = '';
+      });
 
       els.tabEditor.addEventListener('click', function() {
         els.tabEditor.classList.replace('text-white/60','text-blue-200'); els.tabEditor.classList.add('bg-white/10');
@@ -921,7 +886,40 @@
       els.playBtn.addEventListener('click', startPlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
 
-      loadSynthConfig(); loadSamplesFromStorage(); initTracks(); renderTracks();
+      els.metronomeBtn.addEventListener('click', function() {
+        metronomeEnabled = !metronomeEnabled;
+        els.metroIcon.textContent = metronomeEnabled ? '🔔' : '🔇';
+        els.metronomeBtn.classList.toggle('metro-active', metronomeEnabled);
+        setStatus(metronomeEnabled ? '🔔 Метроном включен' : '🔇 Метроном выключен', metronomeEnabled ? 'text-yellow-300' : 'text-white/60');
+      });
+
+      els.tapTempo.addEventListener('click', function() {
+        var now = Date.now();
+        tapTimes.push(now);
+        if (tapTimes.length > 4) tapTimes.shift();
+        if (tapTimes.length >= 2) {
+          var intervals = [];
+          for (var i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
+          var avg = intervals.reduce(function(a,b){return a+b;},0) / intervals.length;
+          var newBpm = Math.round(60000 / avg);
+          bpm = Math.min(300, Math.max(30, newBpm));
+          els.bpm.value = bpm; updateNoteInfoForText();
+          els.tapTempo.classList.add('tap-pulse');
+          setTimeout(function() { els.tapTempo.classList.remove('tap-pulse'); }, 200);
+        }
+        clearTimeout(els._tapReset);
+        els._tapReset = setTimeout(function() { tapTimes = []; }, 2000);
+      });
+
+      document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.code === 'Space') { e.preventDefault(); if (isPlaying) stopPlayback(); else startPlayback(); }
+        if (e.code === 'Escape') { stopPlayback(); }
+      });
+
+      window.addEventListener('beforeunload', function(e) { if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; } });
+
+      loadSamplesFromStorage(); initTracks(); renderTracks();
       els.currentSlotBtn.textContent = 'Слот ' + currentSlot; updateNoteInfoForText();
       window.addEventListener('load', resizeCanvas);
     })();
