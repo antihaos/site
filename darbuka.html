@@ -207,7 +207,7 @@
 
       var NUM_SLOTS = 8, currentSlot = 1, selectedSlotInModal = 0;
       var customSamples = {};
-      var sampleStorageLimit = 3000000;
+      var sampleStorageLimit = 1500000; // 1.5MB per sample to safely fit in localStorage
       var hasUnsavedChanges = false;
 
       var els = {
@@ -250,8 +250,8 @@
 
       var audioCtx = null, masterGain = null, analyser = null, schedulerTimer = null, animFrameId = null;
       var reverbNode = null, reverbGainNode = null, dryGainNode = null, toneFilterNode = null, metroGainNode = null;
-      var isPlaying = false, currentIdx = 0, playbackStartTime = 0;
-      var notes = [], bpm = 120, volume = 0.8;
+      var isPlaying = false, currentIdx = 0, playbackStartTime = 0, nextMetroTime = 0;
+      var notes = [], beatGroups = [], bpm = 120, volume = 0.8;
       var activePills = [], impulseBuffer = null, metronomeEnabled = false;
       var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
       var tapTimes = [];
@@ -259,8 +259,6 @@
 
       var tracks = [];
       var trackIdCounter = 0;
-
-      function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
 
       function getTrackColor(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; }
 
@@ -300,7 +298,7 @@
           headerHtml += '</div></div>';
 
           var bodyHtml = '<div class="track-body-visible" data-track-body="' + track.id + '">';
-          bodyHtml += '<textarea class="w-full h-20 md:h-24 bg-black/20 border border-white/10 rounded-xl p-3 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/20" data-track-tab="' + track.id + '" placeholder="Введите табулатуру..."';
+          bodyHtml += '<textarea class="w-full h-20 md:h-24 bg-black/20 border border-white/10 rounded-xl p-3 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/20" data-track-tab="' + track.id + '" placeholder="Пример: D T2 (DK) S - | D=Dum, T=Tak, K=Ka, S=Slap, -=Rest, Цифра=длительность"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea></div>';
 
@@ -317,12 +315,12 @@
           card.querySelector('[data-toggle-solo="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.solo = !track.solo;
             if (track.solo) tracks.forEach(function(t) { if (t.id !== track.id) t.solo = false; });
-            renderTracks(); updateNoteInfoForText();
+            renderTracks(); updateNoteInfo();
           });
 
           card.querySelector('[data-toggle-mute="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.muted = !track.muted;
-            renderTracks(); updateNoteInfoForText();
+            renderTracks(); updateNoteInfo();
           });
 
           card.querySelector('[data-track-vol="' + track.id + '"]').addEventListener('input', function(e) {
@@ -333,38 +331,45 @@
             e.stopPropagation();
             if (tracks.length <= 1) { setStatus('⚠️ Нужна минимум 1 дорожка', 'text-yellow-300'); return; }
             tracks = tracks.filter(function(t) { return t.id !== track.id; });
-            renderTracks(); updateNoteInfoForText(); markUnsaved();
+            renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
           card.querySelector('[data-track-tab="' + track.id + '"]').addEventListener('input', function(e) {
             track.tab = e.target.value;
-            markUnsaved(); updateNoteInfoForText();
+            markUnsaved(); updateNoteInfo();
           });
         });
       }
 
       function markUnsaved() { hasUnsavedChanges = true; }
 
+      function floatArrayToBase64(float32Arr) {
+        try {
+          var uint8 = new Uint8Array(float32Arr.length * 4);
+          var view = new DataView(uint8.buffer);
+          for (var i = 0; i < float32Arr.length; i++) {
+            view.setFloat32(i * 4, float32Arr[i], true);
+          }
+          var binary = '';
+          var chunkSize = 8192;
+          for (var i = 0; i < uint8.length; i += chunkSize) {
+            var chunk = uint8.subarray(i, Math.min(i + chunkSize, uint8.length));
+            binary += String.fromCharCode.apply(null, chunk);
+          }
+          return btoa(binary);
+        } catch(e) { return null; }
+      }
+
       function audioBufferToBase64(buffer) {
         try {
           var channels = [];
           for (var c = 0; c < buffer.numberOfChannels; c++) {
-            var data = buffer.getChannelData(c);
-            var chunkSize = 32768;
-            var binary = '';
-            for (var i = 0; i < data.length; i += chunkSize) {
-              var chunk = data.subarray(i, Math.min(i + chunkSize, data.length));
-              var bytes = new Uint8Array(chunk.length * 4);
-              for (var j = 0; j < chunk.length; j++) {
-                var view = new DataView(bytes.buffer, j * 4);
-                view.setFloat32(0, chunk[j], true);
-              }
-              binary += String.fromCharCode.apply(null, bytes);
-            }
-            channels.push(btoa(binary));
+            var b64 = floatArrayToBase64(buffer.getChannelData(c));
+            if (!b64) return null;
+            channels.push(b64);
           }
           return JSON.stringify({ sampleRate: buffer.sampleRate, numberOfChannels: buffer.numberOfChannels, length: buffer.length, channels: channels });
-        } catch(e) { return null; }
+        } catch(e) { console.error('Buffer encode error:', e); return null; }
       }
 
       function base64ToAudioBuffer(jsonStr) {
@@ -379,22 +384,30 @@
             buffer.getChannelData(c).set(floatData);
           }
           return buffer;
-        } catch(e) { return null; }
+        } catch(e) { console.error('Buffer decode error:', e); return null; }
       }
 
       function saveSamplesToStorage() {
         var sampleData = {};
+        var totalSize = 0;
         for (var key in customSamples) {
           if (customSamples[key] && customSamples[key].buffer) {
             try {
               var b64 = audioBufferToBase64(customSamples[key].buffer);
               if (b64 && b64.length < sampleStorageLimit) {
                 sampleData[key] = { name: customSamples[key].name, bufferB64: b64 };
+                totalSize += b64.length;
               }
             } catch(e) {}
           }
         }
-        localStorage.setItem('darbuka_samples_v10', JSON.stringify(sampleData));
+        try {
+          localStorage.setItem('darbuka_samples_v10', JSON.stringify(sampleData));
+          return true;
+        } catch(e) {
+          setStatus('⚠️ Превышен лимит localStorage', 'text-red-400');
+          return false;
+        }
       }
 
       function loadSamplesFromStorage() {
@@ -488,6 +501,7 @@
             updateSampleUI(type, file.name);
             setStatus('✅ ' + type + ': ' + file.name, 'text-green-400');
             markUnsaved();
+            saveSamplesToStorage(); // Auto-save on load
           }, function() { setStatus('❌ Ошибка декодирования', 'text-red-400'); });
         };
         reader.onerror = function() { setStatus('❌ Ошибка чтения файла', 'text-red-400'); };
@@ -551,41 +565,85 @@
             currentTime += beatDuration;
           });
         });
-        allEvents.sort(function(a, b) { return a.time - b.time; });
+        allEvents.sort(function(a, b) {
+          if (Math.abs(a.time - b.time) > 0.0001) return a.time - b.time;
+          return a.trackId - b.trackId;
+        });
         return allEvents;
       }
 
-      function scheduleEvent(event, playTime) {
-        if (!event.isRest) {
-          for (var i = 0; i < event.notes.length; i++) {
-            if (NOTE_INFO[event.notes[i]]) {
-              playNote(event.notes[i], playTime, event.trackVolume);
-            }
+      function buildBeatGroups(evtList) {
+        var groups = [];
+        var TIME_EPSILON = 0.005;
+        for (var i = 0; i < evtList.length; i++) {
+          var evt = evtList[i];
+          if (groups.length === 0 || (evt.time - groups[groups.length - 1].time) > TIME_EPSILON) {
+            groups.push({ time: evt.time, events: [evt], _groupIdx: groups.length });
+          } else {
+            groups[groups.length - 1].events.push(evt);
           }
         }
-        var idx = event._globalIdx;
+        return groups;
+      }
+
+      function scheduleBeatGroup(group, playTime) {
+        var allNoteTypes = [];
+        for (var e = 0; e < group.events.length; e++) {
+          var evt = group.events[e];
+          if (!evt.isRest) {
+            for (var n = 0; n < evt.notes.length; n++) {
+              if (NOTE_INFO[evt.notes[n]]) {
+                playNote(evt.notes[n], playTime, evt.trackVolume);
+              }
+            }
+          }
+          for (var n = 0; n < evt.notes.length; n++) {
+            allNoteTypes.push(evt.notes[n]);
+          }
+        }
+        var groupIdx = group._groupIdx;
         var delayMs = Math.max(0, (playTime - audioCtx.currentTime) * 1000);
         setTimeout(function() { 
           if (!isPlaying) return; 
-          updateVisualPill(idx, event.notes); 
+          updateVisualPill(groupIdx, allNoteTypes); 
         }, delayMs);
       }
 
       function scheduler() {
         if (!isPlaying || !audioCtx) return;
         var now = audioCtx.currentTime;
-        while (currentIdx < notes.length) {
-          var evt = notes[currentIdx];
-          var evtTime = playbackStartTime + evt.time;
+        
+        // 1. Schedule metronome clicks at steady BPM rate
+        while (nextMetroTime < now + SCHEDULE_AHEAD_S) {
+          if (metronomeEnabled) playMetronomeClick(nextMetroTime);
+          nextMetroTime += (60.0 / bpm);
+        }
+
+        // 2. Schedule note groups
+        while (currentIdx < beatGroups.length) {
+          var grp = beatGroups[currentIdx];
+          var evtTime = playbackStartTime + grp.time;
           if (evtTime < now + SCHEDULE_AHEAD_S) {
-            if (metronomeEnabled && currentIdx === 0) playMetronomeClick(evtTime);
-            scheduleEvent(evt, evtTime);
+            scheduleBeatGroup(grp, evtTime);
             currentIdx++;
           } else {
             break;
           }
         }
-        if (isPlaying) schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+
+        // 3. Stop if playback finished
+        if (isPlaying && currentIdx >= beatGroups.length) {
+          var lastGrp = beatGroups[beatGroups.length - 1];
+          if (lastGrp) {
+            var lastEvt = lastGrp.events[lastGrp.events.length - 1];
+            var lastEnd = playbackStartTime + lastGrp.time + lastEvt.beatDuration;
+            if (now >= lastEnd + 0.05) {
+              stopPlayback();
+              return;
+            }
+          } else { stopPlayback(); return; }
+        }
+        schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
       }
 
       function startPlayback() {
@@ -607,9 +665,13 @@
           setStatus('⚠️ Не загружены сэмплы: ' + missingTypes.join(', '), 'text-yellow-300');
         }
 
-        notes.forEach(function(n, idx) { n._globalIdx = idx; });
+        beatGroups = buildBeatGroups(notes);
+        beatGroups.forEach(function(grp, idx) { grp._groupIdx = idx; });
+        
         isPlaying = true; currentIdx = 0;
         playbackStartTime = audioCtx.currentTime + 0.05;
+        nextMetroTime = playbackStartTime;
+        
         els.playBtn.classList.add('pulse-ring'); els.stopBtn.classList.remove('opacity-50', 'pointer-events-none');
         els.playText.textContent = 'Играет...'; els.playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
         buildPreview(); scheduler(); setStatus('▶ Воспроизведение...', 'text-blue-300');
@@ -622,9 +684,9 @@
         clearActivePills(); setStatus('Готово', 'text-white/60'); updateNoteInfo();
       }
 
-      function updateVisualPill(idx, noteTypes) {
+      function updateVisualPill(groupIdx, noteTypes) {
         clearActivePills();
-        var pills = els.noteDisplay.querySelectorAll('.note-pill[data-idx="' + idx + '"]');
+        var pills = els.noteDisplay.querySelectorAll('.note-pill[data-grp="' + groupIdx + '"]');
         pills.forEach(function(p) { 
           p.classList.add('active'); activePills.push(p); 
           if (noteTypes && noteTypes.length === 1 && !customSamples[noteTypes[0]]) p.classList.add('missing');
@@ -663,13 +725,20 @@
       }
 
       function getNoteClass(type) { return NOTE_INFO[type] ? NOTE_INFO[type].css : 'r'; }
+      
       function buildPreview() {
         els.noteDisplay.innerHTML = '';
+        var currentNotes = isPlaying ? notes : mergeAllTracks();
+        var currentGroups = buildBeatGroups(currentNotes);
+        currentGroups.forEach(function(grp, idx) { grp._groupIdx = idx; });
+        
         var trackEvents = {};
-        notes.forEach(function(n, idx) {
-          var tid = n.trackId;
-          if (!trackEvents[tid]) trackEvents[tid] = { name: n.trackName, color: n.trackColor, events: [] };
-          trackEvents[tid].events.push({ event: n, idx: n._globalIdx });
+        currentGroups.forEach(function(grp) {
+          grp.events.forEach(function(evt) {
+            var tid = evt.trackId;
+            if (!trackEvents[tid]) trackEvents[tid] = { name: evt.trackName, color: evt.trackColor, events: [] };
+            trackEvents[tid].events.push({ event: evt, groupIdx: grp._groupIdx });
+          });
         });
         var firstTrack = true;
         tracks.forEach(function(track) {
@@ -684,13 +753,13 @@
           var notesContainer = document.createElement('div');
           notesContainer.className = 'flex flex-wrap gap-0.5 items-center';
           te.events.forEach(function(item) {
-            var n = item.event, i = item.idx;
+            var n = item.event, gi = item.groupIdx;
             if (n.notes.length === 1) {
               var type = n.notes[0]; var el = document.createElement('span');
               el.className = 'note-pill note-' + getNoteClass(type);
               if (!customSamples[type] && type !== 'R' && type !== '-') el.style.borderStyle = 'dashed';
               el.textContent = type + (n.duration > 1 ? n.duration : '');
-              el.dataset.idx = i; notesContainer.appendChild(el);
+              el.dataset.grp = gi; notesContainer.appendChild(el);
             } else {
               var wrap = document.createElement('span');
               wrap.className = 'inline-flex items-center bg-white/5 border rounded-lg px-1 py-0.5 gap-1';
@@ -698,9 +767,9 @@
               n.notes.forEach(function(type) { 
                 var e = document.createElement('span'); e.className = 'note-pill note-' + getNoteClass(type); 
                 if (!customSamples[type] && type !== 'R' && type !== '-') e.style.borderStyle = 'dashed';
-                e.dataset.idx = i; e.textContent = type; wrap.appendChild(e); 
+                e.dataset.grp = gi; e.textContent = type; wrap.appendChild(e); 
               });
-              if (n.duration > 1) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.idx = i; d.textContent = n.duration; wrap.appendChild(d); }
+              if (n.duration > 1) { var d = document.createElement('span'); d.className = 'text-xs text-white/50 ml-1'; d.dataset.grp = gi; d.textContent = n.duration; wrap.appendChild(d); }
               notesContainer.appendChild(wrap);
             }
           });
@@ -712,11 +781,11 @@
       }
 
       function setStatus(msg, color) { els.status.innerHTML = '<span class="w-2 h-2 rounded-full bg-current"></span> ' + msg; els.status.className = 'text-sm font-medium flex items-center gap-2 ' + (color || 'text-white/60'); }
-      function updateNoteInfo() { var n = notes.length; var tb = notes.reduce(function(s,x){return s+(x.duration||1);},0); els.noteCount.textContent = 'Нот: ' + n + ' | Длительность: ' + ((tb/bpm)*60).toFixed(1) + 'с'; }
-      function updateNoteInfoForText() {
-        var totalNotes = 0, totalDur = 0;
-        tracks.forEach(function(t) { var p = parseTab(t.tab); totalNotes += p.length; totalDur += p.reduce(function(s,x){return s+x.duration;},0); });
-        els.noteCount.textContent = 'Нот: ' + totalNotes + ' | Длительность: ' + ((totalDur/bpm)*60).toFixed(1) + 'с';
+      function updateNoteInfo() { 
+        var n = isPlaying ? notes : mergeAllTracks();
+        var count = n.length; 
+        var dur = n.reduce(function(s,x){return s+(x.duration||1);},0); 
+        els.noteCount.textContent = 'Нот: ' + count + ' | Длительность: ' + ((dur/bpm)*60).toFixed(1) + 'с'; 
       }
 
       function buildSettingsUI() {
@@ -763,9 +832,12 @@
       els.closeSettings.addEventListener('click', function() { closeModal(els.settingsModal, els.settingsPanel); });
       els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(els.settingsModal, els.settingsPanel); });
       els.saveSettings.addEventListener('click', function() {
-        saveSamplesToStorage();
-        setStatus('✅ Сэмплы сохранены', 'text-green-400');
-        setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300);
+        if (saveSamplesToStorage()) {
+          setStatus('✅ Сэмплы сохранены', 'text-green-400');
+          setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300);
+        } else {
+          setStatus('❌ Ошибка сохранения (лимит)', 'text-red-400');
+        }
       });
       els.resetAllSamples.addEventListener('click', function() {
         if (confirm('Удалить все загруженные сэмплы?')) {
@@ -793,7 +865,7 @@
         bpm = d.bpm || 120; els.bpm.value = bpm;
         volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume;
         els.volumeVal.textContent = Math.round(volume * 100) + '%';
-        renderTracks(); updateNoteInfoForText(); hasUnsavedChanges = false; return true;
+        renderTracks(); updateNoteInfo(); hasUnsavedChanges = false; return true;
       }
       function deleteSlot(n) { try { localStorage.removeItem(getSlotKey(n)); return true; } catch(e) { return false; } }
 
@@ -837,11 +909,11 @@
       els.clearBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
         tracks.forEach(function(t) { t.tab = ''; });
-        renderTracks(); updateNoteInfoForText(); setStatus('🗑 Очищено', 'text-white/50'); markUnsaved();
+        renderTracks(); updateNoteInfo(); setStatus('🗑 Очищено', 'text-white/50'); markUnsaved();
       });
       els.saveBtn.addEventListener('click', function() { if (saveToSlot(currentSlot)) setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400'); else setStatus('❌ Ошибка', 'text-red-400'); });
       els.loadBtn.addEventListener('click', function() { if (loadFromSlot(currentSlot)) setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400'); else setStatus('⚠️ Пусто', 'text-yellow-300'); });
-      els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); updateNoteInfoForText(); markUnsaved(); });
+      els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); updateNoteInfo(); markUnsaved(); });
 
       els.exportBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
@@ -862,7 +934,7 @@
             if (data.tracks && data.tracks.length > 0) { tracks = data.tracks; trackIdCounter = data.trackIdCounter || tracks.length; }
             if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
             if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
-            renderTracks(); updateNoteInfoForText(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
+            renderTracks(); updateNoteInfo(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
           } catch(err) { setStatus('❌ Ошибка импорта', 'text-red-400'); }
         };
         reader.readAsText(file); e.target.value = '';
@@ -879,9 +951,9 @@
         els.previewPanel.classList.remove('hidden'); els.editorPanel.classList.add('hidden'); buildPreview();
       });
 
-      els.bpm.addEventListener('change', function(e) { bpm = Math.min(300, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfoForText(); });
-      els.bpmUp.addEventListener('click', function() { bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfoForText(); });
-      els.bpmDown.addEventListener('click', function() { bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfoForText(); });
+      els.bpm.addEventListener('change', function(e) { bpm = Math.min(300, Math.max(30, parseInt(e.target.value)||120)); e.target.value = bpm; updateNoteInfo(); });
+      els.bpmUp.addEventListener('click', function() { bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); });
+      els.bpmDown.addEventListener('click', function() { bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfo(); });
       els.volume.addEventListener('input', function(e) { volume = parseFloat(e.target.value); els.volumeVal.textContent = Math.round(volume*100)+'%'; if (masterGain) masterGain.gain.value = volume; });
       els.playBtn.addEventListener('click', startPlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
@@ -903,7 +975,7 @@
           var avg = intervals.reduce(function(a,b){return a+b;},0) / intervals.length;
           var newBpm = Math.round(60000 / avg);
           bpm = Math.min(300, Math.max(30, newBpm));
-          els.bpm.value = bpm; updateNoteInfoForText();
+          els.bpm.value = bpm; updateNoteInfo();
           els.tapTempo.classList.add('tap-pulse');
           setTimeout(function() { els.tapTempo.classList.remove('tap-pulse'); }, 200);
         }
@@ -920,7 +992,7 @@
       window.addEventListener('beforeunload', function(e) { if (hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; } });
 
       loadSamplesFromStorage(); initTracks(); renderTracks();
-      els.currentSlotBtn.textContent = 'Слот ' + currentSlot; updateNoteInfoForText();
+      els.currentSlotBtn.textContent = 'Слот ' + currentSlot; updateNoteInfo();
       window.addEventListener('load', resizeCanvas);
     })();
   </script>
