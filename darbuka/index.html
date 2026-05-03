@@ -81,10 +81,11 @@
     .beat-indicator { transition: transform 0.08s ease, background 0.08s ease; }
     .beat-indicator.on { transform: scale(1.35); background: #facc15 !important; box-shadow: 0 0 14px rgba(250,204,21,0.7); }
     .seq-grid { display: grid; gap: 2px; }
-    .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; transition: all 0.12s; border: 1px solid rgba(255,255,255,0.08); touch-action: manipulation; }
+    .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; transition: all 0.12s; border: 1px solid rgba(255,255,255,0.08); touch-action: manipulation; position: relative; }
     .seq-cell:hover { border-color: rgba(255,255,255,0.35); transform: scale(1.08); }
     .seq-cell.active { background: var(--cell-color, #60a5fa); box-shadow: 0 0 10px var(--cell-color, #60a5fa); border-color: rgba(255,255,255,0.5); }
     .seq-cell.beat { background: rgba(255,255,255,0.04); }
+    .seq-cell.seq-playing { border-color: #facc15 !important; box-shadow: 0 0 12px rgba(250,204,21,0.6); background: rgba(250,204,21,0.25) !important; transform: scale(1.12); z-index: 5; }
     .seq-label { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; padding: 4px; }
     .rec-active { animation: recPulse 1s infinite; }
     @keyframes recPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); } 50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
@@ -322,7 +323,6 @@
     .step-btn { transition: all 0.15s ease; touch-action: manipulation; }
     .step-btn.active { background: rgba(74,222,128,0.2) !important; border-color: rgba(74,222,128,0.5) !important; color: #4ade80 !important; box-shadow: 0 0 8px rgba(74,222,128,0.2); }
 
-    /* Sticky label column in sequencer */
     .seq-label-col {
       position: sticky;
       left: 0;
@@ -330,6 +330,7 @@
       background: rgba(11, 17, 32, 0.85);
       backdrop-filter: blur(8px);
     }
+    .seq-playing-step { background: rgba(11, 17, 32, 0.95) !important; color: #facc15 !important; }
   </style>
 </head>
 <body class="text-white">
@@ -646,7 +647,6 @@
         <button id="closeSeq" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target z-10">✕</button>
       </div>
       
-      <!-- Step count controls -->
       <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-white/10">
         <span class="text-xs font-bold text-white/40 uppercase tracking-wider">Шаги:</span>
         <div id="seqStepBtns" class="flex flex-wrap gap-1.5"></div>
@@ -773,6 +773,12 @@
 
       var trackSeqState = {};
       var currentSeqTrackId = null;
+
+      // Sequencer playback state
+      var seqIsPlaying = false;
+      var seqAnimFrameId = null;
+      var seqStartTime = 0;
+      var seqCurrentStep = -1;
 
       var countTabSteps = function(tab) {
         var parsed = parseTab(tab);
@@ -1146,7 +1152,10 @@
           }
           parseTabToSeq(track.tab, seq);
         }
+        // Stop playback if switching tracks
+        stopSeqPlayback();
         buildSeqUI();
+        updateSeqPlayButton();
         openModal(els.seqModal, els.seqPanel);
       };
 
@@ -1159,11 +1168,105 @@
           btn.textContent = steps;
           btn.dataset.steps = steps;
           btn.addEventListener('click', function() {
+            stopSeqPlayback();
             resizeSeqGrid(currentSeqTrackId, steps);
             buildSeqUI();
           });
           els.seqStepBtns.appendChild(btn);
         });
+      };
+
+      var updateSeqPlayButton = function() {
+        if (seqIsPlaying) {
+          els.seqPlayBtn.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm bg-yellow-300 animate-pulse"></span>⏹ Остановить</span>';
+          els.seqPlayBtn.classList.add('bg-yellow-500/20', 'border-yellow-500/40', 'text-yellow-200');
+        } else {
+          els.seqPlayBtn.textContent = '▶ Воспроизвести';
+          els.seqPlayBtn.classList.remove('bg-yellow-500/20', 'border-yellow-500/40', 'text-yellow-200');
+        }
+      };
+
+      var clearSeqHighlight = function() {
+        var cells = els.seqGrid.querySelectorAll('.seq-cell.seq-playing');
+        for (var i = 0; i < cells.length; i++) cells[i].classList.remove('seq-playing');
+        var labels = els.seqGrid.querySelectorAll('.seq-playing-step');
+        for (var j = 0; j < labels.length; j++) labels[j].classList.remove('seq-playing-step');
+      };
+
+      var highlightSeqStep = function(step) {
+        clearSeqHighlight();
+        if (step < 0) return;
+        var colCells = els.seqGrid.querySelectorAll('.seq-cell[data-col="' + step + '"]');
+        for (var i = 0; i < colCells.length; i++) colCells[i].classList.add('seq-playing');
+        // Highlight header step label
+        var rows = els.seqGrid.querySelectorAll('.seq-grid');
+        if (rows.length > 0) {
+          var headerCells = rows[0].querySelectorAll('.seq-label:not(.seq-label-col)');
+          if (headerCells[step]) headerCells[step].classList.add('seq-playing-step');
+        }
+      };
+
+      var seqPlaybackLoop = function() {
+        if (!seqIsPlaying || !audioCtx) return;
+        var elapsed = audioCtx.currentTime - seqStartTime;
+        var seq = getTrackSeq(currentSeqTrackId);
+        var stepDuration = getBeatDuration(bpm, beatValueDenom);
+        var step = Math.floor(elapsed / stepDuration);
+        
+        if (step >= seq.steps) {
+          stopSeqPlayback();
+          return;
+        }
+        
+        if (step !== seqCurrentStep) {
+          seqCurrentStep = step;
+          highlightSeqStep(step);
+          // Auto-scroll to keep playing step visible
+          var cell = els.seqGrid.querySelector('.seq-cell[data-col="' + step + '"]');
+          if (cell) {
+            var gridRect = els.seqGrid.getBoundingClientRect();
+            var cellRect = cell.getBoundingClientRect();
+            if (cellRect.right > gridRect.right - 40) {
+              els.seqGrid.scrollLeft += cellRect.width;
+            }
+          }
+        }
+        
+        seqAnimFrameId = requestAnimationFrame(seqPlaybackLoop);
+      };
+
+      var startSeqPlayback = function() {
+        initAudio();
+        if (!audioCtx) return;
+        if (audioCtx.state !== 'running') { audioCtx.resume().then(startSeqPlayback); return; }
+
+        var seq = getTrackSeq(currentSeqTrackId);
+        var stepDuration = getBeatDuration(bpm, beatValueDenom);
+        seqStartTime = audioCtx.currentTime + 0.05;
+        seqCurrentStep = -1;
+
+        // Schedule all notes
+        for (var r = 0; r < SEQ_NOTES.length; r++) {
+          for (var c = 0; c < seq.steps; c++) {
+            if (seq.grid[r][c]) {
+              playNote(SEQ_NOTES[r], seqStartTime + c * stepDuration, 1);
+            }
+          }
+        }
+
+        seqIsPlaying = true;
+        updateSeqPlayButton();
+        seqPlaybackLoop();
+        setStatus('▶ Секвенсор: ' + seq.steps + ' шагов', 'text-green-300');
+      };
+
+      var stopSeqPlayback = function() {
+        seqIsPlaying = false;
+        if (seqAnimFrameId) cancelAnimationFrame(seqAnimFrameId);
+        seqAnimFrameId = null;
+        seqCurrentStep = -1;
+        clearSeqHighlight();
+        updateSeqPlayButton();
       };
 
       var buildSeqUI = function() {
@@ -1173,11 +1276,9 @@
         var seqEl = els.seqGrid; 
         seqEl.innerHTML = '';
 
-        // Header row with step numbers
         var headerRow = document.createElement('div');
         headerRow.className = 'seq-grid';
         headerRow.style.gridTemplateColumns = 'auto repeat(' + steps + ', minmax(26px, 1fr))';
-        // Header label cell - sticky
         var headerLabel = document.createElement('div'); 
         headerLabel.className = 'seq-label seq-label-col';
         headerLabel.textContent = '♩';
@@ -1192,20 +1293,17 @@
         }
         seqEl.appendChild(headerRow);
 
-        // Note rows
         for (var r = 0; r < SEQ_NOTES.length; r++) {
           var noteType = SEQ_NOTES[r];
           var row = document.createElement('div'); 
           row.className = 'seq-grid'; 
           row.style.gridTemplateColumns = 'auto repeat(' + steps + ', minmax(26px, 1fr))';
           
-          // Note label cell - sticky
           var noteLabel = document.createElement('div'); 
           noteLabel.className = 'seq-label seq-label-col'; 
           noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>'; 
           row.appendChild(noteLabel);
           
-          // Step cells
           for (var c = 0; c < steps; c++) {
             var cell = document.createElement('div'); 
             cell.className = 'seq-cell' + (grid[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
@@ -1214,9 +1312,11 @@
             cell.dataset.col = c;
             (function(rowIdx, colIdx, cellEl) {
               cellEl.addEventListener('click', function(e) {
+                if (seqIsPlaying) return;
                 grid[rowIdx][colIdx] = !grid[rowIdx][colIdx];
                 cellEl.classList.toggle('active');
                 if (grid[rowIdx][colIdx]) playPreview(SEQ_NOTES[rowIdx]);
+                buildSeqUI();
               });
             })(r, c, cell);
             row.appendChild(cell);
@@ -1224,17 +1324,16 @@
           seqEl.appendChild(row);
         }
 
-        // Update step buttons active state
         var stepBtns = els.seqStepBtns.querySelectorAll('.step-btn');
         stepBtns.forEach(function(btn) {
           btn.classList.toggle('active', parseInt(btn.dataset.steps) === steps);
         });
 
-        // Tab info
         els.seqTabInfo.textContent = steps + ' шагов | ' + grid.flat().filter(Boolean).length + ' нот';
       };
 
       var closeSeqModal = function() {
+        stopSeqPlayback();
         closeModal(els.seqModal, els.seqPanel);
         currentSeqTrackId = null;
       };
@@ -1243,24 +1342,12 @@
       els.seqModal.addEventListener('click', function(e) { if (e.target === els.seqModal) closeSeqModal(); });
 
       els.seqPlayBtn.addEventListener('click', function() {
-        initAudio();
-        if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(playSeq); } 
-        else { playSeq(); }
-      });
-
-      var playSeq = function() {
-        var seq = getTrackSeq(currentSeqTrackId);
-        var grid = seq.grid;
-        var steps = seq.steps;
-        var stepDuration = getBeatDuration(bpm, beatValueDenom); 
-        var startTime = audioCtx.currentTime + 0.05;
-        for (var r = 0; r < SEQ_NOTES.length; r++) { 
-          for (var c = 0; c < steps; c++) { 
-            if (grid[r][c]) playNote(SEQ_NOTES[r], startTime + c * stepDuration, 1); 
-          } 
+        if (seqIsPlaying) {
+          stopSeqPlayback();
+        } else {
+          startSeqPlayback();
         }
-        setStatus('▶ Секвенсор: ' + steps + ' шагов', 'text-green-300');
-      };
+      });
 
       els.seqClearBtn.addEventListener('click', function() { 
         var seq = getTrackSeq(currentSeqTrackId);
@@ -2350,7 +2437,10 @@
         if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
         if (e.code === 'Escape') { 
           if (els.expandModal.classList.contains('modal-visible')) { closeExpandModal(); e.preventDefault(); return; }
-          if (els.seqModal.classList.contains('modal-visible')) { closeSeqModal(); e.preventDefault(); return; }
+          if (els.seqModal.classList.contains('modal-visible')) { 
+            if (seqIsPlaying) stopSeqPlayback();
+            closeSeqModal(); e.preventDefault(); return; 
+          }
           if (isPlaying) stopPlayback(); 
         }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
