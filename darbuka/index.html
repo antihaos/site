@@ -24,8 +24,8 @@
   </script>
   <style>
     :root { --glass-bg: rgba(255,255,255,0.06); --glass-border: rgba(255,255,255,0.12); }
-    * { box-sizing: border-box; }
-    body { background: #0b1120; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; -webkit-tap-highlight-color: transparent; min-height: 100vh; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #0b1120; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; min-height: 100vh; min-height: 100dvh; }
     .liquid-bg { position: fixed; inset: 0; z-index: 0; background: radial-gradient(circle at 20% 30%, #1e3a8a 0%, transparent 50%), radial-gradient(circle at 80% 70%, #7c3aed 0%, transparent 45%), radial-gradient(circle at 50% 50%, #0c4a6e 0%, transparent 60%), linear-gradient(160deg, #0f172a 0%, #020617 100%); }
     .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.3; animation: drift 18s infinite cubic-bezier(0.4, 0, 0.2, 1); }
     .orb-1 { width: 450px; height: 450px; background: #3b82f6; top: -15%; left: -15%; }
@@ -33,7 +33,7 @@
     .orb-3 { width: 280px; height: 280px; background: #06b6d4; top: 50%; left: 40%; animation-delay: -13s; }
     @keyframes drift { 0%, 100% { transform: translate(0,0) scale(1) rotate(0deg); } 50% { transform: translate(40px,-35px) scale(1.08) rotate(10deg); } }
     .glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1); }
-    .glass-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+    .glass-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; touch-action: manipulation; }
     .glass-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.2s; }
     .glass-btn:hover::before { opacity: 1; }
     .glass-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
@@ -45,10 +45,14 @@
     .note-pill.active { transform: scale(1.15); box-shadow: 0 0 16px currentColor; border-color: rgba(255,255,255,0.4); z-index: 10; }
     .note-pill.missing { border-color: #f87171; animation: flashRed 0.5s ease; }
     @keyframes flashRed { 0%, 100% { background: rgba(239,68,68,0.3); } 50% { background: rgba(239,68,68,0.6); } }
-    .note-d { background: rgba(59,130,246,0.3); color: #93c5fd; } .note-t { background: rgba(168,85,247,0.3); color: #c084fc; }
-    .note-k { background: rgba(234,179,8,0.3); color: #facc15; } .note-s { background: rgba(239,68,68,0.3); color: #f87171; }
-    .note-lt { background: rgba(192,132,252,0.3); color: #c084fc; } .note-lk { background: rgba(250,204,21,0.3); color: #facc15; }
-    .note-b { background: rgba(244,63,94,0.3); color: #fb7185; } .note-r { background: rgba(51,65,85,0.3); color: #64748b; }
+    .note-d { background: rgba(59,130,246,0.3); color: #93c5fd; }
+    .note-t { background: rgba(168,85,247,0.3); color: #c084fc; }
+    .note-k { background: rgba(234,179,8,0.3); color: #facc15; }
+    .note-s { background: rgba(239,68,68,0.3); color: #f87171; }
+    .note-lt { background: rgba(34,211,238,0.3); color: #67e8f9; }
+    .note-lk { background: rgba(251,146,60,0.3); color: #fb923c; }
+    .note-b { background: rgba(251,113,133,0.3); color: #fb7185; }
+    .note-r { background: rgba(100,116,139,0.3); color: #64748b; }
     .pulse-ring { animation: pulseRing 2s infinite; }
     @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(96,165,250,0.6); } 70% { box-shadow: 0 0 0 10px rgba(96,165,250,0); } 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0); } }
     #visualizer { width: 100%; height: 72px; border-radius: 0.75rem; overflow: hidden; }
@@ -59,10 +63,13 @@
     .modal-panel-visible { transform: scale(1) translateY(0); opacity: 1; }
     .track-body-hidden { display: none; }
     .track-body-visible { display: block; }
-    .track-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .track-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); touch-action: none; }
     .track-card.muted { opacity: 0.35; filter: grayscale(0.5); }
     .track-card.looping { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.05); }
     .track-card:hover { border-color: rgba(255,255,255,0.2); }
+    .track-card.dragging { opacity: 0.4; border: 2px dashed rgba(96,165,250,0.6); background: rgba(96,165,250,0.05); }
+    .track-card.drag-over-top { border-top: 3px solid #60a5fa; }
+    .track-card.drag-over-bottom { border-bottom: 3px solid #60a5fa; }
     input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.12); border-radius: 999px; height: 6px; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #818cf8); border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 0 8px rgba(96,165,250,0.5); transition: transform 0.15s; }
@@ -77,14 +84,14 @@
     .beat-indicator { transition: transform 0.08s ease, background 0.08s ease; }
     .beat-indicator.on { transform: scale(1.35); background: #facc15 !important; box-shadow: 0 0 14px rgba(250,204,21,0.7); }
     .seq-grid { display: grid; grid-template-columns: auto repeat(16, 1fr); gap: 2px; }
-    .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; transition: all 0.12s; border: 1px solid rgba(255,255,255,0.08); }
+    .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; transition: all 0.12s; border: 1px solid rgba(255,255,255,0.08); touch-action: manipulation; }
     .seq-cell:hover { border-color: rgba(255,255,255,0.35); transform: scale(1.08); }
     .seq-cell.active { background: var(--cell-color, #60a5fa); box-shadow: 0 0 10px var(--cell-color, #60a5fa); border-color: rgba(255,255,255,0.5); }
     .seq-cell.beat { background: rgba(255,255,255,0.04); }
     .seq-label { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; padding: 4px; }
     .rec-active { animation: recPulse 1s infinite; }
     @keyframes recPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.6); } 50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); } }
-    .beat-val-btn { transition: all 0.2s ease; }
+    .beat-val-btn { transition: all 0.2s ease; touch-action: manipulation; }
     .beat-val-btn.active { background: rgba(96,165,250,0.25) !important; border-color: rgba(96,165,250,0.5) !important; color: #93c5fd !important; box-shadow: 0 0 10px rgba(96,165,250,0.2); }
     .control-group { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; padding: 0.5rem 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
     .control-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.45); }
@@ -98,152 +105,193 @@
     .track-enter { animation: slideInUp 0.25s cubic-bezier(0.4,0,0.2,1) both; }
     @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0); } 50% { box-shadow: 0 0 12px 2px rgba(96,165,250,0.15); } }
     .glow-pulse { animation: glowPulse 3s infinite; }
+    .rename-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(96,165,250,0.5); border-radius: 6px; padding: 2px 6px; font-size: 0.875rem; color: white; outline: none; width: 110px; }
+    .rename-input:focus { border-color: rgba(96,165,250,0.8); box-shadow: 0 0 8px rgba(96,165,250,0.2); }
+    .drag-handle { cursor: grab; touch-action: none; }
+    .drag-handle:active { cursor: grabbing; }
+    .export-checkbox { accent-color: #60a5fa; width: 18px; height: 18px; cursor: pointer; }
+    .touch-target { min-height: 44px; min-width: 44px; }
+    
+    .eq-slider-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; max-width: 80px; }
+    .eq-slider-track { position: relative; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; }
     @media (max-width: 640px) {
-      .glass-btn { font-size: 0.82rem; padding: 0.45rem 0.65rem; }
+      .eq-slider-track { height: 160px; }
+    }
+    input[type="range"][orient="vertical"] {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 200px;
+      height: 6px;
+    }
+    @media (max-width: 640px) {
+      input[type="range"][orient="vertical"] { width: 160px; height: 6px; }
+    }
+    
+    @media (max-width: 640px) {
+      main { padding: 8px; padding-bottom: 80px; }
+      header { margin-bottom: 10px; }
+      .glass-btn { font-size: 0.82rem; padding: 0.45rem 0.65rem; min-height: 44px; }
       .note-pill { font-size: 0.8rem; padding: 0.2em 0.4em; }
-      .control-group { padding: 0.4rem 0.6rem; }
-      #visualizer { height: 56px; }
+      .control-group { padding: 0.35rem 0.5rem; gap: 0.35rem; }
+      #visualizer { height: 48px; }
+      .control-label { font-size: 0.6rem; }
+      .track-card { padding: 0.5rem; }
+      .glass { border-radius: 1rem; }
+      .glass.rounded-2xl { border-radius: 0.75rem; }
+      textarea { font-size: 0.85rem; padding: 0.5rem; }
+      input[type="number"] { font-size: 1rem; }
+      input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
+      .preview-track-label { font-size: 0.65em; padding: 0.15em 0.4em; }
+      .seq-cell { min-height: 32px; }
+      .modal-visible { padding: 8px; }
+      .beat-val-btn { padding: 0.35rem 0.5rem; min-height: 36px; }
+      .glass-btn svg { width: 16px; height: 16px; }
+      #playStopBtn { min-width: 100px; }
+      .status-row { flex-direction: column; gap: 4px; align-items: center; }
+    }
+    
+    @media (max-width: 380px) {
+      main { padding: 4px; padding-bottom: 70px; }
+      header { margin-bottom: 6px; }
+      .control-group { padding: 0.25rem 0.4rem; gap: 0.25rem; }
+      #visualizer { height: 36px; }
+      .glass-btn { padding: 0.35rem 0.5rem; font-size: 0.75rem; min-height: 40px; }
+      .track-card { padding: 0.4rem; }
+      textarea { font-size: 0.8rem; padding: 0.4rem; height: 60px; }
     }
   </style>
 </head>
 <body class="text-white">
   <div class="liquid-bg"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
   <main class="relative z-10 w-full max-w-4xl mx-auto p-3 md:p-5 pb-24">
-    <header class="text-center mb-5">
-      <div class="glass inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl glow-pulse">
-        <span class="text-3xl" role="img">🥁</span>
+    <header class="text-center mb-4">
+      <div class="glass inline-flex items-center gap-2 px-4 py-2 rounded-2xl glow-pulse">
+        <span class="text-2xl" role="img">🥁</span>
         <div class="text-left">
-          <h1 class="text-xl md:text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent">Darbuka Tab Pro</h1>
-          <p class="text-white/40 text-[11px] mt-0.5 font-medium">Multi-Track • Sequencer • Presets • Recording</p>
+          <h1 class="text-lg md:text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent">Дарбука Таб Про</h1>
+          <p class="text-white/40 text-[10px] md:text-[11px] mt-0.5 font-medium">Многодорожечный • Секвенсор • Пресеты • Запись</p>
         </div>
       </div>
     </header>
     
-    <div class="glass rounded-2xl p-3 mb-4 relative overflow-hidden">
+    <div class="glass rounded-2xl p-2.5 mb-3 md:mb-4 relative overflow-hidden">
       <canvas id="visualizer"></canvas>
-      
       <div id="recOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-200">
         <div class="glass px-4 py-2 rounded-xl flex items-center gap-2">
           <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-          <span class="text-sm font-semibold text-red-300">REC</span>
+          <span class="text-sm font-semibold text-red-300">Запись</span>
         </div>
       </div>
     </div>
 
-    <div class="glass rounded-2xl p-3.5 mb-4">
-      <div class="flex flex-wrap items-center justify-center gap-2.5">
+    <div class="glass rounded-2xl p-3 md:p-3.5 mb-3 md:mb-4">
+      <div class="flex flex-wrap items-center justify-center gap-2 md:gap-2.5">
         <div class="control-group">
-          <label for="bpm" class="control-label">BPM</label>
-          <input type="number" id="bpm" value="120" min="30" max="300" step="1" class="bg-transparent w-14 text-center font-mono text-lg font-bold outline-none focus:ring-1 focus:ring-blue-400/50 rounded">
+          <label for="bpm" class="control-label">Темп</label>
+          <input type="number" id="bpm" value="120" min="30" max="300" step="1" class="bg-transparent w-12 md:w-14 text-center font-mono text-lg font-bold outline-none focus:ring-1 focus:ring-blue-400/50 rounded">
           <div class="flex flex-col gap-0.5">
-            <button id="bpmUp" class="w-7 h-3.5 bg-white/10 rounded-t flex items-center justify-center text-[10px] hover:bg-white/20 transition-colors">▲</button>
-            <button id="bpmDown" class="w-7 h-3.5 bg-white/10 rounded-b flex items-center justify-center text-[10px] hover:bg-white/20 transition-colors">▼</button>
+            <button id="bpmUp" class="w-7 h-3.5 bg-white/10 rounded-t flex items-center justify-center text-[10px] hover:bg-white/20 transition-colors touch-target">▲</button>
+            <button id="bpmDown" class="w-7 h-3.5 bg-white/10 rounded-b flex items-center justify-center text-[10px] hover:bg-white/20 transition-colors touch-target">▼</button>
           </div>
         </div>
         <div class="control-group">
           <label class="control-label mr-0.5">Дробь</label>
-          <button id="beatVal4" class="beat-val-btn active glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/4</button>
-          <button id="beatVal8" class="beat-val-btn glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/8</button>
-          <button id="beatVal16" class="beat-val-btn glass-btn px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70">1/16</button>
+          <button id="beatVal4" class="beat-val-btn active glass-btn px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70 touch-target">1/4</button>
+          <button id="beatVal8" class="beat-val-btn glass-btn px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70 touch-target">1/8</button>
+          <button id="beatVal16" class="beat-val-btn glass-btn px-2.5 md:px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-white/70 touch-target">1/16</button>
         </div>
         
         <div class="flex items-center gap-1.5">
-          <div class="flex items-center gap-1.5 pr-2">
+          <div class="flex items-center gap-1.5 pr-1 md:pr-2">
             <div id="beatInd1" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd2" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd3" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd4" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
           </div>
-          <button id="playBtn" class="glass-btn px-5 py-2.5 rounded-xl font-semibold text-blue-200 flex items-center gap-2 min-w-[120px] justify-center">
-            <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            <span id="playText">Старт</span>
+          <button id="playStopBtn" class="glass-btn px-3 md:px-5 py-2 md:py-2.5 rounded-xl font-semibold text-blue-200 flex items-center gap-1.5 md:gap-2 min-w-[90px] md:min-w-[120px] justify-center touch-target">
+            <svg id="playStopIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <span id="playStopText" class="text-sm md:text-base">Старт</span>
           </button>
-          <button id="stopBtn" class="glass-btn px-4 py-2.5 rounded-xl font-semibold text-red-200/80 flex items-center gap-2 opacity-40 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>
-            <span class="hidden sm:inline">Стоп</span>
-          </button>
-          <button id="recBtn" class="glass-btn px-3 py-2.5 rounded-xl font-semibold text-red-300/80 flex items-center gap-1.5" title="Живая запись">
+          <button id="recBtn" class="glass-btn px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold text-red-300/80 flex items-center gap-1 md:gap-1.5 touch-target" title="Живая запись">
             <span id="recIcon">⏺</span>
             <span class="hidden sm:inline text-xs">Запись</span>
           </button>
-          <button id="metronomeBtn" class="glass-btn px-3 py-2.5 rounded-xl font-semibold text-white/50 flex items-center gap-1.5" title="Метроном">
+          <button id="metronomeBtn" class="glass-btn px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold text-white/50 flex items-center gap-1 md:gap-1.5 touch-target" title="Метроном">
             <span id="metroIcon">🔇</span>
           </button>
         </div>
-        
       </div>
       
-      <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/40">
+      <div class="mt-2.5 md:mt-3 flex flex-wrap items-center gap-x-3 md:gap-x-4 gap-y-1.5 text-xs text-white/40">
         <div class="flex items-center gap-1.5">
-          <span class="control-label">Гром.</span>
-          <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" class="w-24">
-          <span id="volumeVal" class="font-mono text-white/60 w-8">80%</span>
+          <span class="control-label">Громк.</span>
+          <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" class="w-20 md:w-24">
+          <span id="volumeVal" class="font-mono text-white/60 w-8 text-xs">80%</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="control-label">Swing</span>
-          <input type="range" id="swing" min="0" max="100" step="5" value="0" class="w-20">
-          <span id="swingVal" class="font-mono text-white/60 w-8">0%</span>
+          <span class="control-label">Свинг</span>
+          <input type="range" id="swing" min="0" max="100" step="5" value="0" class="w-16 md:w-20">
+          <span id="swingVal" class="font-mono text-white/60 w-8 text-xs">0%</span>
         </div>
-        <div class="ml-auto flex flex-wrap gap-1.5">
-          
-          <button id="openSettings" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-white/60 border-white/15">🎛 Сэмплы</button>
-          <button id="openPresets" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-purple-200/70 border-purple-500/15">🎵 Пресеты</button>
-          <button id="openEQ" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-cyan-200/70 border-cyan-500/15">🔊 EQ</button>
-          <button id="openSeq" class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-green-200/70 border-green-500/15">🎹 Секв.</button>
+        <div class="ml-auto flex flex-wrap gap-1 md:gap-1.5">
+          <button id="openSettings" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-white/60 border-white/15 touch-target">🎛 Сэмплы</button>
+          <button id="openPresets" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-purple-200/70 border-purple-500/15 touch-target">🎵 Пресеты</button>
+          <button id="openEQ" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-cyan-200/70 border-cyan-500/15 touch-target">🔊 Экв.</button>
+          <button id="openSeq" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-green-200/70 border-green-500/15 touch-target">🎹 Секв.</button>
         </div>
       </div>
     </div>
 
-    <div class="glass rounded-2xl p-1 mb-4">
-      <div class="flex gap-1 mb-3 px-2 pt-2">
-        <button id="tabEditor" class="flex-1 py-2 text-sm font-semibold rounded-xl bg-white/10 text-blue-200 transition-all">🎼 Дорожки</button>
-        <button id="tabPreview" class="flex-1 py-2 text-sm font-semibold rounded-xl text-white/50 transition-all hover:text-white/80">👁 Превью</button>
+    <div class="glass rounded-2xl p-1 mb-3 md:mb-4">
+      <div class="flex gap-1 mb-2 md:mb-3 px-1.5 md:px-2 pt-1.5 md:pt-2">
+        <button id="tabEditor" class="flex-1 py-2 text-sm font-semibold rounded-xl bg-white/10 text-blue-200 transition-all touch-target">🎼 Дорожки</button>
+        <button id="tabPreview" class="flex-1 py-2 text-sm font-semibold rounded-xl text-white/50 transition-all hover:text-white/80 touch-target">👁 Превью</button>
       </div>
-      <div id="editorPanel" class="px-2 pb-2">
-        <div id="tracksContainer" class="space-y-2.5"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-          <div class="space-y-3">
+      <div id="editorPanel" class="px-1.5 md:px-2 pb-1.5 md:pb-2">
+        <div id="tracksContainer" class="space-y-2 md:space-y-2.5"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-3 mt-2.5 md:mt-3">
+          <div class="space-y-2.5 md:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-white/30 uppercase tracking-wider">Дорожки</span>
-              <button id="addTrackBtn" class="glass-btn px-3 py-1 rounded-lg text-xs font-medium text-green-200/80 border-green-500/20 hover:border-green-500/40">+ Дорожка</button>
+              <button id="addTrackBtn" class="glass-btn px-2.5 md:px-3 py-1 rounded-lg text-xs font-medium text-green-200/80 border-green-500/20 hover:border-green-500/40 touch-target">+ Дорожка</button>
             </div>
             <div class="text-xs font-bold text-white/30 uppercase tracking-wider">Слоты</div>
-            <div class="flex items-center gap-2">
-              <button id="currentSlotBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs text-blue-200 font-mono text-center font-bold">Слот 1</button>
-              <button id="saveBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-white/60 border-white/15 hover:border-white/30">💾 Сохр.</button>
-              <button id="loadBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-white/60 border-white/15 hover:border-white/30">📂 Загр.</button>
+            <div class="flex items-center gap-1.5 md:gap-2">
+              <button id="currentSlotBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs text-blue-200 font-mono text-center font-bold touch-target">Слот 1</button>
+              <button id="saveBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-white/60 border-white/15 hover:border-white/30 touch-target">💾 Сохр.</button>
+              <button id="loadBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-white/60 border-white/15 hover:border-white/30 touch-target">📂 Загр.</button>
             </div>
-            <button id="openSlotsBtn" class="glass-btn w-full py-2 rounded-xl text-xs font-medium text-white/50 hover:text-white/70">📋 Управление слотами</button>
+            <button id="openSlotsBtn" class="glass-btn w-full py-2 rounded-xl text-xs font-medium text-white/50 hover:text-white/70 touch-target">📋 Управление слотами</button>
           </div>
-          <div class="space-y-3">
+          <div class="space-y-2.5 md:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-white/30 uppercase tracking-wider">Файл</span>
-              <button id="clearBtn" class="glass-btn px-3 py-1 rounded-lg text-xs font-medium text-red-200/70 border-red-500/15 hover:border-red-500/30">🗑 Очистить</button>
+              <button id="clearBtn" class="glass-btn px-2.5 md:px-3 py-1 rounded-lg text-xs font-medium text-red-200/70 border-red-500/15 hover:border-red-500/30 touch-target">🗑 Очистить</button>
             </div>
-            <div class="flex gap-2">
-              <button id="exportBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-cyan-200/70 border-cyan-500/15 hover:border-cyan-500/30">📤 Экспорт</button>
-              <button id="importBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-purple-200/70 border-purple-500/15 hover:border-purple-500/30">📥 Импорт</button>
-              <button id="exportWavBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-pink-200/70 border-pink-500/15 hover:border-pink-500/30">🔊 WAV</button>
+            <div class="flex gap-1.5 md:gap-2">
+              <button id="exportBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-cyan-200/70 border-cyan-500/15 hover:border-cyan-500/30 touch-target">📤 Экспорт</button>
+              <button id="importBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-purple-200/70 border-purple-500/15 hover:border-purple-500/30 touch-target">📥 Импорт</button>
+              <button id="exportWavBtn" class="glass-btn flex-1 py-2 rounded-xl text-xs font-medium text-pink-200/70 border-pink-500/15 hover:border-pink-500/30 touch-target">🔊 WAV</button>
             </div>
             <input type="file" id="importFile" accept=".json" class="hidden">
-            <div class="p-3 rounded-xl bg-black/20 border border-white/10 text-xs text-white/35 leading-relaxed">
-              💡 <strong class="text-white/50">Формат:</strong> D=Dum, T=Tak, K=Ka, S=Slap, t=tek, k=kak, B=Bek, R/-=Rest. <br>Цифра = длительность в битах (D2 = 2 бита). (DK) = аккорд.
+            <div class="p-2.5 md:p-3 rounded-xl bg-black/20 border border-white/10 text-xs text-white/35 leading-relaxed">
+              💡 <strong class="text-white/50">Формат:</strong> D=Dum, T=Tak, K=Ka, S=Slap, t=tek, k=kak, B=Bek, R/-=Rest. <br>Цифра = длительность в долях (D2 = 2 доли). (DK) = аккорд.
             </div>
           </div>
         </div>
       </div>
-      <div id="previewPanel" class="hidden px-2 pb-2">
-        <div id="noteDisplay" class="tab-preview bg-black/20 border border-white/10 rounded-xl p-4 min-h-[80px]"></div>
+      <div id="previewPanel" class="hidden px-1.5 md:px-2 pb-1.5 md:pb-2">
+        <div id="noteDisplay" class="tab-preview bg-black/20 border border-white/10 rounded-xl p-3 md:p-4 min-h-[80px]"></div>
       </div>
     </div>
 
-    <div class="glass rounded-2xl p-3 flex items-center justify-between">
+    <div class="glass rounded-2xl p-2.5 md:p-3 status-row flex items-center justify-between">
       <div id="status" class="text-sm font-medium text-white/50 flex items-center gap-2"><span class="status-dot green"></span> Готово</div>
       <div id="noteCount" class="text-xs text-white/35 font-mono">Нот: 0 | Длительность: 0с</div>
     </div>
 
-    <footer class="mt-4 text-center space-y-2">
-      <div class="flex flex-wrap justify-center gap-1.5 text-xs">
+    <footer class="mt-3 md:mt-4 text-center space-y-2">
+      <div class="flex flex-wrap justify-center gap-1 md:gap-1.5 text-xs">
         <span class="note-pill note-d">D</span><span class="text-white/35">Dum</span>
         <span class="note-pill note-t">T</span><span class="text-white/35">Tak</span>
         <span class="note-pill note-k">K</span><span class="text-white/35">Ka</span>
@@ -253,84 +301,133 @@
         <span class="note-pill note-b">B</span><span class="text-white/35">Bek</span>
         <span class="note-pill note-r">R</span><span class="text-white/35">Rest</span>
       </div>
-      <p class="text-white/25 text-xs">Горячие клавиши: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Пробел</kbd> Старт/Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Esc</kbd> Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">↑↓</kbd> BPM ±5</p>
+      <p class="text-white/25 text-xs">Горячие клавиши: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Пробел</kbd> Старт/Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Esc</kbd> Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">↑↓</kbd> Темп ±5</p>
     </footer>
   </main>
 
   <!-- Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
-      <button id="closeSettings" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">✕</button>
-      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">🎛 Управление сэмплами</h2>
-      <div id="settingsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6 overflow-y-auto pr-2 pb-2 flex-1"></div>
-      <div class="flex justify-between border-t border-white/10 pt-4 shrink-0">
-        <button id="resetAllSamples" class="glass-btn px-4 py-2 rounded-xl text-sm text-white/60 hover:text-red-300">🗑 Очистить все</button>
-        <button id="saveSettings" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200 font-semibold">💾 Применить</button>
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] md:max-h-[90vh] flex flex-col">
+      <button id="closeSettings" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">🎛 Управление сэмплами</h2>
+      <div id="settingsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-3 mb-4 md:mb-6 overflow-y-auto pr-1 md:pr-2 pb-2 flex-1"></div>
+      <div class="flex flex-wrap justify-between gap-2 border-t border-white/10 pt-3 md:pt-4 shrink-0">
+        <button id="resetAllSamples" class="glass-btn px-3 md:px-4 py-2 rounded-xl text-sm text-white/60 hover:text-red-300 touch-target">🗑 Очистить всё</button>
+        <button id="saveSettings" class="glass-btn px-3 md:px-4 py-2 rounded-xl text-sm text-blue-200 font-semibold touch-target">💾 Применить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Options Modal -->
+  <div id="exportModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="exportPanel" class="glass w-full max-w-md rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closeExport" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-5 bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent pr-10">📤 Экспорт проекта</h2>
+      <div class="space-y-3 md:space-y-4 mb-4 md:mb-6">
+        <label class="flex items-center gap-3 cursor-pointer p-2.5 md:p-3 rounded-xl hover:bg-white/5 transition-colors touch-target">
+          <input type="checkbox" id="exportWithSamples" class="export-checkbox">
+          <div>
+            <div class="text-sm font-semibold text-white/80">Включить сэмплы</div>
+            <div class="text-xs text-white/40 mt-0.5">Сэмплы будут встроены в JSON-файл (увеличит размер)</div>
+          </div>
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-2 md:gap-3 border-t border-white/10 pt-3 md:pt-4">
+        <button id="cancelExport" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-white/60 touch-target">Отмена</button>
+        <button id="confirmExport" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-blue-200 font-semibold touch-target">📤 Экспортировать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Options Modal -->
+  <div id="importModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="importPanel" class="glass w-full max-w-md rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closeImport" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-5 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent pr-10">📥 Импорт проекта</h2>
+      <div class="space-y-3 md:space-y-4 mb-4 md:mb-6">
+        <label class="flex items-center gap-3 cursor-pointer p-2.5 md:p-3 rounded-xl hover:bg-white/5 transition-colors touch-target">
+          <input type="checkbox" id="importWithSamples" class="export-checkbox" checked>
+          <div>
+            <div class="text-sm font-semibold text-white/80">Загрузить сэмплы</div>
+            <div class="text-xs text-white/40 mt-0.5">Если файл содержит сэмплы, они будут загружены</div>
+          </div>
+        </label>
+        <div id="importFileInfo" class="text-xs text-white/40 p-3 rounded-xl bg-black/20 hidden"></div>
+      </div>
+      <div class="flex flex-wrap gap-2 md:gap-3 border-t border-white/10 pt-3 md:pt-4">
+        <button id="cancelImport" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-white/60 touch-target">Отмена</button>
+        <button id="confirmImport" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-purple-200 font-semibold touch-target">📥 Импортировать</button>
       </div>
     </div>
   </div>
 
   <!-- Slots Modal -->
-  <div id="slotsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="slotsPanel" class="glass w-full max-w-2xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
-      <button id="closeSlots" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">✕</button>
-      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">📋 Управление слотами</h2>
-      <div id="slotsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-6 max-h-[50vh] overflow-y-auto pr-1"></div>
-      <div class="flex justify-between border-t border-white/10 pt-4 flex-wrap gap-2">
-        <button id="deleteSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-red-200/70 border-red-500/15 opacity-40 pointer-events-none">🗑 Удалить</button>
+  <div id="slotsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="slotsPanel" class="glass w-full max-w-2xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closeSlots" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">📋 Управление слотами</h2>
+      <div id="slotsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-2.5 mb-4 md:mb-6 max-h-[50vh] overflow-y-auto pr-1"></div>
+      <div class="flex flex-wrap justify-between gap-2 border-t border-white/10 pt-3 md:pt-4">
+        <button id="deleteSlotBtn" class="glass-btn px-3 md:px-4 py-2 rounded-xl text-sm text-red-200/70 border-red-500/15 opacity-40 pointer-events-none touch-target">🗑 Удалить</button>
         <div class="flex gap-2">
-          <button id="selectSlotBtn" class="glass-btn px-4 py-2 rounded-xl text-sm text-blue-200 opacity-40 pointer-events-none">📌 Выбрать</button>
-          <button id="loadSelectedSlot" class="glass-btn px-4 py-2 rounded-xl text-sm text-green-200 opacity-40 pointer-events-none">📂 Загрузить</button>
+          <button id="selectSlotBtn" class="glass-btn px-3 md:px-4 py-2 rounded-xl text-sm text-blue-200 opacity-40 pointer-events-none touch-target">📌 Выбрать</button>
+          <button id="loadSelectedSlot" class="glass-btn px-3 md:px-4 py-2 rounded-xl text-sm text-green-200 opacity-40 pointer-events-none touch-target">📂 Загрузить</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Presets Modal -->
-  <div id="presetsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="presetsPanel" class="glass w-full max-w-2xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
-      <button id="closePresets" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">✕</button>
-      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">🎵 Пресеты ритмов</h2>
-      <div id="presetsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6 max-h-[60vh] overflow-y-auto pr-2"></div>
+  <div id="presetsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="presetsPanel" class="glass w-full max-w-2xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closePresets" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">🎵 Пресеты ритмов</h2>
+      <div id="presetsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-2.5 mb-4 md:mb-6 max-h-[60vh] overflow-y-auto pr-1 md:pr-2"></div>
     </div>
   </div>
 
   <!-- EQ Modal -->
-  <div id="eqModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="eqPanel" class="glass w-full max-w-md rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden">
-      <button id="closeEQ" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">✕</button>
-      <h2 class="text-xl font-bold mb-6 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">🔊 Мастер Эквалайзер</h2>
-      <div class="flex justify-around items-end gap-4 mb-6 px-2">
-        <div class="text-center flex-1 w-8">
+  <div id="eqModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="eqPanel" class="glass w-full max-w-md rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <button id="closeEQ" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">🔊 Мастер Эквалайзер</h2>
+      <div class="flex justify-center items-center gap-4 md:gap-6 mb-4 md:mb-6 px-1 md:px-2">
+        <div class="eq-slider-wrapper">
           <div class="text-xs text-white/40 mb-2 font-semibold">Низкие</div>
-          <input type="range" id="eqLow" min="-12" max="12" step="1" value="0" class="h-32 accent-blue-400 transform rotate-90" orient="vertical">
-          <div id="eqLowVal" class="text-xs text-blue-300 mt-1 font-mono">0 dB</div>
+          <div class="eq-slider-track">
+            <input type="range" id="eqLow" min="-12" max="12" step="1" value="0" class="accent-blue-400" orient="vertical">
+          </div>
+          <div id="eqLowVal" class="text-xs text-blue-300 mt-2 font-mono">0 дБ</div>
         </div>
-        <div class="text-center flex-1 w-8">
+        <div class="eq-slider-wrapper">
           <div class="text-xs text-white/40 mb-2 font-semibold">Средние</div>
-          <input type="range" id="eqMid" min="-12" max="12" step="1" value="0" class="h-32 accent-cyan-400 transform rotate-90" orient="vertical">
-          <div id="eqMidVal" class="text-xs text-cyan-300 mt-1 font-mono">0 dB</div>
+          <div class="eq-slider-track">
+            <input type="range" id="eqMid" min="-12" max="12" step="1" value="0" class="accent-cyan-400" orient="vertical">
+          </div>
+          <div id="eqMidVal" class="text-xs text-cyan-300 mt-2 font-mono">0 дБ</div>
         </div>
-        <div class="text-center flex-1 w-8">
+        <div class="eq-slider-wrapper">
           <div class="text-xs text-white/40 mb-2 font-semibold">Высокие</div>
-          <input type="range" id="eqHigh" min="-12" max="12" step="1" value="0" class="h-32 accent-purple-400 transform rotate-90" orient="vertical">
-          <div id="eqHighVal" class="text-xs text-purple-300 mt-1 font-mono">0 dB</div>
+          <div class="eq-slider-track">
+            <input type="range" id="eqHigh" min="-12" max="12" step="1" value="0" class="accent-purple-400" orient="vertical">
+          </div>
+          <div id="eqHighVal" class="text-xs text-purple-300 mt-2 font-mono">0 дБ</div>
         </div>
       </div>
-      <button id="resetEQ" class="glass-btn w-full py-2.5 rounded-xl text-sm text-white/60 font-medium">Сбросить EQ</button>
+      <button id="resetEQ" class="glass-btn w-full py-2.5 rounded-xl text-sm text-white/60 font-medium touch-target">Сбросить эквалайзер</button>
     </div>
   </div>
 
   <!-- Sequencer Modal -->
-  <div id="seqModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="seqPanel" class="glass w-full max-w-4xl rounded-3xl p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
-      <button id="closeSeq" class="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10">✕</button>
-      <h2 class="text-xl font-bold mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-8">🎹 Секвенсор</h2>
+  <div id="seqModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="seqPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
+      <button id="closeSeq" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">🎹 Секвенсор</h2>
       <div id="seqGrid" class="overflow-x-auto pb-2 flex-1"></div>
-      <div class="flex gap-2 mt-4 shrink-0">
-        <button id="seqPlayBtn" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-blue-200 font-semibold">▶ Воспроизвести</button>
-        <button id="seqClearBtn" class="glass-btn px-4 py-2.5 rounded-xl text-sm text-red-200/60">🗑 Очистить</button>
-        <button id="seqExportTabBtn" class="glass-btn px-4 py-2.5 rounded-xl text-sm text-green-200 font-semibold">📤 В табулатуру</button>
+      <div class="flex flex-wrap gap-2 mt-3 md:mt-4 shrink-0">
+        <button id="seqPlayBtn" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-blue-200 font-semibold touch-target">▶ Воспроизвести</button>
+        <button id="seqClearBtn" class="glass-btn px-3 md:px-4 py-2.5 rounded-xl text-sm text-red-200/60 touch-target">🗑 Очистить</button>
+        <button id="seqExportTabBtn" class="glass-btn px-3 md:px-4 py-2.5 rounded-xl text-sm text-green-200 font-semibold touch-target">📤 В табулатуру</button>
       </div>
     </div>
   </div>
@@ -368,14 +465,15 @@
       var sampleStorageLimit = 1500000;
       var hasUnsavedChanges = false;
       var LOOP_MAX_CYCLES = 100;
+      var pendingImportData = null;
 
       var els = {
         bpm: document.getElementById('bpm'), bpmUp: document.getElementById('bpmUp'), bpmDown: document.getElementById('bpmDown'),
         beatVal4: document.getElementById('beatVal4'), beatVal8: document.getElementById('beatVal8'), beatVal16: document.getElementById('beatVal16'),
         volume: document.getElementById('volume'), volumeVal: document.getElementById('volumeVal'),
         swing: document.getElementById('swing'), swingVal: document.getElementById('swingVal'),
-        playBtn: document.getElementById('playBtn'), playIcon: document.getElementById('playIcon'), playText: document.getElementById('playText'),
-        stopBtn: document.getElementById('stopBtn'), recBtn: document.getElementById('recBtn'), recIcon: document.getElementById('recIcon'), recOverlay: document.getElementById('recOverlay'),
+        playStopBtn: document.getElementById('playStopBtn'), playStopIcon: document.getElementById('playStopIcon'), playStopText: document.getElementById('playStopText'),
+        recBtn: document.getElementById('recBtn'), recIcon: document.getElementById('recIcon'), recOverlay: document.getElementById('recOverlay'),
         metronomeBtn: document.getElementById('metronomeBtn'), metroIcon: document.getElementById('metroIcon'),
         openSettings: document.getElementById('openSettings'), openPresets: document.getElementById('openPresets'), openEQ: document.getElementById('openEQ'), openSeq: document.getElementById('openSeq'),
         saveBtn: document.getElementById('saveBtn'), loadBtn: document.getElementById('loadBtn'), clearBtn: document.getElementById('clearBtn'),
@@ -401,7 +499,14 @@
         resetEQ: document.getElementById('resetEQ'),
         seqModal: document.getElementById('seqModal'), seqPanel: document.getElementById('seqPanel'),
         closeSeq: document.getElementById('closeSeq'), seqGrid: document.getElementById('seqGrid'),
-        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn')
+        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn'),
+        exportModal: document.getElementById('exportModal'), exportPanel: document.getElementById('exportPanel'),
+        closeExport: document.getElementById('closeExport'), exportWithSamples: document.getElementById('exportWithSamples'),
+        cancelExport: document.getElementById('cancelExport'), confirmExport: document.getElementById('confirmExport'),
+        importModal: document.getElementById('importModal'), importPanel: document.getElementById('importPanel'),
+        closeImport: document.getElementById('closeImport'), importWithSamples: document.getElementById('importWithSamples'),
+        cancelImport: document.getElementById('cancelImport'), confirmImport: document.getElementById('confirmImport'),
+        importFileInfo: document.getElementById('importFileInfo')
       };
 
       var NOTE_INFO = {
@@ -452,41 +557,67 @@
         });
       };
 
+      // Touch drag state
+      var touchDragTrackId = null;
+      var touchDragStartY = 0;
+      var touchDragThreshold = 10;
+
       var renderTracks = function() {
         els.tracksContainer.innerHTML = '';
         tracks.forEach(function(track, tIdx) {
           var card = document.createElement('div');
-          card.className = 'track-card track-enter glass rounded-2xl p-3' + (track.muted ? ' muted' : '') + (track.loop ? ' looping' : '');
+          card.className = 'track-card track-enter glass rounded-2xl p-2.5 md:p-3' + (track.muted ? ' muted' : '') + (track.loop ? ' looping' : '');
           card.style.animationDelay = (tIdx * 0.04) + 's';
+          card.dataset.trackDragId = track.id;
           var dot = getTrackColor(track.id);
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
 
-          var headerHtml = '<div class="flex items-center justify-between mb-2 px-1.5 py-1.5 rounded-lg cursor-pointer select-none hover:bg-white/5 transition-colors" data-track-header="' + track.id + '">';
-          headerHtml += '<div class="flex items-center gap-2 flex-wrap">';
-          headerHtml += '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
-          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-solo="' + track.id + '" title="Solo">S</button>';
-          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-mute="' + track.id + '" title="Mute">M</button>';
-          headerHtml += '<button class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 ' + (track.loop ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-loop="' + track.id + '" title="Loop">L</button>';
-          headerHtml += '<span class="text-sm font-semibold text-white/80 truncate max-w-[110px]">' + track.name + '</span>';
-          headerHtml += '</div><div class="flex items-center gap-2 shrink-0">';
-          headerHtml += '<span class="text-[10px] text-white/35 uppercase font-bold">Vol</span>';
-          headerHtml += '<input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '" class="w-14" onclick="event.stopPropagation()">';
-          headerHtml += '<button class="text-white/35 hover:text-red-400 transition-colors text-xs shrink-0 p-1 w-7 h-7 flex items-center justify-center rounded hover:bg-white/10" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
+          var headerHtml = '<div class="flex items-center justify-between mb-1.5 md:mb-2 px-1 md:px-1.5 py-1 md:py-1.5 rounded-lg cursor-pointer select-none hover:bg-white/5 transition-colors" data-track-header="' + track.id + '">';
+          headerHtml += '<div class="flex items-center gap-1.5 md:gap-2 flex-wrap">';
+          headerHtml += '<span class="drag-handle text-white/25 hover:text-white/50 transition-colors select-none text-base md:text-lg leading-none px-1" title="Перетащите для изменения порядка">⠿</span>';
+          headerHtml += '<span class="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
+          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-solo="' + track.id + '" title="Соло">С</button>';
+          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-mute="' + track.id + '" title="Приглушить">П</button>';
+          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.loop ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-loop="' + track.id + '" title="Зациклить">З</button>';
+          headerHtml += '<span class="text-sm font-semibold text-white/80 truncate max-w-[80px] md:max-w-[110px] track-name-span" data-track-name="' + track.id + '" title="Двойной клик для переименования">' + track.name + '</span>';
+          headerHtml += '</div><div class="flex items-center gap-1 md:gap-1.5 shrink-0">';
+          
+          headerHtml += '<button class="w-6 h-6 md:w-7 md:h-7 rounded-lg text-xs flex items-center justify-center transition-all shrink-0 bg-white/10 text-white/30 hover:bg-white/15 hover:text-white/60 touch-target" data-track-move-up="' + track.id + '" title="Вверх">↑</button>';
+          headerHtml += '<button class="w-6 h-6 md:w-7 md:h-7 rounded-lg text-xs flex items-center justify-center transition-all shrink-0 bg-white/10 text-white/30 hover:bg-white/15 hover:text-white/60 touch-target" data-track-move-down="' + track.id + '" title="Вниз">↓</button>';
+          
+          headerHtml += '<span class="text-[10px] text-white/35 uppercase font-bold">Громк.</span>';
+          headerHtml += '<input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '" class="w-12 md:w-14" onclick="event.stopPropagation()">';
+          headerHtml += '<button class="text-white/35 hover:text-red-400 transition-colors text-xs shrink-0 p-1 w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 touch-target" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
           headerHtml += '</div></div>';
 
           var bodyHtml = '<div class="track-body-visible" data-track-body="' + track.id + '">';
-          bodyHtml += '<textarea class="w-full h-20 md:h-24 bg-black/20 border border-white/10 rounded-xl p-3 font-mono text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
+          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2 md:p-3 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea></div>';
 
           card.innerHTML = headerHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
 
-          card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function() {
+          // Desktop drag and drop
+          setupDragAndDrop(card, track);
+          // Mobile touch drag and drop
+          setupTouchDrag(card, track);
+
+          card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
+            if (e.target.classList.contains('track-name-span')) return;
+            if (e.target.dataset.trackMoveUp || e.target.dataset.trackMoveDown) return;
+            if (e.target.classList.contains('drag-handle')) return;
             var body = card.querySelector('[data-track-body="' + track.id + '"]');
             body.classList.toggle('track-body-hidden');
             body.classList.toggle('track-body-visible');
+          });
+
+          var nameSpan = card.querySelector('[data-track-name="' + track.id + '"]');
+          nameSpan.addEventListener('dblclick', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            startRenameTrack(track);
           });
 
           card.querySelector('[data-toggle-solo="' + track.id + '"]').addEventListener('click', function(e) {
@@ -520,7 +651,283 @@
             track.tab = e.target.value;
             markUnsaved(); updateNoteInfo();
           });
+
+          var moveUpBtn = card.querySelector('[data-track-move-up="' + track.id + '"]');
+          if (moveUpBtn) {
+            moveUpBtn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              moveTrack(track.id, -1);
+            });
+          }
+
+          var moveDownBtn = card.querySelector('[data-track-move-down="' + track.id + '"]');
+          if (moveDownBtn) {
+            moveDownBtn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              moveTrack(track.id, 1);
+            });
+          }
         });
+      };
+
+      var moveTrack = function(trackId, direction) {
+        var idx = tracks.findIndex(function(t) { return t.id === trackId; });
+        var newIdx = idx + direction;
+        if (newIdx >= 0 && newIdx < tracks.length) {
+          var temp = tracks[newIdx];
+          tracks[newIdx] = tracks[idx];
+          tracks[idx] = temp;
+          renderTracks(); markUnsaved();
+        }
+      };
+
+      var dragSrcTrackId = null;
+      var setupDragAndDrop = function(card, track) {
+        var handle = card.querySelector('.drag-handle');
+        if (!handle) return;
+
+        card.draggable = false;
+
+        handle.addEventListener('dragstart', function(e) {
+          e.preventDefault();
+        });
+
+        handle.addEventListener('mousedown', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          dragSrcTrackId = track.id;
+          card.classList.add('dragging');
+          
+          var onDragOver = function(ev) {
+            ev.preventDefault();
+            ev.dataTransfer = ev.dataTransfer || {};
+            ev.dataTransfer.dropEffect = 'move';
+          };
+          var onDrop = function(ev) {
+            ev.preventDefault();
+            var targetCard = ev.target.closest('.track-card');
+            if (targetCard && dragSrcTrackId) {
+              var targetId = parseInt(targetCard.dataset.trackDragId);
+              if (targetId && targetId !== dragSrcTrackId) {
+                var srcIdx = tracks.findIndex(function(t) { return t.id === dragSrcTrackId; });
+                var destIdx = tracks.findIndex(function(t) { return t.id === targetId; });
+                if (srcIdx >= 0 && destIdx >= 0) {
+                  var moved = tracks.splice(srcIdx, 1)[0];
+                  tracks.splice(destIdx, 0, moved);
+                  renderTracks(); markUnsaved();
+                  setStatus('🔀 Дорожка перемещена', 'text-blue-300');
+                }
+              }
+            }
+            cleanupDrag();
+          };
+          var onDragEnd = function() {
+            cleanupDrag();
+          };
+          
+          var cleanupDrag = function() {
+            card.classList.remove('dragging');
+            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
+              c.classList.remove('drag-over-top');
+              c.classList.remove('drag-over-bottom');
+            });
+            document.removeEventListener('dragover', onDragOver);
+            document.removeEventListener('drop', onDrop);
+            document.removeEventListener('dragend', onDragEnd);
+            dragSrcTrackId = null;
+          };
+          
+          document.addEventListener('dragover', onDragOver);
+          document.addEventListener('drop', onDrop);
+          document.addEventListener('dragend', onDragEnd);
+        });
+
+        // Also make the card draggable via HTML5 DnD
+        card.addEventListener('dragstart', function(e) {
+          dragSrcTrackId = track.id;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', track.id);
+        });
+        card.addEventListener('dragend', function() {
+          card.classList.remove('dragging');
+          els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
+            c.classList.remove('drag-over-top');
+            c.classList.remove('drag-over-bottom');
+          });
+          dragSrcTrackId = null;
+        });
+        card.addEventListener('dragover', function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (dragSrcTrackId && dragSrcTrackId !== track.id) {
+            var rect = card.getBoundingClientRect();
+            var midY = rect.top + rect.height / 2;
+            card.classList.remove('drag-over-top', 'drag-over-bottom');
+            if (e.clientY < midY) {
+              card.classList.add('drag-over-top');
+            } else {
+              card.classList.add('drag-over-bottom');
+            }
+          }
+        });
+        card.addEventListener('dragleave', function() {
+          card.classList.remove('drag-over-top', 'drag-over-bottom');
+        });
+        card.addEventListener('drop', function(e) {
+          e.preventDefault();
+          card.classList.remove('drag-over-top', 'drag-over-bottom');
+          if (dragSrcTrackId && dragSrcTrackId !== track.id) {
+            var srcIdx = tracks.findIndex(function(t) { return t.id === dragSrcTrackId; });
+            var destIdx = tracks.findIndex(function(t) { return t.id === track.id; });
+            if (srcIdx >= 0 && destIdx >= 0) {
+              var moved = tracks.splice(srcIdx, 1)[0];
+              tracks.splice(destIdx, 0, moved);
+              renderTracks(); markUnsaved();
+              setStatus('🔀 Дорожка перемещена', 'text-blue-300');
+            }
+          }
+        });
+      };
+
+      // Touch-based drag and drop for mobile
+      var setupTouchDrag = function(card, track) {
+        var handle = card.querySelector('.drag-handle');
+        if (!handle) return;
+
+        var touchStartY = 0;
+        var touchStartX = 0;
+        var isDragging = false;
+        var cloneEl = null;
+
+        handle.addEventListener('touchstart', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var touch = e.touches[0];
+          touchStartY = touch.clientY;
+          touchStartX = touch.clientX;
+          isDragging = false;
+        }, { passive: false });
+
+        handle.addEventListener('touchmove', function(e) {
+          if (e.touches.length === 0) return;
+          var touch = e.touches[0];
+          var deltaY = Math.abs(touch.clientY - touchStartY);
+          var deltaX = Math.abs(touch.clientX - touchStartX);
+          
+          if (!isDragging && (deltaY > 10 || deltaX > 10)) {
+            isDragging = true;
+            touchDragTrackId = track.id;
+            card.classList.add('dragging');
+            
+            // Create floating clone
+            cloneEl = card.cloneNode(true);
+            cloneEl.style.position = 'fixed';
+            cloneEl.style.zIndex = '9999';
+            cloneEl.style.pointerEvents = 'none';
+            cloneEl.style.width = card.offsetWidth + 'px';
+            cloneEl.style.opacity = '0.85';
+            cloneEl.style.transform = 'scale(1.02)';
+            cloneEl.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5)';
+            document.body.appendChild(cloneEl);
+          }
+          
+          if (isDragging && cloneEl) {
+            e.preventDefault();
+            cloneEl.style.left = (touch.clientX - card.offsetWidth / 2) + 'px';
+            cloneEl.style.top = (touch.clientY - 30) + 'px';
+            
+            // Highlight drop target
+            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
+              c.classList.remove('drag-over-top', 'drag-over-bottom');
+              if (parseInt(c.dataset.trackDragId) !== track.id) {
+                var rect = c.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (touch.clientY < midY) {
+                  c.classList.add('drag-over-top');
+                } else {
+                  c.classList.add('drag-over-bottom');
+                }
+              }
+            });
+          }
+        }, { passive: false });
+
+        handle.addEventListener('touchend', function(e) {
+          if (isDragging && touchDragTrackId === track.id) {
+            e.preventDefault();
+            var touch = e.changedTouches[0];
+            
+            // Find target card
+            var targetCard = null;
+            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
+              var rect = c.getBoundingClientRect();
+              if (parseInt(c.dataset.trackDragId) !== track.id) {
+                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                  targetCard = c;
+                }
+              }
+            });
+            
+            if (targetCard) {
+              var targetId = parseInt(targetCard.dataset.trackDragId);
+              var srcIdx = tracks.findIndex(function(t) { return t.id === track.id; });
+              var destIdx = tracks.findIndex(function(t) { return t.id === targetId; });
+              if (srcIdx >= 0 && destIdx >= 0) {
+                var rect = targetCard.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                var insertIdx = touch.clientY < midY ? destIdx : destIdx + 1;
+                var moved = tracks.splice(srcIdx, 1)[0];
+                tracks.splice(insertIdx, 0, moved);
+                renderTracks(); markUnsaved();
+                setStatus('🔀 Дорожка перемещена', 'text-blue-300');
+              }
+            }
+          }
+          
+          // Cleanup
+          if (cloneEl) {
+            document.body.removeChild(cloneEl);
+            cloneEl = null;
+          }
+          card.classList.remove('dragging');
+          els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
+            c.classList.remove('drag-over-top', 'drag-over-bottom');
+          });
+          isDragging = false;
+          touchDragTrackId = null;
+        }, { passive: false });
+      };
+
+      var startRenameTrack = function(track) {
+        var nameSpan = document.querySelector('[data-track-name="' + track.id + '"]');
+        if (!nameSpan) return;
+        var currentName = track.name;
+        nameSpan.innerHTML = '';
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.className = 'rename-input';
+        input.maxLength = 30;
+        nameSpan.appendChild(input);
+        input.focus();
+        input.select();
+
+        var finishRename = function() {
+          var newName = input.value.trim() || currentName;
+          track.name = newName;
+          renderTracks();
+          markUnsaved();
+        };
+
+        input.addEventListener('blur', finishRename);
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+          if (e.key === 'Escape') { input.value = currentName; input.blur(); }
+          e.stopPropagation();
+        });
+        input.addEventListener('click', function(e) { e.stopPropagation(); });
       };
 
       var markUnsaved = function() { hasUnsavedChanges = true; };
@@ -596,7 +1003,7 @@
           } else {
             pendingSampleData = JSON.parse(raw);
           }
-        } catch(e) { console.error('Sample load parse error:', e); }
+        } catch(e) { console.error('Ошибка загрузки сэмплов:', e); }
       };
 
       var decodePendingSamples = function() {
@@ -870,12 +1277,20 @@
             var lastEvt = lastGrp.events[lastGrp.events.length - 1];
             var lastEnd = playbackStartTime + lastGrp.time + lastEvt.beatDuration;
             if (now >= lastEnd + 0.05) {
-              stopPlayback();
+              togglePlayback();
               return;
             }
-          } else { stopPlayback(); return; }
+          } else { togglePlayback(); return; }
         }
         schedulerTimer = setTimeout(scheduler, LOOKAHEAD_MS);
+      };
+
+      var togglePlayback = function() {
+        if (isPlaying) {
+          stopPlayback();
+        } else {
+          startPlayback();
+        }
       };
 
       var startPlayback = function() {
@@ -902,8 +1317,9 @@
         playbackStartTime = audioCtx.currentTime + 0.05;
         nextMetroTime = playbackStartTime;
         
-        els.playBtn.classList.add('pulse-ring'); els.stopBtn.classList.remove('opacity-40', 'pointer-events-none');
-        els.playText.textContent = 'Играет...'; els.playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        els.playStopBtn.classList.add('pulse-ring');
+        els.playStopText.textContent = 'Стоп';
+        els.playStopIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
         buildPreview(); scheduler(); 
         var hasLoop = notes.some(function(n) { return n.isLoop; });
         setStatus(hasLoop ? '▶ Воспроизведение (зациклено)' : '▶ Воспроизведение...', 'text-blue-300');
@@ -911,8 +1327,9 @@
 
       var stopPlayback = function() {
         isPlaying = false; if (schedulerTimer) clearTimeout(schedulerTimer); schedulerTimer = null;
-        els.playBtn.classList.remove('pulse-ring'); els.stopBtn.classList.add('opacity-40', 'pointer-events-none');
-        els.playText.textContent = 'Старт'; els.playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        els.playStopBtn.classList.remove('pulse-ring');
+        els.playStopText.textContent = 'Старт';
+        els.playStopIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
         clearActivePills(); clearBeatIndicator(); setStatus('Готово', 'text-white/50'); updateNoteInfo();
       };
 
@@ -1042,16 +1459,16 @@
         var grid = els.settingsGrid; grid.innerHTML = '';
         for (var type in NOTE_INFO) {
           var info = NOTE_INFO[type];
-          var div = document.createElement('div'); div.className = 'glass rounded-2xl p-3.5 space-y-2';
+          var div = document.createElement('div'); div.className = 'glass rounded-2xl p-3 md:p-3.5 space-y-2';
           var hasSample = !!customSamples[type];
           var html = '<div class="flex items-center justify-between mb-1"><div class="flex items-center gap-2">';
           html += '<span class="note-pill note-' + info.css + '">' + type + '</span>';
           html += '<span class="text-sm text-white/50">' + info.label + '</span></div>';
-          html += '<button class="glass-btn px-2.5 py-1.5 rounded-lg text-xs text-blue-200/80 preview-btn hover:text-blue-200" data-type="' + type + '">🔊</button></div>';
+          html += '<button class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-blue-200/80 preview-btn hover:text-blue-200 touch-target" data-type="' + type + '">🔊</button></div>';
           html += '<div id="sample-status-' + type + '" class="text-xs text-white/40 truncate h-5">' + (hasSample ? '📁 <span class="text-white/70">' + customSamples[type].name + '</span>' : '❌ Не загружен') + '</div>';
-          html += '<div class="flex gap-2 mt-2">';
-          html += '<button class="glass-btn flex-1 py-2 rounded-xl text-xs text-blue-200/70 load-sample-btn hover:text-blue-200" data-type="' + type + '">📁 Файл</button>';
-          html += '<button id="clear-btn-' + type + '" class="glass-btn px-3 py-2 rounded-xl text-xs text-red-200/60 hover:text-red-200 ' + (hasSample ? '' : 'hidden') + '">✕</button>';
+          html += '<div class="flex gap-1.5 md:gap-2 mt-2">';
+          html += '<button class="glass-btn flex-1 py-2 rounded-xl text-xs text-blue-200/70 load-sample-btn hover:text-blue-200 touch-target" data-type="' + type + '">📁 Файл</button>';
+          html += '<button id="clear-btn-' + type + '" class="glass-btn px-2.5 md:px-3 py-2 rounded-xl text-xs text-red-200/60 hover:text-red-200 ' + (hasSample ? '' : 'hidden') + ' touch-target">✕</button>';
           html += '<input type="file" accept="audio/*" class="hidden" id="file-' + type + '" data-type="' + type + '">';
           html += '</div>';
           div.innerHTML = html; grid.appendChild(div);
@@ -1093,6 +1510,139 @@
         }
       });
 
+      els.exportBtn.addEventListener('click', function() {
+        openModal(els.exportModal, els.exportPanel);
+      });
+      els.closeExport.addEventListener('click', function() { closeModal(els.exportModal, els.exportPanel); });
+      els.exportModal.addEventListener('click', function(e) { if (e.target === els.exportModal) closeModal(els.exportModal, els.exportPanel); });
+      els.cancelExport.addEventListener('click', function() { closeModal(els.exportModal, els.exportPanel); });
+      els.confirmExport.addEventListener('click', function() {
+        closeModal(els.exportModal, els.exportPanel);
+        performExport(els.exportWithSamples.checked);
+      });
+
+      var performExport = function(includeSamples) {
+        readTrackTabsFromDOM();
+        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
+        
+        if (includeSamples) {
+          data.samples = {};
+          for (var key in customSamples) {
+            if (customSamples[key] && customSamples[key].buffer) {
+              try {
+                var b64 = audioBufferToBase64(customSamples[key].buffer);
+                if (b64) {
+                  data.samples[key] = { name: customSamples[key].name, bufferB64: b64 };
+                }
+              } catch(e) {}
+            }
+          }
+          setStatus('📤 Экспорт с сэмплами...', 'text-cyan-300');
+        }
+
+        var jsonStr = JSON.stringify(data, null, 2);
+        var blob = new Blob([jsonStr], {type: 'application/json'});
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + (includeSamples ? '-with-samples' : '') + '.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        
+        setTimeout(function() {
+          setStatus('📤 Экспортировано' + (includeSamples ? ' (с сэмплами)' : ''), 'text-cyan-300');
+        }, 500);
+      };
+
+      els.importBtn.addEventListener('click', function() {
+        els.importFile.click();
+      });
+      els.importFile.addEventListener('change', function(e) {
+        var file = e.target.files[0]; if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          try {
+            pendingImportData = JSON.parse(ev.target.result);
+            
+            var info = els.importFileInfo;
+            info.classList.remove('hidden');
+            var infoHtml = '<div class="font-semibold text-white/60 mb-1">Файл: ' + file.name + '</div>';
+            if (pendingImportData.tracks) {
+              infoHtml += '<div class="mt-1">🎵 Дорожки: ' + pendingImportData.tracks.length + '</div>';
+            }
+            if (pendingImportData.bpm) {
+              infoHtml += '<div>Темп: ' + pendingImportData.bpm + '</div>';
+            }
+            if (pendingImportData.samples) {
+              var sampleCount = Object.keys(pendingImportData.samples).length;
+              infoHtml += '<div class="mt-1">🎛 Сэмплы: ' + sampleCount + ' найдено в файле</div>';
+              els.importWithSamples.disabled = false;
+              els.importWithSamples.checked = true;
+            } else {
+              infoHtml += '<div class="mt-1 text-yellow-300/60">🎛 Сэмплы не найдены</div>';
+              els.importWithSamples.disabled = true;
+              els.importWithSamples.checked = false;
+            }
+            info.innerHTML = infoHtml;
+            
+            openModal(els.importModal, els.importPanel);
+          } catch(err) { setStatus('❌ Ошибка чтения файла', 'text-red-400'); }
+        };
+        reader.readAsText(file); e.target.value = '';
+      });
+      els.closeImport.addEventListener('click', function() { closeModal(els.importModal, els.importPanel); pendingImportData = null; });
+      els.importModal.addEventListener('click', function(e) { if (e.target === els.importModal) { closeModal(els.importModal, els.importPanel); pendingImportData = null; } });
+      els.cancelImport.addEventListener('click', function() { closeModal(els.importModal, els.importPanel); pendingImportData = null; });
+      els.confirmImport.addEventListener('click', function() {
+        closeModal(els.importModal, els.importPanel);
+        if (pendingImportData) {
+          performImport(pendingImportData, els.importWithSamples.checked);
+        }
+        pendingImportData = null;
+      });
+
+      var performImport = function(data, loadSamples) {
+        if (data.tracks && data.tracks.length > 0) { tracks = data.tracks; trackIdCounter = data.trackIdCounter || tracks.length; }
+        if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
+        if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
+        if (data.swing !== undefined) { swing = data.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
+        if (data.beatValueDenom !== undefined) { setBeatValue(data.beatValueDenom); }
+        
+        if (loadSamples && data.samples) {
+          initAudio();
+          if (audioCtx && audioCtx.state === 'running') {
+            var count = 0;
+            for (var key in data.samples) {
+              if (data.samples[key] && data.samples[key].bufferB64) {
+                var buf = base64ToAudioBuffer(data.samples[key].bufferB64);
+                if (buf) {
+                  customSamples[key] = { buffer: buf, name: data.samples[key].name };
+                  count++;
+                }
+              }
+            }
+            saveSamplesToStorage();
+            setStatus('📥 Импортировано (' + count + ' сэмплов загружено)', 'text-purple-300');
+          } else {
+            audioCtx.resume().then(function() {
+              var count = 0;
+              for (var key in data.samples) {
+                if (data.samples[key] && data.samples[key].bufferB64) {
+                  var buf = base64ToAudioBuffer(data.samples[key].bufferB64);
+                  if (buf) {
+                    customSamples[key] = { buffer: buf, name: data.samples[key].name };
+                    count++;
+                  }
+                }
+              }
+              saveSamplesToStorage();
+              setStatus('📥 Импортировано (' + count + ' сэмплов загружено)', 'text-purple-300');
+            });
+          }
+        } else {
+          setStatus('📥 Импортировано', 'text-purple-300');
+        }
+        
+        renderTracks(); updateNoteInfo(); markUnsaved();
+      };
+
       var getSlotKey = function(n) { return 'darbuka_slot_v2_' + n; };
       var getSlotInfo = function(n) { try { var r = localStorage.getItem(getSlotKey(n)); return r ? JSON.parse(r) : null; } catch(e) { return null; } };
       var saveToSlot = function(n) {
@@ -1125,15 +1675,15 @@
         els.deleteSlotBtn.classList.add('opacity-40', 'pointer-events-none');
         for (var i = 1; i <= NUM_SLOTS; i++) {
           var info = getSlotInfo(i); var card = document.createElement('div');
-          card.className = 'slot-card glass rounded-xl p-3 cursor-pointer border border-transparent'; card.dataset.slot = i;
+          card.className = 'slot-card glass rounded-xl p-2.5 md:p-3 cursor-pointer border border-transparent touch-target'; card.dataset.slot = i;
           var hasData = info && info.tracks && info.tracks.length > 0;
-          card.innerHTML = '<div class="flex items-center justify-between mb-1.5"><span class="text-sm font-bold text-white/70">Слот ' + i + '</span>' + (hasData ? '<span class="w-2 h-2 rounded-full bg-green-400/80"></span>' : '<span class="w-2 h-2 rounded-full bg-white/15"></span>') + '</div>';
+          card.innerHTML = '<div class="flex items-center justify-between mb-1 md:mb-1.5"><span class="text-sm font-bold text-white/70">Слот ' + i + '</span>' + (hasData ? '<span class="w-2 h-2 rounded-full bg-green-400/80"></span>' : '<span class="w-2 h-2 rounded-full bg-white/15"></span>') + '</div>';
           if (hasData) {
             var trackNames = info.tracks.map(function(t) { return t.name; }).join(', ');
-            card.innerHTML += '<div class="text-xs text-white/40 font-mono truncate mb-1">' + trackNames + '</div>';
+            card.innerHTML += '<div class="text-xs text-white/40 font-mono truncate mb-0.5 md:mb-1">' + trackNames + '</div>';
             var timeStr = info.ts ? new Date(info.ts).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) : '--:--';
             card.innerHTML += '<div class="flex items-center justify-between text-xs text-white/30"><span>' + info.tracks.length + ' дор.</span><span>' + timeStr + '</span></div>';
-          } else card.innerHTML += '<div class="text-xs text-white/25 text-center py-2">Пусто</div>';
+          } else card.innerHTML += '<div class="text-xs text-white/25 text-center py-1.5 md:py-2">Пусто</div>';
           if (i === currentSlot) card.classList.add('active'); if (!hasData) card.classList.add('empty');
           (function(slotNum) { card.addEventListener('click', function() { selectSlotInModal(slotNum); }); })(i);
           grid.appendChild(card);
@@ -1165,33 +1715,6 @@
       els.saveBtn.addEventListener('click', function() { if (saveToSlot(currentSlot)) setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400'); else setStatus('❌ Ошибка', 'text-red-400'); });
       els.loadBtn.addEventListener('click', function() { if (loadFromSlot(currentSlot)) setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400'); else setStatus('⚠️ Пусто', 'text-yellow-300'); });
       els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); updateNoteInfo(); markUnsaved(); });
-
-      els.exportBtn.addEventListener('click', function() {
-        readTrackTabsFromDOM();
-        var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
-        var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + '.json';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        setStatus('📤 Экспортировано', 'text-cyan-300');
-      });
-      els.importBtn.addEventListener('click', function() { els.importFile.click(); });
-      els.importFile.addEventListener('change', function(e) {
-        var file = e.target.files[0]; if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-          try {
-            var data = JSON.parse(ev.target.result);
-            if (data.tracks && data.tracks.length > 0) { tracks = data.tracks; trackIdCounter = data.trackIdCounter || tracks.length; }
-            if (data.bpm) { bpm = data.bpm; els.bpm.value = bpm; }
-            if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
-            if (data.swing !== undefined) { swing = data.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
-            if (data.beatValueDenom !== undefined) { setBeatValue(data.beatValueDenom); }
-            renderTracks(); updateNoteInfo(); setStatus('📥 Импортировано', 'text-purple-300'); markUnsaved();
-          } catch(err) { setStatus('❌ Ошибка импорта', 'text-red-400'); }
-        };
-        reader.readAsText(file); e.target.value = '';
-      });
 
       els.exportWavBtn.addEventListener('click', function() {
         readTrackTabsFromDOM();
@@ -1312,8 +1835,7 @@
 
       els.volume.addEventListener('input', function(e) { volume = parseFloat(e.target.value); els.volumeVal.textContent = Math.round(volume*100)+'%'; if (masterGain) masterGain.gain.value = volume; });
       els.swing.addEventListener('input', function(e) { swing = parseInt(e.target.value); els.swingVal.textContent = swing + '%'; markUnsaved(); });
-      els.playBtn.addEventListener('click', startPlayback);
-      els.stopBtn.addEventListener('click', stopPlayback);
+      els.playStopBtn.addEventListener('click', togglePlayback);
 
       els.metronomeBtn.addEventListener('click', function() {
         metronomeEnabled = !metronomeEnabled;
@@ -1322,7 +1844,6 @@
         setStatus(metronomeEnabled ? '🔔 Метроном включен' : '🔇 Метроном выключен', metronomeEnabled ? 'text-yellow-300' : 'text-white/50');
       });
 
-      // ====== RECORDING ======
       els.recBtn.addEventListener('click', function() {
         if (isRecording) {
           stopRecording();
@@ -1349,9 +1870,9 @@
         if (!isRecording) return;
         if (e.repeat) return;
         
-        var keyMap = { 'd': 'D', 'D': 'D', 'т': 'D', 'Т': 'D',
+        var keyMap = { 'd': 'D', 'D': 'D',
                        't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T',
-                       'k': 'K', 'K': 'K', 'л': 'K', 'Л': 'K',
+                       'k': 'K', 'K': 'K',
                        's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S',
                        'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B',
                        'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
@@ -1484,8 +2005,8 @@
           if (!PRESETS.hasOwnProperty(name)) continue;
           var tab = PRESETS[name];
           var card = document.createElement('div');
-          card.className = 'glass rounded-xl p-3 cursor-pointer border border-transparent hover:border-purple-500/30 transition-all hover:bg-white/[0.04]';
-          card.innerHTML = '<div class="text-sm font-semibold text-purple-200 mb-1">' + name + '</div>';
+          card.className = 'glass rounded-xl p-2.5 md:p-3 cursor-pointer border border-transparent hover:border-purple-500/30 transition-all hover:bg-white/[0.04] touch-target';
+          card.innerHTML = '<div class="text-sm font-semibold text-purple-200 mb-0.5 md:mb-1">' + name + '</div>';
           card.innerHTML += '<div class="text-xs text-white/35 font-mono truncate">' + tab + '</div>';
           (function(presetName, presetTab) {
             card.addEventListener('click', function() {
@@ -1513,9 +2034,9 @@
         if (eqLowNode) eqLowNode.gain.value = parseFloat(els.eqLow.value);
         if (eqMidNode) eqMidNode.gain.value = parseFloat(els.eqMid.value);
         if (eqHighNode) eqHighNode.gain.value = parseFloat(els.eqHigh.value);
-        els.eqLowVal.textContent = els.eqLow.value + ' dB';
-        els.eqMidVal.textContent = els.eqMid.value + ' dB';
-        els.eqHighVal.textContent = els.eqHigh.value + ' dB';
+        els.eqLowVal.textContent = els.eqLow.value + ' дБ';
+        els.eqMidVal.textContent = els.eqMid.value + ' дБ';
+        els.eqHighVal.textContent = els.eqHigh.value + ' дБ';
       };
       els.eqLow.addEventListener('input', updateEQ);
       els.eqMid.addEventListener('input', updateEQ);
@@ -1645,8 +2166,11 @@
           recordKeyHandler(e);
           return;
         }
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        if (e.code === 'Space') { e.preventDefault(); if (isPlaying) stopPlayback(); else startPlayback(); }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          if (e.target.classList.contains('rename-input')) return;
+          if (e.key === 'Enter' || e.key === 'Escape') return;
+        }
+        if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
         if (e.code === 'Escape') { if (isPlaying) stopPlayback(); }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
         if (e.code === 'ArrowDown') { e.preventDefault(); bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfo(); }
