@@ -295,6 +295,55 @@
         font-size: 0.95rem;
       }
     }
+
+    /* ===== Recording Pad Buttons ===== */
+    .rec-pad-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 1rem; font-weight: 800; cursor: pointer; transition: all 0.1s ease;
+      user-select: none; touch-action: manipulation; position: relative; overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.15); min-height: 72px;
+    }
+    .rec-pad-btn:active { transform: scale(0.92); }
+    .rec-pad-btn.flash { animation: padFlash 0.25s ease; }
+    @keyframes padFlash { 0% { transform: scale(0.92); } 50% { transform: scale(1.08); filter: brightness(1.5); } 100% { transform: scale(1); filter: brightness(1); } }
+    .rec-pad-btn .pad-note { font-size: 1.4rem; line-height: 1.1; }
+    .rec-pad-btn .pad-label { font-size: 0.6rem; opacity: 0.7; margin-top: 2px; font-weight: 600; }
+    @media (max-width: 640px) { .rec-pad-btn { min-height: 60px; } .rec-pad-btn .pad-note { font-size: 1.2rem; } .rec-pad-btn .pad-label { font-size: 0.55rem; } }
+
+    /* ===== Tab Input Buttons ===== */
+    .tab-input-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 0.5rem; font-weight: 700; font-size: 0.85rem;
+      min-width: 36px; min-height: 36px; padding: 0.35rem 0.5rem;
+      border: 1px solid rgba(255,255,255,0.15); transition: all 0.12s ease;
+      cursor: pointer; user-select: none; touch-action: manipulation;
+    }
+    .tab-input-btn:active { transform: scale(0.9); filter: brightness(1.3); }
+
+    /* ===== Expandable Textarea ===== */
+    .track-textarea-wrapper { position: relative; }
+    .track-textarea-wrapper textarea {
+      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .track-textarea-wrapper textarea.expanded-full {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+      border-radius: 0 !important; padding: 1rem !important; font-size: 1rem !important;
+      background: rgba(10,15,30,0.95) !important; border: none !important;
+    }
+    .expand-btn {
+      position: absolute; bottom: 6px; right: 6px; width: 28px; height: 28px;
+      border-radius: 0.4rem; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.4); font-size: 0.7rem; transition: all 0.15s;
+      cursor: pointer; z-index: 10; touch-action: manipulation;
+    }
+    .expand-btn:hover { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    .expand-btn:active { transform: scale(0.9); }
+    .expanded-overlay {
+      position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px); display: none;
+    }
+    .expanded-overlay.active { display: block; }
   </style>
 </head>
 <body class="text-white">
@@ -461,6 +510,26 @@
       <p class="text-white/25 text-xs">Горячие клавиши: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Пробел</kbd> Старт/Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Esc</kbd> Стоп | <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">↑↓</kbd> Темп ±5</p>
     </footer>
   </main>
+
+  <!-- Recording Pad Modal -->
+  <div id="recPadModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="recPadPanel" class="glass w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg md:text-xl font-bold bg-gradient-to-r from-red-300 to-orange-300 bg-clip-text text-transparent">🎙 Живая запись</h2>
+        <button id="closeRecPad" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      </div>
+      <div id="recPadCount" class="text-center text-xs text-white/40 mb-3 font-mono">Нот: 0 | Темп: 120</div>
+      <div id="recPadGrid" class="grid grid-cols-4 gap-2.5 md:gap-3 mb-4"></div>
+      <div class="flex gap-3">
+        <button id="recPadStop" class="flex-1 py-3 rounded-xl font-semibold text-sm bg-red-500/20 border-2 border-red-500/40 text-red-300 hover:bg-red-500/30 hover:border-red-500/60 transition-all touch-target">⏹ Остановить</button>
+        <button id="recPadUndo" class="px-4 py-3 rounded-xl font-semibold text-sm bg-white/10 border border-white/15 text-white/60 hover:bg-white/15 transition-all touch-target">↩ Отм.</button>
+      </div>
+      <p class="text-center text-xs text-white/30 mt-3">Нажимайте на кнопки для записи ритма в реальном времени</p>
+    </div>
+  </div>
+
+  <!-- Expanded Textarea Overlay -->
+  <div id="expandedOverlay" class="expanded-overlay" onclick="collapseAllTextareas()"></div>
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
@@ -663,12 +732,22 @@
         importModal: document.getElementById('importModal'), importPanel: document.getElementById('importPanel'),
         closeImport: document.getElementById('closeImport'), importWithSamples: document.getElementById('importWithSamples'),
         cancelImport: document.getElementById('cancelImport'), confirmImport: document.getElementById('confirmImport'),
-        importFileInfo: document.getElementById('importFileInfo')
+        importFileInfo: document.getElementById('importFileInfo'),
+        recPadModal: document.getElementById('recPadModal'), recPadPanel: document.getElementById('recPadPanel'),
+        closeRecPad: document.getElementById('closeRecPad'), recPadGrid: document.getElementById('recPadGrid'),
+        recPadCount: document.getElementById('recPadCount'), recPadStop: document.getElementById('recPadStop'), recPadUndo: document.getElementById('recPadUndo'),
+        expandedOverlay: document.getElementById('expandedOverlay')
       };
 
       var NOTE_INFO = {
-        D:  { label:'Dum',  css:'d' }, T:  { label:'Tak',  css:'t' }, K:  { label:'Ka',   css:'k' }, S:  { label:'Slap', css:'s' },
-        t:  { label:'tek',  css:'lt' }, k:  { label:'kak',  css:'lk' }, B:  { label:'Bek',  css:'b' }, R:  { label:'Rest', css:'r' }
+        D:  { label:'Dum',  css:'d',  bg:'rgba(59,130,246,0.25)', border:'rgba(59,130,246,0.4)', color:'#93c5fd' },
+        T:  { label:'Tak',  css:'t',  bg:'rgba(168,85,247,0.25)', border:'rgba(168,85,247,0.4)', color:'#c084fc' },
+        K:  { label:'Ka',   css:'k',  bg:'rgba(234,179,8,0.25)', border:'rgba(234,179,8,0.4)', color:'#facc15' },
+        S:  { label:'Slap', css:'s',  bg:'rgba(239,68,68,0.25)', border:'rgba(239,68,68,0.4)', color:'#f87171' },
+        t:  { label:'tek',  css:'lt', bg:'rgba(34,211,238,0.25)', border:'rgba(34,211,238,0.4)', color:'#67e8f9' },
+        k:  { label:'kak',  css:'lk', bg:'rgba(251,146,60,0.25)', border:'rgba(251,146,60,0.4)', color:'#fb923c' },
+        B:  { label:'Bek',  css:'b',  bg:'rgba(251,113,133,0.25)', border:'rgba(251,113,133,0.4)', color:'#fb7185' },
+        R:  { label:'Rest', css:'r',  bg:'rgba(100,116,139,0.25)', border:'rgba(100,116,139,0.4)', color:'#64748b' }
       };
 
       var SEQ_NOTES = ['D', 'T', 'K', 'S', 't', 'k', 'B'];
@@ -749,9 +828,26 @@
           controlsHtml += '</div>';
 
           var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
+          bodyHtml += '<div class="track-textarea-wrapper" data-ta-wrapper="' + track.id + '">';
           bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
-          bodyHtml += '>' + track.tab + '</textarea></div>';
+          bodyHtml += '>' + track.tab + '</textarea>';
+          bodyHtml += '<button class="expand-btn" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
+          bodyHtml += '</div>';
+
+          // Tab input buttons
+          bodyHtml += '<div class="flex flex-wrap gap-1 mt-2 pb-1" data-tab-btns="' + track.id + '">';
+          var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
+          tabNoteTypes.forEach(function(nt) {
+            var pillBg = NOTE_INFO[nt] ? NOTE_INFO[nt].bg : 'rgba(255,255,255,0.06)';
+            var pillBorder = NOTE_INFO[nt] ? NOTE_INFO[nt].border : 'rgba(255,255,255,0.12)';
+            var pillColor = NOTE_INFO[nt] ? NOTE_INFO[nt].color : 'rgba(255,255,255,0.5)';
+            var label = nt === ' ' ? '␣' : nt;
+            bodyHtml += '<button class="tab-input-btn" data-insert="' + nt + '" style="background:' + pillBg + ';border-color:' + pillBorder + ';color:' + pillColor + '" title="Вставить ' + nt + '">' + label + '</button>';
+          });
+          bodyHtml += '</div>';
+
+          bodyHtml += '</div>';
 
           card.innerHTML = headerHtml + controlsHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
@@ -759,6 +855,7 @@
           card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
             if (e.target.closest('[data-rename-track]')) return;
             if (e.target.closest('[data-remove-track]')) return;
+            if (e.target.closest('[data-expand-ta]')) return;
             var body = card.querySelector('[data-track-body="' + track.id + '"]');
             body.classList.toggle('track-body-hidden');
             body.classList.toggle('track-body-visible');
@@ -822,7 +919,63 @@
               renderTracks(); markUnsaved();
             }
           });
+
+          // Expand textarea button
+          card.querySelector('[data-expand-ta="' + track.id + '"]').addEventListener('click', function(e) {
+            e.stopPropagation();
+            expandTextarea(track.id);
+          });
+
+          // Tab input buttons
+          card.querySelectorAll('[data-tab-btns="' + track.id + '"] [data-insert]').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              var ta = card.querySelector('[data-track-tab="' + track.id + '"]');
+              if (!ta || ta.disabled) return;
+              var insertChar = btn.getAttribute('data-insert');
+              insertAtCursor(ta, insertChar);
+              track.tab = ta.value;
+              markUnsaved(); updateNoteInfo();
+              ta.focus();
+            });
+          });
         });
+      };
+
+      var insertAtCursor = function(textarea, text) {
+        var start = textarea.selectionStart;
+        var end = textarea.selectionEnd;
+        var val = textarea.value;
+        textarea.value = val.substring(0, start) + text + val.substring(end);
+        var newPos = start + text.length;
+        textarea.selectionStart = newPos;
+        textarea.selectionEnd = newPos;
+        textarea.dispatchEvent(new Event('input'));
+      };
+
+      var expandedTextarea = null;
+      var expandedTrackId = null;
+
+      var expandTextarea = function(trackId) {
+        collapseAllTextareas();
+        var wrapper = document.querySelector('[data-ta-wrapper="' + trackId + '"]');
+        if (!wrapper) return;
+        var ta = wrapper.querySelector('textarea');
+        if (!ta) return;
+        expandedTextarea = ta;
+        expandedTrackId = trackId;
+        ta.classList.add('expanded-full');
+        els.expandedOverlay.classList.add('active');
+        ta.focus();
+      };
+
+      window.collapseAllTextareas = function() {
+        if (expandedTextarea) {
+          expandedTextarea.classList.remove('expanded-full');
+          expandedTextarea = null;
+          expandedTrackId = null;
+          els.expandedOverlay.classList.remove('active');
+        }
       };
 
       var startRenameTrack = function(track) {
@@ -1000,8 +1153,7 @@
         var convolver = audioCtx.createConvolver();
         if (!impulseBuffer) impulseBuffer = createImpulseResponse();
         convolver.buffer = impulseBuffer;
-        reverbNode = convolver;
-        reverbGainNode.connect(reverbNode); reverbNode.connect(analyser);
+        reverbGainNode.connect(reverbNode = convolver); reverbNode.connect(analyser);
         metroGainNode.connect(audioCtx.destination);
         drawVisualizer();
       };
@@ -1419,6 +1571,138 @@
         setTimeout(function() { modal.classList.remove('modal-visible'); modal.classList.add('modal-hidden'); }, 300);
       };
 
+      // ===== Recording Pad =====
+      var openRecPadModal = function() {
+        buildRecPadUI();
+        openModal(els.recPadModal, els.recPadPanel);
+      };
+
+      var buildRecPadUI = function() {
+        var grid = els.recPadGrid; grid.innerHTML = '';
+        var padTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R'];
+        padTypes.forEach(function(pt) {
+          var info = NOTE_INFO[pt];
+          var btn = document.createElement('button');
+          btn.className = 'rec-pad-btn';
+          btn.style.background = info.bg;
+          btn.style.borderColor = info.border;
+          btn.style.color = info.color;
+          btn.innerHTML = '<span class="pad-note">' + pt + '</span><span class="pad-label">' + info.label + '</span>';
+          btn.setAttribute('data-rec-type', pt);
+          btn.addEventListener('click', function() {
+            recordPadHit(pt);
+            btn.classList.remove('flash');
+            void btn.offsetWidth;
+            btn.classList.add('flash');
+          });
+          grid.appendChild(btn);
+        });
+        els.recPadCount.textContent = 'Нот: 0 | Темп: ' + bpm;
+      };
+
+      var recordPadHit = function(type) {
+        if (!isRecording) return;
+        initAudio();
+        if (audioCtx && audioCtx.state === 'running') {
+          var now = audioCtx.currentTime;
+          recordedEvents.push({ time: now, type: type });
+          playNote(type, now, 1);
+          els.recPadCount.textContent = 'Нот: ' + recordedEvents.length + ' | Темп: ' + bpm;
+        }
+      };
+
+      var stopRecording = function() {
+        if (!isRecording) return;
+        isRecording = false; els.recBtn.classList.remove('rec-active'); els.recIcon.textContent = '⏺'; els.recOverlay.style.opacity = '0';
+        document.removeEventListener('keydown', recordKeyHandler);
+        if (recordedEvents.length === 0) {
+          closeModal(els.recPadModal, els.recPadPanel);
+          return;
+        }
+        var tabString = buildTabFromEvents(recordedEvents);
+        if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = tabString; tracks[0].name = 'Запись'; }
+        else { tracks.push(createTrack('Запись')); tracks[tracks.length - 1].tab = tabString; }
+        renderTracks(); updateNoteInfo(); markUnsaved();
+        closeModal(els.recPadModal, els.recPadPanel);
+        setStatus('🎵 Запись сохранена (' + recordedEvents.length + ' нот)', 'text-green-400');
+        recordedEvents = [];
+      };
+
+      els.recBtn.addEventListener('click', function() {
+        if (isRecording) { stopRecording(); }
+        else {
+          initAudio();
+          if (audioCtx && audioCtx.state !== 'running') { 
+            audioCtx.resume().then(function() { startRecordingWithPad(); }); 
+          }
+          else { startRecordingWithPad(); }
+        }
+      });
+
+      var startRecordingWithPad = function() {
+        isRecording = true; recordStartTime = audioCtx.currentTime; recordedEvents = [];
+        els.recBtn.classList.add('rec-active'); els.recIcon.textContent = '⏹'; els.recOverlay.style.opacity = '1';
+        setStatus('⏺ Запись... Нажимайте на кнопки', 'text-red-300');
+        openRecPadModal();
+      };
+
+      els.closeRecPad.addEventListener('click', function() { stopRecording(); });
+      els.recPadModal.addEventListener('click', function(e) { if (e.target === els.recPadModal) stopRecording(); });
+      els.recPadStop.addEventListener('click', function() { stopRecording(); });
+      els.recPadUndo.addEventListener('click', function() {
+        if (recordedEvents.length > 0) {
+          recordedEvents.pop();
+          els.recPadCount.textContent = 'Нот: ' + recordedEvents.length + ' | Темп: ' + bpm;
+        }
+      });
+
+      var recordKeyHandler = function(e) {
+        if (!isRecording || e.repeat) return;
+        var keyMap = { 'd': 'D', 'D': 'D', 't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T', 'k': 'K', 'K': 'K', 's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S', 'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B', 'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
+        var type = keyMap[e.key];
+        if (type && NOTE_INFO[type]) {
+          var now = audioCtx.currentTime;
+          recordedEvents.push({ time: now, type: type });
+          playNote(type, now, 1);
+          setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
+          e.preventDefault();
+        }
+      };
+
+      var buildTabFromEvents = function(events) {
+        if (events.length === 0) return '';
+        events.sort(function(a, b) { return a.time - b.time; });
+        var beatDur = getBeatDuration(bpm, beatValueDenom); var startTime = events[0].time;
+        var quantizedEvents = [];
+        for (var i = 0; i < events.length; i++) {
+          var beatPos = Math.round((events[i].time - startTime) / beatDur);
+          if (beatPos < 0) beatPos = 0;
+          quantizedEvents.push({ beatPos: beatPos, type: events[i].type });
+        }
+        var beatGroupsArr = []; var currentBeatGroup = null;
+        for (var i = 0; i < quantizedEvents.length; i++) {
+          var evt = quantizedEvents[i];
+          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) { currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] }; beatGroupsArr.push(currentBeatGroup); }
+          else { if (currentBeatGroup.notes.indexOf(evt.type) === -1) currentBeatGroup.notes.push(evt.type); }
+        }
+        var tab = '';
+        for (var i = 0; i < beatGroupsArr.length; i++) {
+          var grp = beatGroupsArr[i];
+          var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 1);
+          var duration = Math.max(1, Math.round(nextPos - grp.beatPos));
+          var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
+          if (duration > 1) noteStr += duration;
+          if (i > 0) {
+            var expectedNextPos = beatGroupsArr[i - 1].beatPos + Math.max(1, Math.round(beatGroupsArr[i].beatPos - beatGroupsArr[i-1].beatPos > 0 ? 1 : 1));
+            var gap = grp.beatPos - expectedNextPos;
+            for (var g = 0; g < gap; g++) tab += '- ';
+          }
+          if (i === 0 && grp.beatPos > 0) { for (var g = 0; g < grp.beatPos; g++) tab += '- '; }
+          tab += noteStr + ' ';
+        }
+        return tab.trim();
+      };
+
       els.openSettings.addEventListener('click', function() { buildSettingsUI(); openModal(els.settingsModal, els.settingsPanel); });
       els.closeSettings.addEventListener('click', function() { closeModal(els.settingsModal, els.settingsPanel); });
       els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(els.settingsModal, els.settingsPanel); });
@@ -1661,82 +1945,6 @@
         setStatus(metronomeEnabled ? '🔔 Метроном включен' : '🔇 Метроном выключен', metronomeEnabled ? 'text-yellow-300' : 'text-white/50');
       });
 
-      els.recBtn.addEventListener('click', function() {
-        if (isRecording) { stopRecording(); }
-        else {
-          initAudio();
-          if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(function() { startRecording(); }); }
-          else { startRecording(); }
-        }
-      });
-
-      var startRecording = function() {
-        isRecording = true; recordStartTime = audioCtx.currentTime; recordedEvents = [];
-        els.recBtn.classList.add('rec-active'); els.recIcon.textContent = '⏹'; els.recOverlay.style.opacity = '1';
-        setStatus('⏺ Запись... Нажимайте клавиши D, T, K, S, t, k, B, R', 'text-red-300');
-        document.addEventListener('keydown', recordKeyHandler);
-      };
-
-      var recordKeyHandler = function(e) {
-        if (!isRecording || e.repeat) return;
-        var keyMap = { 'd': 'D', 'D': 'D', 't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T', 'k': 'K', 'K': 'K', 's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S', 'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B', 'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
-        var type = keyMap[e.key];
-        if (type && NOTE_INFO[type]) {
-          var now = audioCtx.currentTime;
-          recordedEvents.push({ time: now, type: type });
-          playNote(type, now, 1);
-          setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
-          e.preventDefault();
-        }
-      };
-
-      var stopRecording = function() {
-        if (!isRecording) return;
-        isRecording = false; els.recBtn.classList.remove('rec-active'); els.recIcon.textContent = '⏺'; els.recOverlay.style.opacity = '0';
-        document.removeEventListener('keydown', recordKeyHandler);
-        if (recordedEvents.length === 0) return;
-        var tabString = buildTabFromEvents(recordedEvents);
-        if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = tabString; tracks[0].name = 'Запись'; }
-        else { tracks.push(createTrack('Запись')); tracks[tracks.length - 1].tab = tabString; }
-        renderTracks(); updateNoteInfo(); markUnsaved();
-        setStatus('🎵 Запись сохранена (' + recordedEvents.length + ' нот)', 'text-green-400');
-        recordedEvents = [];
-      };
-
-      var buildTabFromEvents = function(events) {
-        if (events.length === 0) return '';
-        events.sort(function(a, b) { return a.time - b.time; });
-        var beatDur = getBeatDuration(bpm, beatValueDenom); var startTime = events[0].time;
-        var quantizedEvents = [];
-        for (var i = 0; i < events.length; i++) {
-          var beatPos = Math.round((events[i].time - startTime) / beatDur);
-          if (beatPos < 0) beatPos = 0;
-          quantizedEvents.push({ beatPos: beatPos, type: events[i].type });
-        }
-        var beatGroupsArr = []; var currentBeatGroup = null;
-        for (var i = 0; i < quantizedEvents.length; i++) {
-          var evt = quantizedEvents[i];
-          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) { currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] }; beatGroupsArr.push(currentBeatGroup); }
-          else { if (currentBeatGroup.notes.indexOf(evt.type) === -1) currentBeatGroup.notes.push(evt.type); }
-        }
-        var tab = '';
-        for (var i = 0; i < beatGroupsArr.length; i++) {
-          var grp = beatGroupsArr[i];
-          var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 1);
-          var duration = Math.max(1, Math.round(nextPos - grp.beatPos));
-          var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
-          if (duration > 1) noteStr += duration;
-          if (i > 0) {
-            var expectedNextPos = beatGroupsArr[i - 1].beatPos + Math.max(1, Math.round(beatGroupsArr[i].beatPos - beatGroupsArr[i-1].beatPos > 0 ? 1 : 1));
-            var gap = grp.beatPos - expectedNextPos;
-            for (var g = 0; g < gap; g++) tab += '- ';
-          }
-          if (i === 0 && grp.beatPos > 0) { for (var g = 0; g < grp.beatPos; g++) tab += '- '; }
-          tab += noteStr + ' ';
-        }
-        return tab.trim();
-      };
-
       els.recBtn.addEventListener('dblclick', function(e) { if (isRecording) { e.preventDefault(); stopRecording(); } });
 
       els.openPresets.addEventListener('click', function() { buildPresetsUI(); openModal(els.presetsModal, els.presetsPanel); });
@@ -1825,10 +2033,27 @@
       });
 
       document.addEventListener('keydown', function(e) {
-        if (isRecording) { recordKeyHandler(e); return; }
+        if (isRecording) { 
+          var keyMap = { 'd': 'D', 'D': 'D', 't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T', 'k': 'K', 'K': 'K', 's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S', 'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B', 'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
+          var type = keyMap[e.key];
+          if (type && NOTE_INFO[type] && !e.repeat) {
+            var now = audioCtx.currentTime;
+            recordedEvents.push({ time: now, type: type });
+            playNote(type, now, 1);
+            setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
+            e.preventDefault();
+            // Also flash the pad button
+            var padBtn = document.querySelector('[data-rec-type="' + type + '"]');
+            if (padBtn) { padBtn.classList.remove('flash'); void padBtn.offsetWidth; padBtn.classList.add('flash'); }
+          }
+          return; 
+        }
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if (e.target.classList.contains('rename-input')) return; if (e.key === 'Enter' || e.key === 'Escape') return; }
         if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
-        if (e.code === 'Escape') { if (isPlaying) stopPlayback(); }
+        if (e.code === 'Escape') { 
+          if (expandedTextarea) { collapseAllTextareas(); e.preventDefault(); return; }
+          if (isPlaying) stopPlayback(); 
+        }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
         if (e.code === 'ArrowDown') { e.preventDefault(); bpm = Math.max(30, bpm - 5); els.bpm.value = bpm; updateNoteInfo(); }
       });
