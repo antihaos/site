@@ -3110,16 +3110,25 @@
         var getSlotKey = function (n) { return 'darbuka_slot_v2_' + n; };
         var getSlotInfo = function (n) { try { var r = localStorage.getItem(getSlotKey(n)); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
         var saveToSlot = function (n) {
-          try { readTrackTabsFromDOM(); var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter }; localStorage.setItem(getSlotKey(n), JSON.stringify(data)); hasUnsavedChanges = false; return true; } catch (e) { return false; }
+          readTrackTabsFromDOM();
+          var data = { tracks: JSON.parse(JSON.stringify(tracks)), bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
+          try { localStorage.setItem(getSlotKey(n), JSON.stringify(data)); hasUnsavedChanges = false; return true; } catch (e) { return false; }
         };
         var loadFromSlot = function (n) {
           var d = getSlotInfo(n); if (!d) return false;
-          if (d.tracks && d.tracks.length > 0) { tracks = d.tracks; trackIdCounter = d.trackIdCounter || tracks.length; }
+          tracks = [];
+          if (d.tracks && d.tracks.length > 0) {
+            tracks = JSON.parse(JSON.stringify(d.tracks));
+            trackIdCounter = d.trackIdCounter || tracks.length;
+          } else {
+            initTracks();
+          }
           bpm = d.bpm || 120; els.bpm.value = bpm;
           volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%';
           if (d.swing !== undefined) { swing = d.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
           if (d.beatValueDenom !== undefined) { setBeatValue(d.beatValueDenom); }
           if (masterGain) masterGain.gain.value = volume;
+          trackSeqState = {};
           renderTracks(); updateNoteInfo(); hasUnsavedChanges = false; return true;
         };
         var deleteSlot = function (n) { try { localStorage.removeItem(getSlotKey(n)); return true; } catch (e) { return false; } };
@@ -3159,21 +3168,11 @@
         els.closeSlots.addEventListener('click', closeSlotsModal);
         els.slotsModal.addEventListener('click', function (e) { if (e.target === els.slotsModal) closeSlotsModal(); });
         els.selectSlotBtn.addEventListener('click', function () { if (selectedSlotInModal > 0) { currentSlot = selectedSlotInModal; els.currentSlotBtn.textContent = 'Слот ' + currentSlot; setStatus('📌 Слот: ' + currentSlot, 'text-blue-300'); closeSlotsModal(); } });
-        els.loadSelectedSlot.addEventListener('click', function () {
-          if (selectedSlotInModal > 0 && loadFromSlot(selectedSlotInModal)) {
-            currentSlot = selectedSlotInModal; els.currentSlotBtn.textContent = 'Слот ' + currentSlot;
-            setStatus('📂 Загружено из слота ' + selectedSlotInModal, 'text-green-400');
-          } else if (selectedSlotInModal > 0) { setStatus('⚠️ Слот пуст', 'text-yellow-300'); }
-        });
+        els.loadSelectedSlot.addEventListener('click', function () { if (selectedSlotInModal > 0 && loadFromSlot(selectedSlotInModal)) { currentSlot = selectedSlotInModal; els.currentSlotBtn.textContent = 'Слот ' + currentSlot; setStatus('📂 Загружено из слота ' + selectedSlotInModal, 'text-green-400'); } else if (selectedSlotInModal > 0) { setStatus('⚠️ Слот пуст', 'text-yellow-300'); } });
         els.deleteSlotBtn.addEventListener('click', function () { if (selectedSlotInModal > 0 && confirm('Удалить слот ' + selectedSlotInModal + '?')) { deleteSlot(selectedSlotInModal); buildSlotsUI(); setStatus('🗑 Удалено', 'text-red-300'); } });
         els.clearBtn.addEventListener('click', function () { readTrackTabsFromDOM(); tracks.forEach(function (t) { t.tab = ''; }); renderTracks(); updateNoteInfo(); setStatus('🗑 Очищено', 'text-white/40'); markUnsaved(); });
         els.saveBtn.addEventListener('click', function () { if (saveToSlot(currentSlot)) setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400'); else setStatus('❌ Ошибка', 'text-red-400'); });
-        els.loadBtn.addEventListener('click', function () {
-          if (loadFromSlot(currentSlot)) {
-            currentSlot = currentSlot; els.currentSlotBtn.textContent = 'Слот ' + currentSlot;
-            setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400');
-          } else setStatus('⚠️ Пусто', 'text-yellow-300');
-        });
+        els.loadBtn.addEventListener('click', function () { if (loadFromSlot(currentSlot)) { els.currentSlotBtn.textContent = 'Слот ' + currentSlot; setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400'); } else setStatus('⚠️ Пусто', 'text-yellow-300'); });
         els.addTrackBtn.addEventListener('click', function () { tracks.push(createTrack()); renderTracks(); updateNoteInfo(); markUnsaved(); });
         els.exportWavBtn.addEventListener('click', function () {
           readTrackTabsFromDOM();
