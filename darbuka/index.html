@@ -80,7 +80,7 @@
     .metro-active { background: rgba(250,204,21,0.2) !important; border-color: rgba(250,204,21,0.4) !important; }
     .beat-indicator { transition: transform 0.08s ease, background 0.08s ease; }
     .beat-indicator.on { transform: scale(1.35); background: #facc15 !important; box-shadow: 0 0 14px rgba(250,204,21,0.7); }
-    .seq-grid { display: grid; grid-template-columns: auto repeat(16, 1fr); gap: 2px; }
+    .seq-grid { display: grid; gap: 2px; }
     .seq-cell { width: 100%; aspect-ratio: 1; border-radius: 5px; cursor: pointer; transition: all 0.12s; border: 1px solid rgba(255,255,255,0.08); touch-action: manipulation; }
     .seq-cell:hover { border-color: rgba(255,255,255,0.35); transform: scale(1.08); }
     .seq-cell.active { background: var(--cell-color, #60a5fa); box-shadow: 0 0 10px var(--cell-color, #60a5fa); border-color: rgba(255,255,255,0.5); }
@@ -131,7 +131,7 @@
       input[type="number"] { font-size: 1rem; }
       input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
       .preview-track-label { font-size: 0.6em; padding: 0.12em 0.35em; }
-      .seq-cell { min-height: 30px; }
+      .seq-cell { min-height: 28px; }
       .modal-visible { padding: 8px; }
       .beat-val-btn { padding: 0.3rem 0.45rem; min-height: 36px; font-size: 0.7rem; }
       .glass-btn svg { width: 16px; height: 16px; }
@@ -146,7 +146,6 @@
       .glass-btn { padding: 0.3rem 0.45rem; font-size: 0.7rem; min-height: 40px; }
     }
 
-    /* ===== Track Card Header ===== */
     .track-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; padding: 0.4rem 0.5rem; border-radius: 0.6rem; cursor: pointer; user-select: none; }
     .track-header-row:hover { background: rgba(255,255,255,0.05); }
     .track-header-left { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
@@ -177,7 +176,6 @@
     .track-seq-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; cursor: pointer; }
     .track-seq-btn:hover { color: rgba(74,222,128,0.7); background: rgba(74,222,128,0.1); }
 
-    /* ===== Optimized Controls Layout ===== */
     .controls-section {
       display: flex;
       flex-direction: column;
@@ -299,7 +297,6 @@
       }
     }
 
-    /* ===== Recording Pad Buttons ===== */
     .rec-pad-btn {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       border-radius: 1rem; font-weight: 800; cursor: pointer; transition: all 0.1s ease;
@@ -313,7 +310,6 @@
     .rec-pad-btn .pad-label { font-size: 0.6rem; opacity: 0.7; margin-top: 2px; font-weight: 600; }
     @media (max-width: 640px) { .rec-pad-btn { min-height: 60px; } .rec-pad-btn .pad-note { font-size: 1.2rem; } .rec-pad-btn .pad-label { font-size: 0.55rem; } }
 
-    /* ===== Tab Input Buttons ===== */
     .tab-input-btn {
       display: inline-flex; align-items: center; justify-content: center;
       border-radius: 0.5rem; font-weight: 700; font-size: 0.85rem;
@@ -322,6 +318,18 @@
       cursor: pointer; user-select: none; touch-action: manipulation;
     }
     .tab-input-btn:active { transform: scale(0.9); filter: brightness(1.3); }
+
+    .step-btn { transition: all 0.15s ease; touch-action: manipulation; }
+    .step-btn.active { background: rgba(74,222,128,0.2) !important; border-color: rgba(74,222,128,0.5) !important; color: #4ade80 !important; box-shadow: 0 0 8px rgba(74,222,128,0.2); }
+
+    /* Sticky label column in sequencer */
+    .seq-label-col {
+      position: sticky;
+      left: 0;
+      z-index: 10;
+      background: rgba(11, 17, 32, 0.85);
+      backdrop-filter: blur(8px);
+    }
   </style>
 </head>
 <body class="text-white">
@@ -387,7 +395,6 @@
         </div>
       </div>
       
-      <!-- Optimized Controls Layout -->
       <div class="controls-section">
         <div class="controls-row-sliders">
           <div class="slider-card">
@@ -633,11 +640,22 @@
 
   <!-- Sequencer Modal (per-track) -->
   <div id="seqModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="seqPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
-      <div class="flex items-center justify-between mb-3 md:mb-4">
+    <div id="seqPanel" class="glass w-full max-w-5xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between mb-2 md:mb-3">
         <h2 id="seqModalTitle" class="text-lg md:text-xl font-bold bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent pr-10">🎹 Секвенсор</h2>
         <button id="closeSeq" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target z-10">✕</button>
       </div>
+      
+      <!-- Step count controls -->
+      <div class="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-white/10">
+        <span class="text-xs font-bold text-white/40 uppercase tracking-wider">Шаги:</span>
+        <div id="seqStepBtns" class="flex flex-wrap gap-1.5"></div>
+        <button id="seqAutoStepsBtn" class="glass-btn px-3 md:px-4 py-2.5 rounded-xl text-sm text-purple-200/80 border-purple-500/20 hover:border-purple-500/40 touch-target">🔄 Подогнать</button>
+        <div class="ml-auto flex items-center gap-2">
+          <span id="seqTabInfo" class="text-xs text-white/35 font-mono"></span>
+        </div>
+      </div>
+
       <div id="seqGrid" class="overflow-x-auto pb-2 flex-1"></div>
       <div class="flex flex-wrap gap-2 mt-3 md:mt-4 shrink-0">
         <button id="seqPlayBtn" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-blue-200 font-semibold touch-target">▶ Воспроизвести</button>
@@ -714,8 +732,12 @@
         resetEQ: document.getElementById('resetEQ'),
         seqModal: document.getElementById('seqModal'), seqPanel: document.getElementById('seqPanel'),
         seqModalTitle: document.getElementById('seqModalTitle'),
+        seqStepBtns: document.getElementById('seqStepBtns'),
+        seqTabInfo: document.getElementById('seqTabInfo'),
         closeSeq: document.getElementById('closeSeq'), seqGrid: document.getElementById('seqGrid'),
-        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn'),
+        seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'),
+        seqAutoStepsBtn: document.getElementById('seqAutoStepsBtn'),
+        seqExportTabBtn: document.getElementById('seqExportTabBtn'),
         exportModal: document.getElementById('exportModal'), exportPanel: document.getElementById('exportPanel'),
         closeExport: document.getElementById('closeExport'), exportWithSamples: document.getElementById('exportWithSamples'),
         cancelExport: document.getElementById('cancelExport'), confirmExport: document.getElementById('confirmExport'),
@@ -745,46 +767,87 @@
       };
 
       var SEQ_NOTES = ['D', 'T', 'K', 'S', 't', 'k', 'B'];
+      var AVAILABLE_STEPS = [8, 12, 16, 24, 32, 48, 64];
       var TRACK_COLORS = ['#60a5fa','#c084fc','#facc15','#f87171','#34d399','#fb923c','#38bdf8','#e879f9'];
       var getTrackColor = function(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; };
 
-      // Sequencer state per track: { trackId, grid[row][col] }
       var trackSeqState = {};
       var currentSeqTrackId = null;
 
-      var initTrackSeq = function(trackId) {
+      var countTabSteps = function(tab) {
+        var parsed = parseTab(tab);
+        if (parsed.length === 0) return 16;
+        var steps = 0;
+        for (var i = 0; i < parsed.length; i++) {
+          steps += Math.ceil(parsed[i].duration);
+        }
+        return Math.max(16, steps);
+      };
+
+      var nearestAvailableSteps = function(count) {
+        for (var i = 0; i < AVAILABLE_STEPS.length; i++) {
+          if (AVAILABLE_STEPS[i] >= count) return AVAILABLE_STEPS[i];
+        }
+        return AVAILABLE_STEPS[AVAILABLE_STEPS.length - 1];
+      };
+
+      var initTrackSeq = function(trackId, steps) {
         if (!trackSeqState[trackId]) {
+          var actualSteps = steps || 16;
           var grid = [];
           for (var r = 0; r < SEQ_NOTES.length; r++) {
-            grid.push(new Array(16).fill(false));
+            grid.push(new Array(actualSteps).fill(false));
           }
-          trackSeqState[trackId] = grid;
+          trackSeqState[trackId] = { steps: actualSteps, grid: grid };
         }
       };
 
       var getTrackSeq = function(trackId) {
-        initTrackSeq(trackId);
+        if (!trackSeqState[trackId]) {
+          initTrackSeq(trackId, 16);
+        }
         return trackSeqState[trackId];
       };
 
-      var parseTabToSeq = function(tab, seqGrid) {
-        var parsed = parseTab(tab);
+      var resizeSeqGrid = function(trackId, newSteps) {
+        var seq = getTrackSeq(trackId);
+        var oldSteps = seq.steps;
+        var oldGrid = seq.grid;
+        var newGrid = [];
         for (var r = 0; r < SEQ_NOTES.length; r++) {
-          for (var c = 0; c < 16; c++) {
-            seqGrid[r][c] = false;
+          var newRow = new Array(newSteps).fill(false);
+          for (var c = 0; c < Math.min(oldSteps, newSteps); c++) {
+            newRow[c] = oldGrid[r][c];
+          }
+          newGrid.push(newRow);
+        }
+        seq.steps = newSteps;
+        seq.grid = newGrid;
+      };
+
+      var parseTabToSeq = function(tab, seq) {
+        var parsed = parseTab(tab);
+        var maxSteps = Math.max(seq.steps, countTabSteps(tab));
+        if (maxSteps !== seq.steps) {
+          resizeSeqGrid(currentSeqTrackId, nearestAvailableSteps(maxSteps));
+        }
+        var grid = seq.grid;
+        for (var r = 0; r < SEQ_NOTES.length; r++) {
+          for (var c = 0; c < seq.steps; c++) {
+            grid[r][c] = false;
           }
         }
         var col = 0;
-        for (var i = 0; i < parsed.length && col < 16; i++) {
+        for (var i = 0; i < parsed.length && col < seq.steps; i++) {
           var noteObj = parsed[i];
-          var dur = Math.min(Math.round(noteObj.duration), 16 - col);
-          for (var d = 0; d < dur && col < 16; d++) {
+          var dur = Math.min(Math.max(1, Math.round(noteObj.duration)), seq.steps - col);
+          for (var d = 0; d < dur && col < seq.steps; d++) {
             for (var n = 0; n < noteObj.notes.length; n++) {
               var noteType = noteObj.notes[n];
               if (noteType === '-' || noteType === 'R') continue;
               var rowIdx = SEQ_NOTES.indexOf(noteType);
               if (rowIdx >= 0) {
-                seqGrid[rowIdx][col] = true;
+                grid[rowIdx][col] = true;
               }
             }
             col++;
@@ -792,12 +855,14 @@
         }
       };
 
-      var seqToTab = function(seqGrid) {
+      var seqToTab = function(seq) {
+        var grid = seq.grid;
+        var steps = seq.steps;
         var tab = '';
-        for (var c = 0; c < 16; c++) {
+        for (var c = 0; c < steps; c++) {
           var activeNotes = [];
           for (var r = 0; r < SEQ_NOTES.length; r++) {
-            if (seqGrid[r][c]) activeNotes.push(SEQ_NOTES[r]);
+            if (grid[r][c]) activeNotes.push(SEQ_NOTES[r]);
           }
           if (activeNotes.length > 0) {
             tab += activeNotes.length === 1 ? activeNotes[0] + ' ' : '(' + activeNotes.join('') + ') ';
@@ -854,24 +919,19 @@
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
 
-          // ===== HEADER: Move btns (left) | Name area | Rename | Delete =====
           var headerHtml = '<div class="track-header-row" data-track-header="' + track.id + '">';
-          // Left: move buttons
           headerHtml += '<div class="track-header-left">';
           headerHtml += '<button class="track-move-btn" data-track-move-up="' + track.id + '" title="Вверх">▲</button>';
           headerHtml += '<button class="track-move-btn" data-track-move-down="' + track.id + '" title="Вниз">▼</button>';
           headerHtml += '</div>';
-          // Center-left: name area
           headerHtml += '<div class="track-name-area">';
           headerHtml += '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
           headerHtml += '<span class="track-name-text" data-track-name="' + track.id + '">' + track.name + '</span>';
           headerHtml += '<button class="track-rename-btn" data-rename-track="' + track.id + '" title="Переименовать">✎</button>';
           headerHtml += '</div>';
-          // Right: delete
           headerHtml += '<button class="track-del-btn" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
           headerHtml += '</div>';
 
-          // ===== CONTROLS: Solo/Mute/Loop + Volume =====
           var controlsHtml = '<div class="track-controls-row">';
           controlsHtml += '<button class="track-sp-btn' + (track.solo ? ' solo-on' : '') + '" data-toggle-solo="' + track.id + '" title="Соло">🎧С</button>';
           controlsHtml += '<button class="track-sp-btn' + (track.muted ? ' mute-on' : '') + '" data-toggle-mute="' + track.id + '" title="Приглушить">🔇П</button>';
@@ -881,20 +941,17 @@
           controlsHtml += '<div class="track-vol-slider"><input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '"></div>';
           controlsHtml += '</div>';
 
-          // ===== BODY: Textarea with seq & expand buttons + tab input buttons =====
           var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
           bodyHtml += '<div class="relative">';
           bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 pr-16 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea>';
-          // Buttons in top-right corner of textarea area
           bodyHtml += '<div class="absolute top-1.5 right-1.5 flex flex-col gap-1">';
           bodyHtml += '<button class="track-seq-btn" data-track-seq="' + track.id + '" title="Секвенсор">🎹</button>';
           bodyHtml += '<button class="track-seq-btn" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
           bodyHtml += '</div>';
           bodyHtml += '</div>';
 
-          // Tab input buttons
           bodyHtml += '<div class="flex flex-wrap gap-1 mt-2 pb-1" data-tab-btns="' + track.id + '">';
           var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
           tabNoteTypes.forEach(function(nt) {
@@ -911,8 +968,6 @@
           card.innerHTML = headerHtml + controlsHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
 
-          // ===== EVENT LISTENERS =====
-          // Header click toggles body
           card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
             if (e.target.closest('[data-rename-track]')) return;
             if (e.target.closest('[data-remove-track]')) return;
@@ -984,19 +1039,16 @@
             }
           });
 
-          // Expand textarea button
           card.querySelector('[data-expand-ta="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             expandTextarea(track.id);
           });
 
-          // Track sequencer button
           card.querySelector('[data-track-seq="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             openSeqForTrack(track.id);
           });
 
-          // Tab input buttons
           card.querySelectorAll('[data-tab-btns="' + track.id + '"] [data-insert]').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
               e.stopPropagation();
@@ -1023,7 +1075,6 @@
         textarea.dispatchEvent(new Event('input'));
       };
 
-      // ===== Expand Modal =====
       var buildExpandTabBtns = function() {
         els.expandTabBtns.innerHTML = '';
         var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
@@ -1082,46 +1133,80 @@
         closeExpandModal();
       });
 
-      // ===== Sequencer per track =====
       var openSeqForTrack = function(trackId) {
         currentSeqTrackId = trackId;
         var track = tracks.find(function(t) { return t.id === trackId; });
         els.seqModalTitle.textContent = '🎹 Секвенсор: ' + (track ? track.name : 'Дорожка ' + trackId);
         
-        var grid = getTrackSeq(trackId);
+        var seq = getTrackSeq(trackId);
         if (track && track.tab) {
-          parseTabToSeq(track.tab, grid);
+          var tabSteps = countTabSteps(track.tab);
+          if (tabSteps > seq.steps) {
+            resizeSeqGrid(trackId, nearestAvailableSteps(tabSteps));
+          }
+          parseTabToSeq(track.tab, seq);
         }
         buildSeqUI();
         openModal(els.seqModal, els.seqPanel);
       };
 
+      var buildStepBtns = function() {
+        els.seqStepBtns.innerHTML = '';
+        var seq = getTrackSeq(currentSeqTrackId);
+        AVAILABLE_STEPS.forEach(function(steps) {
+          var btn = document.createElement('button');
+          btn.className = 'glass-btn step-btn px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold text-white/50 touch-target' + (steps === seq.steps ? ' active' : '');
+          btn.textContent = steps;
+          btn.dataset.steps = steps;
+          btn.addEventListener('click', function() {
+            resizeSeqGrid(currentSeqTrackId, steps);
+            buildSeqUI();
+          });
+          els.seqStepBtns.appendChild(btn);
+        });
+      };
+
       var buildSeqUI = function() {
-        var grid = getTrackSeq(currentSeqTrackId);
+        var seq = getTrackSeq(currentSeqTrackId);
+        var grid = seq.grid;
+        var steps = seq.steps;
         var seqEl = els.seqGrid; 
         seqEl.innerHTML = '';
+
+        // Header row with step numbers
         var headerRow = document.createElement('div');
-        headerRow.className = 'seq-grid'; 
-        headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
-        headerRow.appendChild(document.createElement('div')).className = 'seq-label';
-        for (var s = 0; s < 16; s++) { 
+        headerRow.className = 'seq-grid';
+        headerRow.style.gridTemplateColumns = 'auto repeat(' + steps + ', minmax(26px, 1fr))';
+        // Header label cell - sticky
+        var headerLabel = document.createElement('div'); 
+        headerLabel.className = 'seq-label seq-label-col';
+        headerLabel.textContent = '♩';
+        headerRow.appendChild(headerLabel);
+        for (var s = 0; s < steps; s++) { 
           var lbl = document.createElement('div'); 
           lbl.className = 'seq-label text-white/25 text-xs'; 
-          lbl.textContent = s + 1; 
-          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.45)'; 
+          lbl.textContent = (s + 1); 
+          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.5)';
+          if (s % 8 === 0) { lbl.style.fontWeight = '800'; lbl.style.color = 'rgba(255,255,255,0.7)'; }
           headerRow.appendChild(lbl); 
         }
         seqEl.appendChild(headerRow);
+
+        // Note rows
         for (var r = 0; r < SEQ_NOTES.length; r++) {
           var noteType = SEQ_NOTES[r];
           var row = document.createElement('div'); 
           row.className = 'seq-grid'; 
-          row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
+          row.style.gridTemplateColumns = 'auto repeat(' + steps + ', minmax(26px, 1fr))';
+          
+          // Note label cell - sticky
           var noteLabel = document.createElement('div'); 
-          noteLabel.className = 'seq-label'; 
+          noteLabel.className = 'seq-label seq-label-col'; 
           noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>'; 
           row.appendChild(noteLabel);
-          for (var c = 0; c < 16; c++) {
+          
+          // Step cells
+          for (var c = 0; c < steps; c++) {
             var cell = document.createElement('div'); 
             cell.className = 'seq-cell' + (grid[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
             cell.style.setProperty('--cell-color', getTrackColor(currentSeqTrackId)); 
@@ -1138,6 +1223,15 @@
           }
           seqEl.appendChild(row);
         }
+
+        // Update step buttons active state
+        var stepBtns = els.seqStepBtns.querySelectorAll('.step-btn');
+        stepBtns.forEach(function(btn) {
+          btn.classList.toggle('active', parseInt(btn.dataset.steps) === steps);
+        });
+
+        // Tab info
+        els.seqTabInfo.textContent = steps + ' шагов | ' + grid.flat().filter(Boolean).length + ' нот';
       };
 
       var closeSeqModal = function() {
@@ -1155,27 +1249,41 @@
       });
 
       var playSeq = function() {
-        var grid = getTrackSeq(currentSeqTrackId);
-        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4; 
+        var seq = getTrackSeq(currentSeqTrackId);
+        var grid = seq.grid;
+        var steps = seq.steps;
+        var stepDuration = getBeatDuration(bpm, beatValueDenom); 
         var startTime = audioCtx.currentTime + 0.05;
         for (var r = 0; r < SEQ_NOTES.length; r++) { 
-          for (var c = 0; c < 16; c++) { 
+          for (var c = 0; c < steps; c++) { 
             if (grid[r][c]) playNote(SEQ_NOTES[r], startTime + c * stepDuration, 1); 
           } 
         }
-        setStatus('▶ Секвенсор: 16 шагов', 'text-green-300');
+        setStatus('▶ Секвенсор: ' + steps + ' шагов', 'text-green-300');
       };
 
       els.seqClearBtn.addEventListener('click', function() { 
-        var grid = getTrackSeq(currentSeqTrackId);
-        for (var r = 0; r < grid.length; r++) 
-          for (var c = 0; c < 16; c++) grid[r][c] = false; 
+        var seq = getTrackSeq(currentSeqTrackId);
+        for (var r = 0; r < seq.grid.length; r++) 
+          for (var c = 0; c < seq.steps; c++) seq.grid[r][c] = false; 
         buildSeqUI(); 
       });
 
+      els.seqAutoStepsBtn.addEventListener('click', function() {
+        var track = tracks.find(function(t) { return t.id === currentSeqTrackId; });
+        if (track && track.tab) {
+          var tabSteps = countTabSteps(track.tab);
+          var targetSteps = nearestAvailableSteps(tabSteps);
+          resizeSeqGrid(currentSeqTrackId, targetSteps);
+          parseTabToSeq(track.tab, getTrackSeq(currentSeqTrackId));
+          buildSeqUI();
+          setStatus('🔄 Секвенсор подогнан: ' + targetSteps + ' шагов', 'text-purple-300');
+        }
+      });
+
       els.seqExportTabBtn.addEventListener('click', function() {
-        var grid = getTrackSeq(currentSeqTrackId);
-        var tab = seqToTab(grid);
+        var seq = getTrackSeq(currentSeqTrackId);
+        var tab = seqToTab(seq);
         var track = tracks.find(function(t) { return t.id === currentSeqTrackId; });
         if (track) {
           track.tab = tab;
@@ -1780,7 +1888,6 @@
         setTimeout(function() { modal.classList.remove('modal-visible'); modal.classList.add('modal-hidden'); }, 300);
       };
 
-      // ===== Recording Pad =====
       var openRecPadModal = function() {
         buildRecPadUI();
         openModal(els.recPadModal, els.recPadPanel);
