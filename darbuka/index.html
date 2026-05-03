@@ -63,13 +63,10 @@
     .modal-panel-visible { transform: scale(1) translateY(0); opacity: 1; }
     .track-body-hidden { display: none; }
     .track-body-visible { display: block; }
-    .track-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); touch-action: none; }
+    .track-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
     .track-card.muted { opacity: 0.35; filter: grayscale(0.5); }
     .track-card.looping { border-color: rgba(250,204,21,0.3); background: rgba(250,204,21,0.05); }
     .track-card:hover { border-color: rgba(255,255,255,0.2); }
-    .track-card.dragging { opacity: 0.4; border: 2px dashed rgba(96,165,250,0.6); background: rgba(96,165,250,0.05); }
-    .track-card.drag-over-top { border-top: 3px solid #60a5fa; }
-    .track-card.drag-over-bottom { border-bottom: 3px solid #60a5fa; }
     input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
     input[type=range]::-webkit-slider-runnable-track { background: rgba(255,255,255,0.12); border-radius: 999px; height: 6px; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -5px; width: 18px; height: 18px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #818cf8); border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 0 8px rgba(96,165,250,0.5); transition: transform 0.15s; }
@@ -105,60 +102,76 @@
     .track-enter { animation: slideInUp 0.25s cubic-bezier(0.4,0,0.2,1) both; }
     @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0); } 50% { box-shadow: 0 0 12px 2px rgba(96,165,250,0.15); } }
     .glow-pulse { animation: glowPulse 3s infinite; }
-    .rename-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(96,165,250,0.5); border-radius: 6px; padding: 2px 6px; font-size: 0.875rem; color: white; outline: none; width: 110px; }
-    .rename-input:focus { border-color: rgba(96,165,250,0.8); box-shadow: 0 0 8px rgba(96,165,250,0.2); }
-    .drag-handle { cursor: grab; touch-action: none; }
-    .drag-handle:active { cursor: grabbing; }
     .export-checkbox { accent-color: #60a5fa; width: 18px; height: 18px; cursor: pointer; }
     .touch-target { min-height: 44px; min-width: 44px; }
-    
-    .eq-slider-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; max-width: 80px; }
-    .eq-slider-track { position: relative; width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; }
+
+    .eq-slider-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 60px; max-width: 80px; }
+    .eq-slider-container { position: relative; width: 36px; height: 200px; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 640px) { .eq-slider-container { height: 150px; width: 32px; } }
+    .eq-vertical-range { width: 200px; height: 6px; transform: rotate(-90deg); transform-origin: center center; }
+    @media (max-width: 640px) { .eq-vertical-range { width: 150px; } }
+    .eq-vertical-range::-webkit-slider-runnable-track { background: rgba(255,255,255,0.15); border-radius: 999px; height: 4px; }
+    .eq-vertical-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -7px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.9); box-shadow: 0 0 8px rgba(96,165,250,0.5); transition: transform 0.15s; }
+    .eq-vertical-range:focus::-webkit-slider-thumb { transform: scale(1.15); }
+    #eqLow::-webkit-slider-thumb { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+    #eqMid::-webkit-slider-thumb { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+    #eqHigh::-webkit-slider-thumb { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+
     @media (max-width: 640px) {
-      .eq-slider-track { height: 160px; }
-    }
-    input[type="range"][orient="vertical"] {
-      writing-mode: vertical-lr;
-      direction: rtl;
-      width: 200px;
-      height: 6px;
-    }
-    @media (max-width: 640px) {
-      input[type="range"][orient="vertical"] { width: 160px; height: 6px; }
-    }
-    
-    @media (max-width: 640px) {
-      main { padding: 8px; padding-bottom: 80px; }
-      header { margin-bottom: 10px; }
-      .glass-btn { font-size: 0.82rem; padding: 0.45rem 0.65rem; min-height: 44px; }
-      .note-pill { font-size: 0.8rem; padding: 0.2em 0.4em; }
-      .control-group { padding: 0.35rem 0.5rem; gap: 0.35rem; }
-      #visualizer { height: 48px; }
-      .control-label { font-size: 0.6rem; }
-      .track-card { padding: 0.5rem; }
-      .glass { border-radius: 1rem; }
-      .glass.rounded-2xl { border-radius: 0.75rem; }
-      textarea { font-size: 0.85rem; padding: 0.5rem; }
+      main { padding: 6px; padding-bottom: 70px; }
+      header { margin-bottom: 8px; }
+      .glass-btn { font-size: 0.8rem; padding: 0.45rem 0.6rem; min-height: 44px; }
+      .note-pill { font-size: 0.75rem; padding: 0.15em 0.35em; }
+      .control-group { padding: 0.3rem 0.45rem; gap: 0.3rem; }
+      #visualizer { height: 44px; }
+      .control-label { font-size: 0.55rem; }
+      .track-card { padding: 0.45rem; }
+      .glass { border-radius: 0.875rem; }
+      textarea { font-size: 0.8rem; padding: 0.45rem; }
       input[type="number"] { font-size: 1rem; }
-      input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
-      .preview-track-label { font-size: 0.65em; padding: 0.15em 0.4em; }
-      .seq-cell { min-height: 32px; }
+      input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
+      .preview-track-label { font-size: 0.6em; padding: 0.12em 0.35em; }
+      .seq-cell { min-height: 30px; }
       .modal-visible { padding: 8px; }
-      .beat-val-btn { padding: 0.35rem 0.5rem; min-height: 36px; }
+      .beat-val-btn { padding: 0.3rem 0.45rem; min-height: 36px; font-size: 0.7rem; }
       .glass-btn svg { width: 16px; height: 16px; }
-      #playStopBtn { min-width: 100px; }
+      #playStopBtn { min-width: 90px; }
       .status-row { flex-direction: column; gap: 4px; align-items: center; }
     }
-    
+
     @media (max-width: 380px) {
-      main { padding: 4px; padding-bottom: 70px; }
-      header { margin-bottom: 6px; }
-      .control-group { padding: 0.25rem 0.4rem; gap: 0.25rem; }
+      main { padding: 4px; padding-bottom: 60px; }
+      .control-group { padding: 0.2rem 0.35rem; gap: 0.2rem; }
       #visualizer { height: 36px; }
-      .glass-btn { padding: 0.35rem 0.5rem; font-size: 0.75rem; min-height: 40px; }
-      .track-card { padding: 0.4rem; }
-      textarea { font-size: 0.8rem; padding: 0.4rem; height: 60px; }
+      .glass-btn { padding: 0.3rem 0.45rem; font-size: 0.7rem; min-height: 40px; }
     }
+
+    /* Track card mobile layout */
+    .track-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 0.6rem; cursor: pointer; user-select: none; }
+    .track-header-row:hover { background: rgba(255,255,255,0.05); }
+    .track-name-area { display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0; }
+    .track-name-text { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 640px) { .track-name-text { font-size: 0.78rem; } }
+    .track-controls-row { display: flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap; padding: 0.25rem 0.5rem 0.4rem; }
+    .track-sp-btn { width: 32px; height: 32px; border-radius: 0.4rem; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.45); transition: all 0.15s; flex-shrink: 0; }
+    .track-sp-btn:active { transform: scale(0.92); }
+    .track-sp-btn.solo-on { background: rgba(234,179,8,0.25); border-color: rgba(234,179,8,0.4); color: #fde68a; box-shadow: 0 0 6px rgba(234,179,8,0.2); }
+    .track-sp-btn.mute-on { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+    .track-sp-btn.loop-on { background: rgba(234,179,8,0.25); border-color: rgba(234,179,8,0.4); color: #fde68a; }
+    .track-vol-slider { flex: 1; min-width: 0; }
+    .track-vol-slider input[type="range"] { width: 100%; height: 4px; }
+    .track-vol-slider input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
+    @media (max-width: 640px) { .track-vol-slider input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -10px; } }
+    .track-move-btns { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .track-move-btn { width: 26px; height: 26px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); font-size: 0.6rem; transition: all 0.15s; flex-shrink: 0; }
+    .track-move-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+    .track-move-btn:active { transform: scale(0.9); }
+    .rename-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(96,165,250,0.5); border-radius: 0.35rem; padding: 2px 6px; font-size: 0.8rem; color: white; outline: none; flex: 1; min-width: 0; }
+    .rename-input:focus { border-color: rgba(96,165,250,0.8); box-shadow: 0 0 6px rgba(96,165,250,0.2); }
+    .track-del-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.25); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; }
+    .track-del-btn:hover { color: rgba(239,68,68,0.8); background: rgba(239,68,68,0.1); }
+    .track-rename-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; }
+    .track-rename-btn:hover { color: rgba(96,165,250,0.7); background: rgba(96,165,250,0.1); }
   </style>
 </head>
 <body class="text-white">
@@ -202,23 +215,28 @@
         </div>
         
         <div class="flex items-center gap-1.5">
+          <button id="metronomeBtn" class="glass-btn px-2.5 py-2 rounded-xl font-semibold text-white/50 flex items-center gap-1 md:gap-1.5 touch-target" title="Метроном">
+            <span id="metroIcon">🔇</span>
+          </button>         
           <div class="flex items-center gap-1.5 pr-1 md:pr-2">
             <div id="beatInd1" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd2" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd3" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
             <div id="beatInd4" class="beat-indicator w-3.5 h-3.5 rounded-full bg-white/20"></div>
           </div>
+
           <button id="playStopBtn" class="glass-btn px-3 md:px-5 py-2 md:py-2.5 rounded-xl font-semibold text-blue-200 flex items-center gap-1.5 md:gap-2 min-w-[90px] md:min-w-[120px] justify-center touch-target">
             <svg id="playStopIcon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             <span id="playStopText" class="text-sm md:text-base">Старт</span>
           </button>
-          <button id="recBtn" class="glass-btn px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold text-red-300/80 flex items-center gap-1 md:gap-1.5 touch-target" title="Живая запись">
-            <span id="recIcon">⏺</span>
-            <span class="hidden sm:inline text-xs">Запись</span>
+
+          <!-- Record button - more visually distinct -->
+          <button id="recBtn" class="px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold flex items-center gap-1 md:gap-1.5 touch-target bg-red-500/15 border-2 border-red-500/40 text-red-300 hover:bg-red-500/25 hover:border-red-500/60 hover:text-red-200 transition-all" title="Живая запись">
+            <span id="recIcon" class="text-base">⏺</span>
+            <span class="hidden sm:inline text-xs font-bold">Запись</span>
           </button>
-          <button id="metronomeBtn" class="glass-btn px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold text-white/50 flex items-center gap-1 md:gap-1.5 touch-target" title="Метроном">
-            <span id="metroIcon">🔇</span>
-          </button>
+
+          
         </div>
       </div>
       
@@ -307,7 +325,7 @@
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] md:max-h-[90vh] flex flex-col">
+    <div id="settingsPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
       <button id="closeSettings" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
       <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">🎛 Управление сэмплами</h2>
       <div id="settingsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 md:gap-3 mb-4 md:mb-6 overflow-y-auto pr-1 md:pr-2 pb-2 flex-1"></div>
@@ -393,25 +411,25 @@
       <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">🔊 Мастер Эквалайзер</h2>
       <div class="flex justify-center items-center gap-4 md:gap-6 mb-4 md:mb-6 px-1 md:px-2">
         <div class="eq-slider-wrapper">
-          <div class="text-xs text-white/40 mb-2 font-semibold">Низкие</div>
-          <div class="eq-slider-track">
-            <input type="range" id="eqLow" min="-12" max="12" step="1" value="0" class="accent-blue-400" orient="vertical">
+          <div class="text-xs text-white/40 mb-3 font-semibold">Низкие</div>
+          <div class="eq-slider-container">
+            <input type="range" id="eqLow" min="-12" max="12" step="1" value="0" class="eq-vertical-range" orient="vertical">
           </div>
-          <div id="eqLowVal" class="text-xs text-blue-300 mt-2 font-mono">0 дБ</div>
+          <div id="eqLowVal" class="text-xs text-blue-300 mt-3 font-mono">0 дБ</div>
         </div>
         <div class="eq-slider-wrapper">
-          <div class="text-xs text-white/40 mb-2 font-semibold">Средние</div>
-          <div class="eq-slider-track">
-            <input type="range" id="eqMid" min="-12" max="12" step="1" value="0" class="accent-cyan-400" orient="vertical">
+          <div class="text-xs text-white/40 mb-3 font-semibold">Средние</div>
+          <div class="eq-slider-container">
+            <input type="range" id="eqMid" min="-12" max="12" step="1" value="0" class="eq-vertical-range" orient="vertical">
           </div>
-          <div id="eqMidVal" class="text-xs text-cyan-300 mt-2 font-mono">0 дБ</div>
+          <div id="eqMidVal" class="text-xs text-cyan-300 mt-3 font-mono">0 дБ</div>
         </div>
         <div class="eq-slider-wrapper">
-          <div class="text-xs text-white/40 mb-2 font-semibold">Высокие</div>
-          <div class="eq-slider-track">
-            <input type="range" id="eqHigh" min="-12" max="12" step="1" value="0" class="accent-purple-400" orient="vertical">
+          <div class="text-xs text-white/40 mb-3 font-semibold">Высокие</div>
+          <div class="eq-slider-container">
+            <input type="range" id="eqHigh" min="-12" max="12" step="1" value="0" class="eq-vertical-range" orient="vertical">
           </div>
-          <div id="eqHighVal" class="text-xs text-purple-300 mt-2 font-mono">0 дБ</div>
+          <div id="eqHighVal" class="text-xs text-purple-300 mt-3 font-mono">0 дБ</div>
         </div>
       </div>
       <button id="resetEQ" class="glass-btn w-full py-2.5 rounded-xl text-sm text-white/60 font-medium touch-target">Сбросить эквалайзер</button>
@@ -557,89 +575,93 @@
         });
       };
 
-      // Touch drag state
-      var touchDragTrackId = null;
-      var touchDragStartY = 0;
-      var touchDragThreshold = 10;
-
       var renderTracks = function() {
         els.tracksContainer.innerHTML = '';
         tracks.forEach(function(track, tIdx) {
           var card = document.createElement('div');
-          card.className = 'track-card track-enter glass rounded-2xl p-2.5 md:p-3' + (track.muted ? ' muted' : '') + (track.loop ? ' looping' : '');
+          card.className = 'track-card track-enter glass rounded-2xl' + (track.muted ? ' muted' : '') + (track.loop ? ' looping' : '');
           card.style.animationDelay = (tIdx * 0.04) + 's';
-          card.dataset.trackDragId = track.id;
+          card.dataset.trackId = track.id;
           var dot = getTrackColor(track.id);
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
 
-          var headerHtml = '<div class="flex items-center justify-between mb-1.5 md:mb-2 px-1 md:px-1.5 py-1 md:py-1.5 rounded-lg cursor-pointer select-none hover:bg-white/5 transition-colors" data-track-header="' + track.id + '">';
-          headerHtml += '<div class="flex items-center gap-1.5 md:gap-2 flex-wrap">';
-          headerHtml += '<span class="drag-handle text-white/25 hover:text-white/50 transition-colors select-none text-base md:text-lg leading-none px-1" title="Перетащите для изменения порядка">⠿</span>';
-          headerHtml += '<span class="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
-          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.solo ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-solo="' + track.id + '" title="Соло">С</button>';
-          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.muted ? 'bg-red-500/30 text-red-200 border border-red-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-mute="' + track.id + '" title="Приглушить">П</button>';
-          headerHtml += '<button class="w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all shrink-0 touch-target ' + (track.loop ? 'bg-yellow-500/30 text-yellow-200 border border-yellow-500/40' : 'bg-white/10 text-white/40 hover:bg-white/15') + '" data-toggle-loop="' + track.id + '" title="Зациклить">З</button>';
-          headerHtml += '<span class="text-sm font-semibold text-white/80 truncate max-w-[80px] md:max-w-[110px] track-name-span" data-track-name="' + track.id + '" title="Двойной клик для переименования">' + track.name + '</span>';
-          headerHtml += '</div><div class="flex items-center gap-1 md:gap-1.5 shrink-0">';
-          
-          headerHtml += '<button class="w-6 h-6 md:w-7 md:h-7 rounded-lg text-xs flex items-center justify-center transition-all shrink-0 bg-white/10 text-white/30 hover:bg-white/15 hover:text-white/60 touch-target" data-track-move-up="' + track.id + '" title="Вверх">↑</button>';
-          headerHtml += '<button class="w-6 h-6 md:w-7 md:h-7 rounded-lg text-xs flex items-center justify-center transition-all shrink-0 bg-white/10 text-white/30 hover:bg-white/15 hover:text-white/60 touch-target" data-track-move-down="' + track.id + '" title="Вниз">↓</button>';
-          
-          headerHtml += '<span class="text-[10px] text-white/35 uppercase font-bold">Громк.</span>';
-          headerHtml += '<input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '" class="w-12 md:w-14" onclick="event.stopPropagation()">';
-          headerHtml += '<button class="text-white/35 hover:text-red-400 transition-colors text-xs shrink-0 p-1 w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 touch-target" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
-          headerHtml += '</div></div>';
+          // Header row
+          var headerHtml = '<div class="track-header-row" data-track-header="' + track.id + '">';
+          headerHtml += '<div class="track-name-area">';
+          headerHtml += '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
+          headerHtml += '<span class="track-name-text" data-track-name="' + track.id + '">' + track.name + '</span>';
+          headerHtml += '<button class="track-rename-btn" data-rename-track="' + track.id + '" title="Переименовать">✎</button>';
+          headerHtml += '</div>';
+          headerHtml += '<button class="track-del-btn" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
+          headerHtml += '</div>';
 
-          var bodyHtml = '<div class="track-body-visible" data-track-body="' + track.id + '">';
-          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2 md:p-3 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
+          // Controls row (Solo, Mute, Loop, Volume, Move buttons)
+          var controlsHtml = '<div class="track-controls-row">';
+          controlsHtml += '<button class="track-sp-btn' + (track.solo ? ' solo-on' : '') + '" data-toggle-solo="' + track.id + '" title="Соло">С</button>';
+          controlsHtml += '<button class="track-sp-btn' + (track.muted ? ' mute-on' : '') + '" data-toggle-mute="' + track.id + '" title="Приглушить">П</button>';
+          controlsHtml += '<button class="track-sp-btn' + (track.loop ? ' loop-on' : '') + '" data-toggle-loop="' + track.id + '" title="Зациклить">З</button>';
+          
+          // Volume label + slider
+          controlsHtml += '<span class="text-[10px] text-white/30 uppercase font-bold shrink-0 ml-1">Громк.</span>';
+          controlsHtml += '<div class="track-vol-slider"><input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '"></div>';
+          
+          // Move buttons (vertical stack)
+          controlsHtml += '<div class="track-move-btns">';
+          controlsHtml += '<button class="track-move-btn" data-track-move-up="' + track.id + '" title="Вверх">▲</button>';
+          controlsHtml += '<button class="track-move-btn" data-track-move-down="' + track.id + '" title="Вниз">▼</button>';
+          controlsHtml += '</div>';
+          controlsHtml += '</div>';
+
+          // Textarea body
+          var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
+          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea></div>';
 
-          card.innerHTML = headerHtml + bodyHtml;
+          card.innerHTML = headerHtml + controlsHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
 
-          // Desktop drag and drop
-          setupDragAndDrop(card, track);
-          // Mobile touch drag and drop
-          setupTouchDrag(card, track);
-
+          // Header click toggles body
           card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
-            if (e.target.classList.contains('track-name-span')) return;
-            if (e.target.dataset.trackMoveUp || e.target.dataset.trackMoveDown) return;
-            if (e.target.classList.contains('drag-handle')) return;
+            if (e.target.closest('[data-rename-track]')) return;
+            if (e.target.closest('[data-remove-track]')) return;
             var body = card.querySelector('[data-track-body="' + track.id + '"]');
             body.classList.toggle('track-body-hidden');
             body.classList.toggle('track-body-visible');
           });
 
-          var nameSpan = card.querySelector('[data-track-name="' + track.id + '"]');
-          nameSpan.addEventListener('dblclick', function(e) {
+          // Rename button
+          card.querySelector('[data-rename-track="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
-            e.preventDefault();
             startRenameTrack(track);
           });
 
+          // Solo
           card.querySelector('[data-toggle-solo="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.solo = !track.solo;
             if (track.solo) tracks.forEach(function(t) { if (t.id !== track.id) t.solo = false; });
             renderTracks(); updateNoteInfo();
           });
 
+          // Mute
           card.querySelector('[data-toggle-mute="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.muted = !track.muted;
             renderTracks(); updateNoteInfo();
           });
 
+          // Loop
           card.querySelector('[data-toggle-loop="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.loop = !track.loop;
             renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
+          // Volume
           card.querySelector('[data-track-vol="' + track.id + '"]').addEventListener('input', function(e) {
             e.stopPropagation(); track.volume = parseFloat(e.target.value);
           });
 
+          // Remove
           card.querySelector('[data-remove-track="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             if (tracks.length <= 1) { setStatus('⚠️ Нужна минимум 1 дорожка', 'text-yellow-300'); return; }
@@ -647,277 +669,62 @@
             renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
+          // Tab input
           card.querySelector('[data-track-tab="' + track.id + '"]').addEventListener('input', function(e) {
             track.tab = e.target.value;
             markUnsaved(); updateNoteInfo();
           });
 
-          var moveUpBtn = card.querySelector('[data-track-move-up="' + track.id + '"]');
-          if (moveUpBtn) {
-            moveUpBtn.addEventListener('click', function(e) {
-              e.stopPropagation();
-              moveTrack(track.id, -1);
-            });
-          }
-
-          var moveDownBtn = card.querySelector('[data-track-move-down="' + track.id + '"]');
-          if (moveDownBtn) {
-            moveDownBtn.addEventListener('click', function(e) {
-              e.stopPropagation();
-              moveTrack(track.id, 1);
-            });
-          }
-        });
-      };
-
-      var moveTrack = function(trackId, direction) {
-        var idx = tracks.findIndex(function(t) { return t.id === trackId; });
-        var newIdx = idx + direction;
-        if (newIdx >= 0 && newIdx < tracks.length) {
-          var temp = tracks[newIdx];
-          tracks[newIdx] = tracks[idx];
-          tracks[idx] = temp;
-          renderTracks(); markUnsaved();
-        }
-      };
-
-      var dragSrcTrackId = null;
-      var setupDragAndDrop = function(card, track) {
-        var handle = card.querySelector('.drag-handle');
-        if (!handle) return;
-
-        card.draggable = false;
-
-        handle.addEventListener('dragstart', function(e) {
-          e.preventDefault();
-        });
-
-        handle.addEventListener('mousedown', function(e) {
-          e.stopPropagation();
-          e.preventDefault();
-          dragSrcTrackId = track.id;
-          card.classList.add('dragging');
-          
-          var onDragOver = function(ev) {
-            ev.preventDefault();
-            ev.dataTransfer = ev.dataTransfer || {};
-            ev.dataTransfer.dropEffect = 'move';
-          };
-          var onDrop = function(ev) {
-            ev.preventDefault();
-            var targetCard = ev.target.closest('.track-card');
-            if (targetCard && dragSrcTrackId) {
-              var targetId = parseInt(targetCard.dataset.trackDragId);
-              if (targetId && targetId !== dragSrcTrackId) {
-                var srcIdx = tracks.findIndex(function(t) { return t.id === dragSrcTrackId; });
-                var destIdx = tracks.findIndex(function(t) { return t.id === targetId; });
-                if (srcIdx >= 0 && destIdx >= 0) {
-                  var moved = tracks.splice(srcIdx, 1)[0];
-                  tracks.splice(destIdx, 0, moved);
-                  renderTracks(); markUnsaved();
-                  setStatus('🔀 Дорожка перемещена', 'text-blue-300');
-                }
-              }
-            }
-            cleanupDrag();
-          };
-          var onDragEnd = function() {
-            cleanupDrag();
-          };
-          
-          var cleanupDrag = function() {
-            card.classList.remove('dragging');
-            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
-              c.classList.remove('drag-over-top');
-              c.classList.remove('drag-over-bottom');
-            });
-            document.removeEventListener('dragover', onDragOver);
-            document.removeEventListener('drop', onDrop);
-            document.removeEventListener('dragend', onDragEnd);
-            dragSrcTrackId = null;
-          };
-          
-          document.addEventListener('dragover', onDragOver);
-          document.addEventListener('drop', onDrop);
-          document.addEventListener('dragend', onDragEnd);
-        });
-
-        // Also make the card draggable via HTML5 DnD
-        card.addEventListener('dragstart', function(e) {
-          dragSrcTrackId = track.id;
-          card.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', track.id);
-        });
-        card.addEventListener('dragend', function() {
-          card.classList.remove('dragging');
-          els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
-            c.classList.remove('drag-over-top');
-            c.classList.remove('drag-over-bottom');
-          });
-          dragSrcTrackId = null;
-        });
-        card.addEventListener('dragover', function(e) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (dragSrcTrackId && dragSrcTrackId !== track.id) {
-            var rect = card.getBoundingClientRect();
-            var midY = rect.top + rect.height / 2;
-            card.classList.remove('drag-over-top', 'drag-over-bottom');
-            if (e.clientY < midY) {
-              card.classList.add('drag-over-top');
-            } else {
-              card.classList.add('drag-over-bottom');
-            }
-          }
-        });
-        card.addEventListener('dragleave', function() {
-          card.classList.remove('drag-over-top', 'drag-over-bottom');
-        });
-        card.addEventListener('drop', function(e) {
-          e.preventDefault();
-          card.classList.remove('drag-over-top', 'drag-over-bottom');
-          if (dragSrcTrackId && dragSrcTrackId !== track.id) {
-            var srcIdx = tracks.findIndex(function(t) { return t.id === dragSrcTrackId; });
-            var destIdx = tracks.findIndex(function(t) { return t.id === track.id; });
-            if (srcIdx >= 0 && destIdx >= 0) {
-              var moved = tracks.splice(srcIdx, 1)[0];
-              tracks.splice(destIdx, 0, moved);
+          // Move up
+          card.querySelector('[data-track-move-up="' + track.id + '"]').addEventListener('click', function(e) {
+            e.stopPropagation();
+            var idx = tracks.findIndex(function(t) { return t.id === track.id; });
+            if (idx > 0) {
+              var tmp = tracks[idx - 1];
+              tracks[idx - 1] = tracks[idx];
+              tracks[idx] = tmp;
               renderTracks(); markUnsaved();
-              setStatus('🔀 Дорожка перемещена', 'text-blue-300');
             }
-          }
-        });
-      };
-
-      // Touch-based drag and drop for mobile
-      var setupTouchDrag = function(card, track) {
-        var handle = card.querySelector('.drag-handle');
-        if (!handle) return;
-
-        var touchStartY = 0;
-        var touchStartX = 0;
-        var isDragging = false;
-        var cloneEl = null;
-
-        handle.addEventListener('touchstart', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var touch = e.touches[0];
-          touchStartY = touch.clientY;
-          touchStartX = touch.clientX;
-          isDragging = false;
-        }, { passive: false });
-
-        handle.addEventListener('touchmove', function(e) {
-          if (e.touches.length === 0) return;
-          var touch = e.touches[0];
-          var deltaY = Math.abs(touch.clientY - touchStartY);
-          var deltaX = Math.abs(touch.clientX - touchStartX);
-          
-          if (!isDragging && (deltaY > 10 || deltaX > 10)) {
-            isDragging = true;
-            touchDragTrackId = track.id;
-            card.classList.add('dragging');
-            
-            // Create floating clone
-            cloneEl = card.cloneNode(true);
-            cloneEl.style.position = 'fixed';
-            cloneEl.style.zIndex = '9999';
-            cloneEl.style.pointerEvents = 'none';
-            cloneEl.style.width = card.offsetWidth + 'px';
-            cloneEl.style.opacity = '0.85';
-            cloneEl.style.transform = 'scale(1.02)';
-            cloneEl.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5)';
-            document.body.appendChild(cloneEl);
-          }
-          
-          if (isDragging && cloneEl) {
-            e.preventDefault();
-            cloneEl.style.left = (touch.clientX - card.offsetWidth / 2) + 'px';
-            cloneEl.style.top = (touch.clientY - 30) + 'px';
-            
-            // Highlight drop target
-            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
-              c.classList.remove('drag-over-top', 'drag-over-bottom');
-              if (parseInt(c.dataset.trackDragId) !== track.id) {
-                var rect = c.getBoundingClientRect();
-                var midY = rect.top + rect.height / 2;
-                if (touch.clientY < midY) {
-                  c.classList.add('drag-over-top');
-                } else {
-                  c.classList.add('drag-over-bottom');
-                }
-              }
-            });
-          }
-        }, { passive: false });
-
-        handle.addEventListener('touchend', function(e) {
-          if (isDragging && touchDragTrackId === track.id) {
-            e.preventDefault();
-            var touch = e.changedTouches[0];
-            
-            // Find target card
-            var targetCard = null;
-            els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
-              var rect = c.getBoundingClientRect();
-              if (parseInt(c.dataset.trackDragId) !== track.id) {
-                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-                  targetCard = c;
-                }
-              }
-            });
-            
-            if (targetCard) {
-              var targetId = parseInt(targetCard.dataset.trackDragId);
-              var srcIdx = tracks.findIndex(function(t) { return t.id === track.id; });
-              var destIdx = tracks.findIndex(function(t) { return t.id === targetId; });
-              if (srcIdx >= 0 && destIdx >= 0) {
-                var rect = targetCard.getBoundingClientRect();
-                var midY = rect.top + rect.height / 2;
-                var insertIdx = touch.clientY < midY ? destIdx : destIdx + 1;
-                var moved = tracks.splice(srcIdx, 1)[0];
-                tracks.splice(insertIdx, 0, moved);
-                renderTracks(); markUnsaved();
-                setStatus('🔀 Дорожка перемещена', 'text-blue-300');
-              }
-            }
-          }
-          
-          // Cleanup
-          if (cloneEl) {
-            document.body.removeChild(cloneEl);
-            cloneEl = null;
-          }
-          card.classList.remove('dragging');
-          els.tracksContainer.querySelectorAll('.track-card').forEach(function(c) {
-            c.classList.remove('drag-over-top', 'drag-over-bottom');
           });
-          isDragging = false;
-          touchDragTrackId = null;
-        }, { passive: false });
+
+          // Move down
+          card.querySelector('[data-track-move-down="' + track.id + '"]').addEventListener('click', function(e) {
+            e.stopPropagation();
+            var idx = tracks.findIndex(function(t) { return t.id === track.id; });
+            if (idx < tracks.length - 1) {
+              var tmp = tracks[idx + 1];
+              tracks[idx + 1] = tracks[idx];
+              tracks[idx] = tmp;
+              renderTracks(); markUnsaved();
+            }
+          });
+        });
       };
 
       var startRenameTrack = function(track) {
         var nameSpan = document.querySelector('[data-track-name="' + track.id + '"]');
         if (!nameSpan) return;
         var currentName = track.name;
-        nameSpan.innerHTML = '';
+        nameSpan.style.display = 'none';
+        
+        var renameBtn = document.querySelector('[data-rename-track="' + track.id + '"]');
+        var nameArea = nameSpan.parentElement;
+        
         var input = document.createElement('input');
         input.type = 'text';
         input.value = currentName;
         input.className = 'rename-input';
         input.maxLength = 30;
-        nameSpan.appendChild(input);
+        nameArea.insertBefore(input, renameBtn);
         input.focus();
         input.select();
 
         var finishRename = function() {
           var newName = input.value.trim() || currentName;
           track.name = newName;
-          renderTracks();
+          if (input.parentNode) input.parentNode.removeChild(input);
+          nameSpan.style.display = '';
+          nameSpan.textContent = newName;
           markUnsaved();
         };
 
@@ -1286,11 +1093,7 @@
       };
 
       var togglePlayback = function() {
-        if (isPlaying) {
-          stopPlayback();
-        } else {
-          startPlayback();
-        }
+        if (isPlaying) { stopPlayback(); } else { startPlayback(); }
       };
 
       var startPlayback = function() {
@@ -1336,9 +1139,7 @@
       var updateVisualPill = function(groupIdx) {
         clearActivePills();
         var pills = els.noteDisplay.querySelectorAll('.note-pill[data-grp="' + groupIdx + '"]');
-        pills.forEach(function(p) { 
-          p.classList.add('active'); activePills.push(p); 
-        });
+        pills.forEach(function(p) { p.classList.add('active'); activePills.push(p); });
         if (pills.length > 0) {
           var container = els.noteDisplay;
           var pillRect = pills[0].getBoundingClientRect();
@@ -1498,90 +1299,59 @@
       els.closeSettings.addEventListener('click', function() { closeModal(els.settingsModal, els.settingsPanel); });
       els.settingsModal.addEventListener('click', function(e) { if (e.target === els.settingsModal) closeModal(els.settingsModal, els.settingsPanel); });
       els.saveSettings.addEventListener('click', function() {
-        if (saveSamplesToStorage()) {
-          setStatus('✅ Сэмплы сохранены', 'text-green-400');
-          setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300);
-        } else { setStatus('❌ Ошибка сохранения (лимит)', 'text-red-400'); }
+        if (saveSamplesToStorage()) { setStatus('✅ Сэмплы сохранены', 'text-green-400'); setTimeout(function(){closeModal(els.settingsModal, els.settingsPanel);}, 300); }
+        else { setStatus('❌ Ошибка сохранения (лимит)', 'text-red-400'); }
       });
       els.resetAllSamples.addEventListener('click', function() {
-        if (confirm('Удалить все загруженные сэмплы?')) {
-          for (var k in customSamples) delete customSamples[k];
-          buildSettingsUI(); markUnsaved();
-        }
+        if (confirm('Удалить все загруженные сэмплы?')) { for (var k in customSamples) delete customSamples[k]; buildSettingsUI(); markUnsaved(); }
       });
 
-      els.exportBtn.addEventListener('click', function() {
-        openModal(els.exportModal, els.exportPanel);
-      });
+      els.exportBtn.addEventListener('click', function() { openModal(els.exportModal, els.exportPanel); });
       els.closeExport.addEventListener('click', function() { closeModal(els.exportModal, els.exportPanel); });
       els.exportModal.addEventListener('click', function(e) { if (e.target === els.exportModal) closeModal(els.exportModal, els.exportPanel); });
       els.cancelExport.addEventListener('click', function() { closeModal(els.exportModal, els.exportPanel); });
-      els.confirmExport.addEventListener('click', function() {
-        closeModal(els.exportModal, els.exportPanel);
-        performExport(els.exportWithSamples.checked);
-      });
+      els.confirmExport.addEventListener('click', function() { closeModal(els.exportModal, els.exportPanel); performExport(els.exportWithSamples.checked); });
 
       var performExport = function(includeSamples) {
         readTrackTabsFromDOM();
         var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
-        
         if (includeSamples) {
           data.samples = {};
           for (var key in customSamples) {
             if (customSamples[key] && customSamples[key].buffer) {
-              try {
-                var b64 = audioBufferToBase64(customSamples[key].buffer);
-                if (b64) {
-                  data.samples[key] = { name: customSamples[key].name, bufferB64: b64 };
-                }
-              } catch(e) {}
+              try { var b64 = audioBufferToBase64(customSamples[key].buffer); if (b64) { data.samples[key] = { name: customSamples[key].name, bufferB64: b64 }; } } catch(e) {}
             }
           }
           setStatus('📤 Экспорт с сэмплами...', 'text-cyan-300');
         }
-
         var jsonStr = JSON.stringify(data, null, 2);
         var blob = new Blob([jsonStr], {type: 'application/json'});
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a'); a.href = url; a.download = 'darbuka-tab-' + new Date().toISOString().slice(0,10) + (includeSamples ? '-with-samples' : '') + '.json';
         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        
-        setTimeout(function() {
-          setStatus('📤 Экспортировано' + (includeSamples ? ' (с сэмплами)' : ''), 'text-cyan-300');
-        }, 500);
+        setTimeout(function() { setStatus('📤 Экспортировано' + (includeSamples ? ' (с сэмплами)' : ''), 'text-cyan-300'); }, 500);
       };
 
-      els.importBtn.addEventListener('click', function() {
-        els.importFile.click();
-      });
+      els.importBtn.addEventListener('click', function() { els.importFile.click(); });
       els.importFile.addEventListener('change', function(e) {
         var file = e.target.files[0]; if (!file) return;
         var reader = new FileReader();
         reader.onload = function(ev) {
           try {
             pendingImportData = JSON.parse(ev.target.result);
-            
-            var info = els.importFileInfo;
-            info.classList.remove('hidden');
+            var info = els.importFileInfo; info.classList.remove('hidden');
             var infoHtml = '<div class="font-semibold text-white/60 mb-1">Файл: ' + file.name + '</div>';
-            if (pendingImportData.tracks) {
-              infoHtml += '<div class="mt-1">🎵 Дорожки: ' + pendingImportData.tracks.length + '</div>';
-            }
-            if (pendingImportData.bpm) {
-              infoHtml += '<div>Темп: ' + pendingImportData.bpm + '</div>';
-            }
+            if (pendingImportData.tracks) infoHtml += '<div class="mt-1">🎵 Дорожки: ' + pendingImportData.tracks.length + '</div>';
+            if (pendingImportData.bpm) infoHtml += '<div>Темп: ' + pendingImportData.bpm + '</div>';
             if (pendingImportData.samples) {
               var sampleCount = Object.keys(pendingImportData.samples).length;
               infoHtml += '<div class="mt-1">🎛 Сэмплы: ' + sampleCount + ' найдено в файле</div>';
-              els.importWithSamples.disabled = false;
-              els.importWithSamples.checked = true;
+              els.importWithSamples.disabled = false; els.importWithSamples.checked = true;
             } else {
               infoHtml += '<div class="mt-1 text-yellow-300/60">🎛 Сэмплы не найдены</div>';
-              els.importWithSamples.disabled = true;
-              els.importWithSamples.checked = false;
+              els.importWithSamples.disabled = true; els.importWithSamples.checked = false;
             }
             info.innerHTML = infoHtml;
-            
             openModal(els.importModal, els.importPanel);
           } catch(err) { setStatus('❌ Ошибка чтения файла', 'text-red-400'); }
         };
@@ -1592,9 +1362,7 @@
       els.cancelImport.addEventListener('click', function() { closeModal(els.importModal, els.importPanel); pendingImportData = null; });
       els.confirmImport.addEventListener('click', function() {
         closeModal(els.importModal, els.importPanel);
-        if (pendingImportData) {
-          performImport(pendingImportData, els.importWithSamples.checked);
-        }
+        if (pendingImportData) { performImport(pendingImportData, els.importWithSamples.checked); }
         pendingImportData = null;
       });
 
@@ -1604,19 +1372,12 @@
         if (data.volume !== undefined) { volume = data.volume; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%'; }
         if (data.swing !== undefined) { swing = data.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
         if (data.beatValueDenom !== undefined) { setBeatValue(data.beatValueDenom); }
-        
         if (loadSamples && data.samples) {
           initAudio();
           if (audioCtx && audioCtx.state === 'running') {
             var count = 0;
             for (var key in data.samples) {
-              if (data.samples[key] && data.samples[key].bufferB64) {
-                var buf = base64ToAudioBuffer(data.samples[key].bufferB64);
-                if (buf) {
-                  customSamples[key] = { buffer: buf, name: data.samples[key].name };
-                  count++;
-                }
-              }
+              if (data.samples[key] && data.samples[key].bufferB64) { var buf = base64ToAudioBuffer(data.samples[key].bufferB64); if (buf) { customSamples[key] = { buffer: buf, name: data.samples[key].name }; count++; } }
             }
             saveSamplesToStorage();
             setStatus('📥 Импортировано (' + count + ' сэмплов загружено)', 'text-purple-300');
@@ -1624,43 +1385,26 @@
             audioCtx.resume().then(function() {
               var count = 0;
               for (var key in data.samples) {
-                if (data.samples[key] && data.samples[key].bufferB64) {
-                  var buf = base64ToAudioBuffer(data.samples[key].bufferB64);
-                  if (buf) {
-                    customSamples[key] = { buffer: buf, name: data.samples[key].name };
-                    count++;
-                  }
-                }
+                if (data.samples[key] && data.samples[key].bufferB64) { var buf = base64ToAudioBuffer(data.samples[key].bufferB64); if (buf) { customSamples[key] = { buffer: buf, name: data.samples[key].name }; count++; } }
               }
               saveSamplesToStorage();
               setStatus('📥 Импортировано (' + count + ' сэмплов загружено)', 'text-purple-300');
             });
           }
-        } else {
-          setStatus('📥 Импортировано', 'text-purple-300');
-        }
-        
+        } else { setStatus('📥 Импортировано', 'text-purple-300'); }
         renderTracks(); updateNoteInfo(); markUnsaved();
       };
 
       var getSlotKey = function(n) { return 'darbuka_slot_v2_' + n; };
       var getSlotInfo = function(n) { try { var r = localStorage.getItem(getSlotKey(n)); return r ? JSON.parse(r) : null; } catch(e) { return null; } };
       var saveToSlot = function(n) {
-        try {
-          readTrackTabsFromDOM();
-          var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter };
-          localStorage.setItem(getSlotKey(n), JSON.stringify(data));
-          hasUnsavedChanges = false; return true;
-        } catch(e) { return false; }
+        try { readTrackTabsFromDOM(); var data = { tracks: tracks, bpm: bpm, volume: volume, swing: swing, beatValueDenom: beatValueDenom, ts: Date.now(), trackIdCounter: trackIdCounter }; localStorage.setItem(getSlotKey(n), JSON.stringify(data)); hasUnsavedChanges = false; return true; } catch(e) { return false; }
       };
       var loadFromSlot = function(n) {
         var d = getSlotInfo(n); if (!d) return false;
-        if (d.tracks && d.tracks.length > 0) {
-          tracks = d.tracks; trackIdCounter = d.trackIdCounter || tracks.length;
-        }
+        if (d.tracks && d.tracks.length > 0) { tracks = d.tracks; trackIdCounter = d.trackIdCounter || tracks.length; }
         bpm = d.bpm || 120; els.bpm.value = bpm;
-        volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume;
-        els.volumeVal.textContent = Math.round(volume * 100) + '%';
+        volume = d.volume !== undefined ? d.volume : 0.8; els.volume.value = volume; els.volumeVal.textContent = Math.round(volume * 100) + '%';
         if (d.swing !== undefined) { swing = d.swing; els.swing.value = swing; els.swingVal.textContent = swing + '%'; }
         if (d.beatValueDenom !== undefined) { setBeatValue(d.beatValueDenom); }
         if (masterGain) masterGain.gain.value = volume;
@@ -1707,11 +1451,7 @@
       els.loadSelectedSlot.addEventListener('click', function() { if (selectedSlotInModal > 0 && loadFromSlot(selectedSlotInModal)) setStatus('📂 Загружено из слота ' + selectedSlotInModal, 'text-green-400'); else setStatus('⚠️ Слот пуст', 'text-yellow-300'); });
       els.deleteSlotBtn.addEventListener('click', function() { if (selectedSlotInModal > 0 && confirm('Удалить слот ' + selectedSlotInModal + '?')) { deleteSlot(selectedSlotInModal); buildSlotsUI(); setStatus('🗑 Удалено', 'text-red-300'); } });
 
-      els.clearBtn.addEventListener('click', function() {
-        readTrackTabsFromDOM();
-        tracks.forEach(function(t) { t.tab = ''; });
-        renderTracks(); updateNoteInfo(); setStatus('🗑 Очищено', 'text-white/40'); markUnsaved();
-      });
+      els.clearBtn.addEventListener('click', function() { readTrackTabsFromDOM(); tracks.forEach(function(t) { t.tab = ''; }); renderTracks(); updateNoteInfo(); setStatus('🗑 Очищено', 'text-white/40'); markUnsaved(); });
       els.saveBtn.addEventListener('click', function() { if (saveToSlot(currentSlot)) setStatus('💾 Сохранено в слот ' + currentSlot, 'text-green-400'); else setStatus('❌ Ошибка', 'text-red-400'); });
       els.loadBtn.addEventListener('click', function() { if (loadFromSlot(currentSlot)) setStatus('📂 Загружено из слота ' + currentSlot, 'text-green-400'); else setStatus('⚠️ Пусто', 'text-yellow-300'); });
       els.addTrackBtn.addEventListener('click', function() { tracks.push(createTrack()); renderTracks(); updateNoteInfo(); markUnsaved(); });
@@ -1721,31 +1461,17 @@
         var merged = mergeAllTracks();
         if (merged.length === 0) { setStatus('⚠️ Нет нот для экспорта', 'text-yellow-300'); return; }
         setStatus('🎵 Рендеринг WAV...', 'text-pink-300');
-        
         var offlineCtx = new OfflineAudioContext(2, 44100 * 60, 44100);
         var offlineMaster = offlineCtx.createGain(); offlineMaster.gain.value = volume;
         offlineMaster.connect(offlineCtx.destination);
-        
         var groups = buildBeatGroups(merged);
         groups.forEach(function(grp) {
           var t = grp.time;
           for (var e = 0; e < grp.events.length; e++) {
             var evt = grp.events[e];
-            if (!evt.isRest) {
-              for (var n = 0; n < evt.notes.length; n++) {
-                var type = evt.notes[n];
-                if (customSamples[type] && customSamples[type].buffer) {
-                  try {
-                    var src = offlineCtx.createBufferSource(); src.buffer = customSamples[type].buffer;
-                    var g = offlineCtx.createGain(); g.gain.value = evt.trackVolume;
-                    src.connect(g); g.connect(offlineMaster); src.start(t);
-                  } catch(ex) {}
-                }
-              }
-            }
+            if (!evt.isRest) { for (var n = 0; n < evt.notes.length; n++) { var type = evt.notes[n]; if (customSamples[type] && customSamples[type].buffer) { try { var src = offlineCtx.createBufferSource(); src.buffer = customSamples[type].buffer; var g = offlineCtx.createGain(); g.gain.value = evt.trackVolume; src.connect(g); g.connect(offlineMaster); src.start(t); } catch(ex) {} } } }
           }
         });
-        
         offlineCtx.startRendering().then(function(renderedBuffer) {
           var wav = audioBufferToWav(renderedBuffer);
           var blob = new Blob([wav], {type: 'audio/wav'});
@@ -1753,55 +1479,23 @@
           var a = document.createElement('a'); a.href = url; a.download = 'darbuka-' + new Date().toISOString().slice(0,10) + '.wav';
           document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
           setStatus('✅ WAV экспортирован', 'text-green-400');
-        }).catch(function(err) {
-          setStatus('❌ Ошибка рендеринга', 'text-red-400');
-        });
+        }).catch(function(err) { setStatus('❌ Ошибка рендеринга', 'text-red-400'); });
       });
 
       var audioBufferToWav = function(buffer) {
         var numCh = buffer.numberOfChannels, sr = buffer.sampleRate, len = buffer.length;
-        var bitDepth = 16;
-        var bytesPerSample = bitDepth / 8;
-        var blockAlign = numCh * bytesPerSample;
-        var byteRate = sr * blockAlign;
-        var dataLen = len * blockAlign;
-        var headerLen = 44;
-        var totalLen = headerLen + dataLen;
-        var arrayBuffer = new ArrayBuffer(totalLen);
-        var view = new DataView(arrayBuffer);
-        
-        var writeString = function(offset, str) {
-          for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-        };
-        
-        writeString(0, 'RIFF');
-        view.setUint32(4, totalLen - 8, true);
-        writeString(8, 'WAVE');
-        writeString(12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, numCh, true);
-        view.setUint32(24, sr, true);
-        view.setUint32(28, byteRate, true);
-        view.setUint16(32, blockAlign, true);
-        view.setUint16(34, bitDepth, true);
-        writeString(36, 'data');
-        view.setUint32(40, dataLen, true);
-        
-        var channels = [];
-        for (var c = 0; c < numCh; c++) {
-          channels.push(buffer.getChannelData(c));
-        }
-        
+        var bitDepth = 16, bytesPerSample = bitDepth / 8;
+        var blockAlign = numCh * bytesPerSample, byteRate = sr * blockAlign, dataLen = len * blockAlign;
+        var headerLen = 44, totalLen = headerLen + dataLen;
+        var arrayBuffer = new ArrayBuffer(totalLen); var view = new DataView(arrayBuffer);
+        var writeString = function(offset, str) { for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+        writeString(0, 'RIFF'); view.setUint32(4, totalLen - 8, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
+        view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numCh, true);
+        view.setUint32(24, sr, true); view.setUint32(28, byteRate, true); view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bitDepth, true); writeString(36, 'data'); view.setUint32(40, dataLen, true);
+        var channels = []; for (var c = 0; c < numCh; c++) channels.push(buffer.getChannelData(c));
         var offset = 44;
-        for (var i = 0; i < len; i++) {
-          for (var c = 0; c < numCh; c++) {
-            var sample = Math.max(-1, Math.min(1, channels[c][i]));
-            var intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-            view.setInt16(offset, intSample, true);
-            offset += 2;
-          }
-        }
+        for (var i = 0; i < len; i++) { for (var c = 0; c < numCh; c++) { var sample = Math.max(-1, Math.min(1, channels[c][i])); var intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF; view.setInt16(offset, intSample, true); offset += 2; } }
         return arrayBuffer;
       };
 
@@ -1825,8 +1519,7 @@
         els.beatVal4.classList.toggle('active', denom === 4);
         els.beatVal8.classList.toggle('active', denom === 8);
         els.beatVal16.classList.toggle('active', denom === 16);
-        updateNoteInfo();
-        markUnsaved();
+        updateNoteInfo(); markUnsaved();
       };
 
       els.beatVal4.addEventListener('click', function() { setBeatValue(4); });
@@ -1845,9 +1538,8 @@
       });
 
       els.recBtn.addEventListener('click', function() {
-        if (isRecording) {
-          stopRecording();
-        } else {
+        if (isRecording) { stopRecording(); }
+        else {
           initAudio();
           if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(function() { startRecording(); }); }
           else { startRecording(); }
@@ -1855,34 +1547,20 @@
       });
 
       var startRecording = function() {
-        isRecording = true;
-        recordStartTime = audioCtx.currentTime;
-        recordedEvents = [];
-        els.recBtn.classList.add('rec-active');
-        els.recIcon.textContent = '⏹';
-        els.recOverlay.style.opacity = '1';
+        isRecording = true; recordStartTime = audioCtx.currentTime; recordedEvents = [];
+        els.recBtn.classList.add('rec-active'); els.recIcon.textContent = '⏹'; els.recOverlay.style.opacity = '1';
         setStatus('⏺ Запись... Нажимайте клавиши D, T, K, S, t, k, B, R', 'text-red-300');
-        
         document.addEventListener('keydown', recordKeyHandler);
       };
 
       var recordKeyHandler = function(e) {
-        if (!isRecording) return;
-        if (e.repeat) return;
-        
-        var keyMap = { 'd': 'D', 'D': 'D',
-                       't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T',
-                       'k': 'K', 'K': 'K',
-                       's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S',
-                       'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B',
-                       'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
-        
+        if (!isRecording || e.repeat) return;
+        var keyMap = { 'd': 'D', 'D': 'D', 't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T', 'k': 'K', 'K': 'K', 's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S', 'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B', 'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
         var type = keyMap[e.key];
         if (type && NOTE_INFO[type]) {
           var now = audioCtx.currentTime;
           recordedEvents.push({ time: now, type: type });
           playNote(type, now, 1);
-          
           setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
           e.preventDefault();
         }
@@ -1890,22 +1568,12 @@
 
       var stopRecording = function() {
         if (!isRecording) return;
-        isRecording = false;
-        els.recBtn.classList.remove('rec-active');
-        els.recIcon.textContent = '⏺';
-        els.recOverlay.style.opacity = '0';
+        isRecording = false; els.recBtn.classList.remove('rec-active'); els.recIcon.textContent = '⏺'; els.recOverlay.style.opacity = '0';
         document.removeEventListener('keydown', recordKeyHandler);
-        
         if (recordedEvents.length === 0) return;
-        
         var tabString = buildTabFromEvents(recordedEvents);
-        if (tracks.length > 0 && !tracks[0].tab) {
-          tracks[0].tab = tabString;
-          tracks[0].name = 'Запись';
-        } else {
-          tracks.push(createTrack('Запись'));
-          tracks[tracks.length - 1].tab = tabString;
-        }
+        if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = tabString; tracks[0].name = 'Запись'; }
+        else { tracks.push(createTrack('Запись')); tracks[tracks.length - 1].tab = tabString; }
         renderTracks(); updateNoteInfo(); markUnsaved();
         setStatus('🎵 Запись сохранена (' + recordedEvents.length + ' нот)', 'text-green-400');
         recordedEvents = [];
@@ -1913,87 +1581,39 @@
 
       var buildTabFromEvents = function(events) {
         if (events.length === 0) return '';
-        
         events.sort(function(a, b) { return a.time - b.time; });
-        
-        var beatDur = getBeatDuration(bpm, beatValueDenom);
-        var startTime = events[0].time;
-        
+        var beatDur = getBeatDuration(bpm, beatValueDenom); var startTime = events[0].time;
         var quantizedEvents = [];
         for (var i = 0; i < events.length; i++) {
-          var timeOffset = events[i].time - startTime;
-          var beatPos = Math.round(timeOffset / beatDur);
+          var beatPos = Math.round((events[i].time - startTime) / beatDur);
           if (beatPos < 0) beatPos = 0;
-          quantizedEvents.push({
-            beatPos: beatPos,
-            type: events[i].type,
-            originalTime: events[i].time
-          });
+          quantizedEvents.push({ beatPos: beatPos, type: events[i].type });
         }
-        
-        var beatGroupsArr = [];
-        var currentBeatGroup = null;
-        
+        var beatGroupsArr = []; var currentBeatGroup = null;
         for (var i = 0; i < quantizedEvents.length; i++) {
           var evt = quantizedEvents[i];
-          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) {
-            currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] };
-            beatGroupsArr.push(currentBeatGroup);
-          } else {
-            if (currentBeatGroup.notes.indexOf(evt.type) === -1) {
-              currentBeatGroup.notes.push(evt.type);
-            }
-          }
+          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) { currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] }; beatGroupsArr.push(currentBeatGroup); }
+          else { if (currentBeatGroup.notes.indexOf(evt.type) === -1) currentBeatGroup.notes.push(evt.type); }
         }
-        
         var tab = '';
         for (var i = 0; i < beatGroupsArr.length; i++) {
           var grp = beatGroupsArr[i];
           var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 1);
-          var duration = nextPos - grp.beatPos;
-          duration = Math.max(1, Math.round(duration));
-          
-          var noteStr;
-          if (grp.notes.length === 1) {
-            noteStr = grp.notes[0];
-          } else {
-            noteStr = '(' + grp.notes.join('') + ')';
-          }
-          
-          if (duration > 1) {
-            noteStr += duration;
-          }
-          
+          var duration = Math.max(1, Math.round(nextPos - grp.beatPos));
+          var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
+          if (duration > 1) noteStr += duration;
           if (i > 0) {
-            var prevEndPos = beatGroupsArr[i - 1].beatPos;
-            var prevDur = Math.max(1, Math.round(beatGroupsArr[i].beatPos - beatGroupsArr[i-1].beatPos > 0 ? 1 : 1));
-            var expectedNextPos = beatGroupsArr[i - 1].beatPos + prevDur;
+            var expectedNextPos = beatGroupsArr[i - 1].beatPos + Math.max(1, Math.round(beatGroupsArr[i].beatPos - beatGroupsArr[i-1].beatPos > 0 ? 1 : 1));
             var gap = grp.beatPos - expectedNextPos;
-            if (gap > 0) {
-              for (var g = 0; g < gap; g++) {
-                tab += '- ';
-              }
-            }
+            for (var g = 0; g < gap; g++) tab += '- ';
           }
-          
-          if (i === 0 && grp.beatPos > 0) {
-            for (var g = 0; g < grp.beatPos; g++) {
-              tab += '- ';
-            }
-          }
-          
+          if (i === 0 && grp.beatPos > 0) { for (var g = 0; g < grp.beatPos; g++) tab += '- '; }
           tab += noteStr + ' ';
         }
-        
         return tab.trim();
       };
 
-      els.recBtn.addEventListener('dblclick', function(e) {
-        if (isRecording) {
-          e.preventDefault();
-          stopRecording();
-        }
-      });
+      els.recBtn.addEventListener('dblclick', function(e) { if (isRecording) { e.preventDefault(); stopRecording(); } });
 
       els.openPresets.addEventListener('click', function() { buildPresetsUI(); openModal(els.presetsModal, els.presetsPanel); });
       els.closePresets.addEventListener('click', function() { closeModal(els.presetsModal, els.presetsPanel); });
@@ -2006,17 +1626,11 @@
           var tab = PRESETS[name];
           var card = document.createElement('div');
           card.className = 'glass rounded-xl p-2.5 md:p-3 cursor-pointer border border-transparent hover:border-purple-500/30 transition-all hover:bg-white/[0.04] touch-target';
-          card.innerHTML = '<div class="text-sm font-semibold text-purple-200 mb-0.5 md:mb-1">' + name + '</div>';
-          card.innerHTML += '<div class="text-xs text-white/35 font-mono truncate">' + tab + '</div>';
+          card.innerHTML = '<div class="text-sm font-semibold text-purple-200 mb-0.5 md:mb-1">' + name + '</div><div class="text-xs text-white/35 font-mono truncate">' + tab + '</div>';
           (function(presetName, presetTab) {
             card.addEventListener('click', function() {
-              if (tracks.length > 0 && !tracks[0].tab) {
-                tracks[0].tab = presetTab;
-                tracks[0].name = presetName;
-              } else {
-                tracks.push(createTrack(presetName));
-                tracks[tracks.length - 1].tab = presetTab;
-              }
+              if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = presetTab; tracks[0].name = presetName; }
+              else { tracks.push(createTrack(presetName)); tracks[tracks.length - 1].tab = presetTab; }
               renderTracks(); updateNoteInfo(); markUnsaved();
               setStatus('🎵 Загружен пресет: ' + presetName, 'text-purple-300');
               closeModal(els.presetsModal, els.presetsPanel);
@@ -2034,17 +1648,12 @@
         if (eqLowNode) eqLowNode.gain.value = parseFloat(els.eqLow.value);
         if (eqMidNode) eqMidNode.gain.value = parseFloat(els.eqMid.value);
         if (eqHighNode) eqHighNode.gain.value = parseFloat(els.eqHigh.value);
-        els.eqLowVal.textContent = els.eqLow.value + ' дБ';
-        els.eqMidVal.textContent = els.eqMid.value + ' дБ';
-        els.eqHighVal.textContent = els.eqHigh.value + ' дБ';
+        els.eqLowVal.textContent = els.eqLow.value + ' дБ'; els.eqMidVal.textContent = els.eqMid.value + ' дБ'; els.eqHighVal.textContent = els.eqHigh.value + ' дБ';
       };
       els.eqLow.addEventListener('input', updateEQ);
       els.eqMid.addEventListener('input', updateEQ);
       els.eqHigh.addEventListener('input', updateEQ);
-      els.resetEQ.addEventListener('click', function() {
-        els.eqLow.value = 0; els.eqMid.value = 0; els.eqHigh.value = 0;
-        updateEQ();
-      });
+      els.resetEQ.addEventListener('click', function() { els.eqLow.value = 0; els.eqMid.value = 0; els.eqHigh.value = 0; updateEQ(); });
 
       els.openSeq.addEventListener('click', function() { buildSeqUI(); openModal(els.seqModal, els.seqPanel); });
       els.closeSeq.addEventListener('click', function() { closeModal(els.seqModal, els.seqPanel); });
@@ -2052,124 +1661,48 @@
 
       var buildSeqUI = function() {
         var grid = els.seqGrid; grid.innerHTML = '';
-        
         var headerRow = document.createElement('div');
-        headerRow.className = 'seq-grid';
-        headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
-        
-        var corner = document.createElement('div');
-        corner.className = 'seq-label';
-        headerRow.appendChild(corner);
-        
-        for (var s = 0; s < 16; s++) {
-          var lbl = document.createElement('div');
-          lbl.className = 'seq-label text-white/25 text-xs';
-          lbl.textContent = s + 1;
-          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.45)';
-          headerRow.appendChild(lbl);
-        }
+        headerRow.className = 'seq-grid'; headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
+        headerRow.appendChild(document.createElement('div')).className = 'seq-label';
+        for (var s = 0; s < 16; s++) { var lbl = document.createElement('div'); lbl.className = 'seq-label text-white/25 text-xs'; lbl.textContent = s + 1; if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.45)'; headerRow.appendChild(lbl); }
         grid.appendChild(headerRow);
-
         for (var r = 0; r < SEQ_NOTES.length; r++) {
           var noteType = SEQ_NOTES[r];
-          var row = document.createElement('div');
-          row.className = 'seq-grid';
-          row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
-          
-          var noteLabel = document.createElement('div');
-          noteLabel.className = 'seq-label';
-          noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>';
-          row.appendChild(noteLabel);
-          
+          var row = document.createElement('div'); row.className = 'seq-grid'; row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
+          var noteLabel = document.createElement('div'); noteLabel.className = 'seq-label'; noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>'; row.appendChild(noteLabel);
           for (var c = 0; c < 16; c++) {
-            var cell = document.createElement('div');
-            cell.className = 'seq-cell' + (seqState[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
-            cell.style.setProperty('--cell-color', getTrackColor(r + 1));
-            cell.dataset.row = r;
-            cell.dataset.col = c;
-            cell.addEventListener('click', function(e) {
-              var rowIdx = parseInt(e.target.dataset.row);
-              var colIdx = parseInt(e.target.dataset.col);
-              seqState[rowIdx][colIdx] = !seqState[rowIdx][colIdx];
-              e.target.classList.toggle('active');
-              if (seqState[rowIdx][colIdx]) playPreview(SEQ_NOTES[rowIdx]);
-            });
+            var cell = document.createElement('div'); cell.className = 'seq-cell' + (seqState[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
+            cell.style.setProperty('--cell-color', getTrackColor(r + 1)); cell.dataset.row = r; cell.dataset.col = c;
+            cell.addEventListener('click', function(e) { var rowIdx = parseInt(e.target.dataset.row); var colIdx = parseInt(e.target.dataset.col); seqState[rowIdx][colIdx] = !seqState[rowIdx][colIdx]; e.target.classList.toggle('active'); if (seqState[rowIdx][colIdx]) playPreview(SEQ_NOTES[rowIdx]); });
             row.appendChild(cell);
           }
           grid.appendChild(row);
         }
       };
 
-      els.seqPlayBtn.addEventListener('click', function() {
-        initAudio();
-        if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(playSeq); }
-        else { playSeq(); }
-      });
-
+      els.seqPlayBtn.addEventListener('click', function() { initAudio(); if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(playSeq); } else { playSeq(); } });
       var playSeq = function() {
-        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4;
-        var startTime = audioCtx.currentTime + 0.05;
-        
-        for (var r = 0; r < SEQ_NOTES.length; r++) {
-          for (var c = 0; c < 16; c++) {
-            if (seqState[r][c]) {
-              var playTime = startTime + c * stepDuration;
-              playNote(SEQ_NOTES[r], playTime, 1);
-            }
-          }
-        }
+        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4; var startTime = audioCtx.currentTime + 0.05;
+        for (var r = 0; r < SEQ_NOTES.length; r++) { for (var c = 0; c < 16; c++) { if (seqState[r][c]) playNote(SEQ_NOTES[r], startTime + c * stepDuration, 1); } }
         setStatus('▶ Секвенсор: 16 шагов', 'text-green-300');
       };
-
-      els.seqClearBtn.addEventListener('click', function() {
-        for (var r = 0; r < seqState.length; r++) {
-          for (var c = 0; c < 16; c++) {
-            seqState[r][c] = false;
-          }
-        }
-        buildSeqUI();
-      });
-
+      els.seqClearBtn.addEventListener('click', function() { for (var r = 0; r < seqState.length; r++) for (var c = 0; c < 16; c++) seqState[r][c] = false; buildSeqUI(); });
       els.seqExportTabBtn.addEventListener('click', function() {
         var tab = '';
         for (var c = 0; c < 16; c++) {
-          var activeNotes = [];
-          for (var r = 0; r < SEQ_NOTES.length; r++) {
-            if (seqState[r][c]) {
-              activeNotes.push(SEQ_NOTES[r]);
-            }
-          }
-          if (activeNotes.length > 0) {
-            if (activeNotes.length === 1) {
-              tab += activeNotes[0] + ' ';
-            } else {
-              tab += '(' + activeNotes.join('') + ') ';
-            }
-          } else {
-            tab += '- ';
-          }
+          var activeNotes = []; for (var r = 0; r < SEQ_NOTES.length; r++) if (seqState[r][c]) activeNotes.push(SEQ_NOTES[r]);
+          if (activeNotes.length > 0) { tab += activeNotes.length === 1 ? activeNotes[0] + ' ' : '(' + activeNotes.join('') + ') '; }
+          else { tab += '- '; }
         }
-        
-        if (tracks.length > 0 && !tracks[0].tab) {
-          tracks[0].tab = tab.trim();
-        } else {
-          tracks.push(createTrack('Секвенсор'));
-          tracks[tracks.length - 1].tab = tab.trim();
-        }
-        renderTracks(); updateNoteInfo(); markUnsaved();
-        closeModal(els.seqModal, els.seqPanel);
+        if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = tab.trim(); }
+        else { tracks.push(createTrack('Секвенсор')); tracks[tracks.length - 1].tab = tab.trim(); }
+        renderTracks(); updateNoteInfo(); markUnsaved(); closeModal(els.seqModal, els.seqPanel);
         setStatus('📤 Экспортировано в табулатуру', 'text-green-400');
       });
 
       document.addEventListener('keydown', function(e) {
-        if (isRecording) {
-          recordKeyHandler(e);
-          return;
-        }
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-          if (e.target.classList.contains('rename-input')) return;
-          if (e.key === 'Enter' || e.key === 'Escape') return;
-        }
+        if (isRecording) { recordKeyHandler(e); return; }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if (e.target.classList.contains('rename-input')) return; if (e.key === 'Enter' || e.key === 'Escape') return; }
         if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
         if (e.code === 'Escape') { if (isPlaying) stopPlayback(); }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
