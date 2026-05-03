@@ -319,31 +319,6 @@
       cursor: pointer; user-select: none; touch-action: manipulation;
     }
     .tab-input-btn:active { transform: scale(0.9); filter: brightness(1.3); }
-
-    /* ===== Expandable Textarea ===== */
-    .track-textarea-wrapper { position: relative; }
-    .track-textarea-wrapper textarea {
-      transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-    }
-    .track-textarea-wrapper textarea.expanded-full {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
-      border-radius: 0 !important; padding: 1rem !important; font-size: 1rem !important;
-      background: rgba(10,15,30,0.95) !important; border: none !important;
-    }
-    .expand-btn {
-      position: absolute; bottom: 6px; right: 6px; width: 28px; height: 28px;
-      border-radius: 0.4rem; display: flex; align-items: center; justify-content: center;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.4); font-size: 0.7rem; transition: all 0.15s;
-      cursor: pointer; z-index: 10; touch-action: manipulation;
-    }
-    .expand-btn:hover { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
-    .expand-btn:active { transform: scale(0.9); }
-    .expanded-overlay {
-      position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(4px); display: none;
-    }
-    .expanded-overlay.active { display: block; }
   </style>
 </head>
 <body class="text-white">
@@ -511,6 +486,21 @@
     </footer>
   </main>
 
+  <!-- Expanded Textarea Modal -->
+  <div id="expandModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 modal-hidden">
+    <div id="expandPanel" class="glass w-full max-w-3xl h-[80vh] rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="expandModalTitle" class="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Редактор табулатуры</h2>
+        <button id="closeExpand" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
+      </div>
+      <textarea id="expandTextarea" class="flex-1 w-full bg-black/30 border border-white/15 rounded-xl p-4 font-mono text-base md:text-lg leading-relaxed resize-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 outline-none"></textarea>
+      <div class="flex gap-3 mt-3">
+        <button id="expandSaveBtn" class="flex-1 py-3 rounded-xl font-semibold text-sm bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30 transition-all touch-target">💾 Сохранить</button>
+        <button id="expandCancelBtn" class="px-6 py-3 rounded-xl font-semibold text-sm bg-white/10 border border-white/15 text-white/60 hover:bg-white/15 transition-all touch-target">Отмена</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Recording Pad Modal -->
   <div id="recPadModal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm transition-all duration-300 modal-hidden">
     <div id="recPadPanel" class="glass w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden">
@@ -527,9 +517,6 @@
       <p class="text-center text-xs text-white/30 mt-3">Нажимайте на кнопки для записи ритма в реальном времени</p>
     </div>
   </div>
-
-  <!-- Expanded Textarea Overlay -->
-  <div id="expandedOverlay" class="expanded-overlay" onclick="collapseAllTextareas()"></div>
 
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
@@ -736,7 +723,10 @@
         recPadModal: document.getElementById('recPadModal'), recPadPanel: document.getElementById('recPadPanel'),
         closeRecPad: document.getElementById('closeRecPad'), recPadGrid: document.getElementById('recPadGrid'),
         recPadCount: document.getElementById('recPadCount'), recPadStop: document.getElementById('recPadStop'), recPadUndo: document.getElementById('recPadUndo'),
-        expandedOverlay: document.getElementById('expandedOverlay')
+        expandModal: document.getElementById('expandModal'), expandPanel: document.getElementById('expandPanel'),
+        closeExpand: document.getElementById('closeExpand'), expandTextarea: document.getElementById('expandTextarea'),
+        expandModalTitle: document.getElementById('expandModalTitle'),
+        expandSaveBtn: document.getElementById('expandSaveBtn'), expandCancelBtn: document.getElementById('expandCancelBtn')
       };
 
       var NOTE_INFO = {
@@ -772,6 +762,7 @@
       var tracks = [];
       var trackIdCounter = 0;
       var isRecording = false, recordStartTime = 0, recordedEvents = [];
+      var editingTrackId = null;
 
       var getTrackColor = function(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; };
 
@@ -828,11 +819,11 @@
           controlsHtml += '</div>';
 
           var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
-          bodyHtml += '<div class="track-textarea-wrapper" data-ta-wrapper="' + track.id + '">';
-          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
+          bodyHtml += '<div class="relative">';
+          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 pr-10 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea>';
-          bodyHtml += '<button class="expand-btn" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
+          bodyHtml += '<button class="expand-btn absolute bottom-3 right-3" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
           bodyHtml += '</div>';
 
           // Tab input buttons
@@ -953,30 +944,38 @@
         textarea.dispatchEvent(new Event('input'));
       };
 
-      var expandedTextarea = null;
-      var expandedTrackId = null;
-
       var expandTextarea = function(trackId) {
-        collapseAllTextareas();
-        var wrapper = document.querySelector('[data-ta-wrapper="' + trackId + '"]');
-        if (!wrapper) return;
-        var ta = wrapper.querySelector('textarea');
-        if (!ta) return;
-        expandedTextarea = ta;
-        expandedTrackId = trackId;
-        ta.classList.add('expanded-full');
-        els.expandedOverlay.classList.add('active');
-        ta.focus();
+        var track = tracks.find(function(t) { return t.id === trackId; });
+        if (!track) return;
+        editingTrackId = trackId;
+        els.expandTextarea.value = track.tab;
+        els.expandModalTitle.textContent = 'Редактор: ' + track.name;
+        els.expandTextarea.placeholder = 'D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap';
+        openModal(els.expandModal, els.expandPanel);
+        setTimeout(function() { els.expandTextarea.focus(); }, 350);
       };
 
-      window.collapseAllTextareas = function() {
-        if (expandedTextarea) {
-          expandedTextarea.classList.remove('expanded-full');
-          expandedTextarea = null;
-          expandedTrackId = null;
-          els.expandedOverlay.classList.remove('active');
-        }
+      var closeExpandModal = function() {
+        closeModal(els.expandModal, els.expandPanel);
+        editingTrackId = null;
       };
+
+      els.closeExpand.addEventListener('click', closeExpandModal);
+      els.expandCancelBtn.addEventListener('click', closeExpandModal);
+      els.expandModal.addEventListener('click', function(e) { if (e.target === els.expandModal) closeExpandModal(); });
+      els.expandSaveBtn.addEventListener('click', function() {
+        if (editingTrackId !== null) {
+          var track = tracks.find(function(t) { return t.id === editingTrackId; });
+          if (track) {
+            track.tab = els.expandTextarea.value;
+            var ta = document.querySelector('[data-track-tab="' + editingTrackId + '"]');
+            if (ta) ta.value = track.tab;
+            markUnsaved(); updateNoteInfo();
+            setStatus('💾 Сохранено', 'text-green-400');
+          }
+        }
+        closeExpandModal();
+      });
 
       var startRenameTrack = function(track) {
         var nameSpan = document.querySelector('[data-track-name="' + track.id + '"]');
@@ -1666,40 +1665,75 @@
           playNote(type, now, 1);
           setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
           e.preventDefault();
+          // Also flash the pad button
+          var padBtn = document.querySelector('[data-rec-type="' + type + '"]');
+          if (padBtn) { padBtn.classList.remove('flash'); void padBtn.offsetWidth; padBtn.classList.add('flash'); }
         }
       };
 
+      // Improved tab building with finer quantization (1/8 beat grid)
       var buildTabFromEvents = function(events) {
         if (events.length === 0) return '';
         events.sort(function(a, b) { return a.time - b.time; });
-        var beatDur = getBeatDuration(bpm, beatValueDenom); var startTime = events[0].time;
+        
+        // Use 1/8 beat quantization for finer precision
+        var eighthNoteDur = getBeatDuration(bpm, beatValueDenom) / 2;
+        var startTime = events[0].time;
+        
         var quantizedEvents = [];
         for (var i = 0; i < events.length; i++) {
-          var beatPos = Math.round((events[i].time - startTime) / beatDur);
+          // Round to nearest 1/8 beat position
+          var rawPos = (events[i].time - startTime) / eighthNoteDur;
+          var beatPos = Math.round(rawPos);
           if (beatPos < 0) beatPos = 0;
           quantizedEvents.push({ beatPos: beatPos, type: events[i].type });
         }
-        var beatGroupsArr = []; var currentBeatGroup = null;
+
+        // Group simultaneous notes (same quantized position)
+        var beatGroupsArr = [];
+        var currentBeatGroup = null;
         for (var i = 0; i < quantizedEvents.length; i++) {
           var evt = quantizedEvents[i];
-          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) { currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] }; beatGroupsArr.push(currentBeatGroup); }
-          else { if (currentBeatGroup.notes.indexOf(evt.type) === -1) currentBeatGroup.notes.push(evt.type); }
+          if (!currentBeatGroup || evt.beatPos !== currentBeatGroup.beatPos) {
+            currentBeatGroup = { beatPos: evt.beatPos, notes: [evt.type] };
+            beatGroupsArr.push(currentBeatGroup);
+          } else {
+            if (currentBeatGroup.notes.indexOf(evt.type) === -1) {
+              currentBeatGroup.notes.push(evt.type);
+            }
+          }
         }
+
+        // Build tab string
         var tab = '';
+        var lastPos = 0;
         for (var i = 0; i < beatGroupsArr.length; i++) {
           var grp = beatGroupsArr[i];
-          var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 1);
-          var duration = Math.max(1, Math.round(nextPos - grp.beatPos));
-          var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
-          if (duration > 1) noteStr += duration;
-          if (i > 0) {
-            var expectedNextPos = beatGroupsArr[i - 1].beatPos + Math.max(1, Math.round(beatGroupsArr[i].beatPos - beatGroupsArr[i-1].beatPos > 0 ? 1 : 1));
-            var gap = grp.beatPos - expectedNextPos;
-            for (var g = 0; g < gap; g++) tab += '- ';
+          
+          // Calculate duration in 1/8 beats, then convert to whole beats
+          var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 2);
+          var eighthDur = nextPos - grp.beatPos;
+          
+          // Convert 1/8 beat duration to whole beat duration for tab notation
+          // 2 eighth notes = 1 beat
+          var beatDur = Math.max(1, Math.round(eighthDur / 2));
+          
+          // Fill gaps with rests
+          if (grp.beatPos > lastPos) {
+            var gap = grp.beatPos - lastPos;
+            for (var g = 0; g < gap; g++) {
+              tab += '- ';
+            }
           }
-          if (i === 0 && grp.beatPos > 0) { for (var g = 0; g < grp.beatPos; g++) tab += '- '; }
+          
+          // Add note(s)
+          var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
+          if (beatDur > 1) noteStr += beatDur;
           tab += noteStr + ' ';
+          
+          lastPos = grp.beatPos + eighthDur;
         }
+        
         return tab.trim();
       };
 
@@ -2048,10 +2082,17 @@
           }
           return; 
         }
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if (e.target.classList.contains('rename-input')) return; if (e.key === 'Enter' || e.key === 'Escape') return; }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { 
+          if (e.target.id === 'expandTextarea') {
+            if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); els.expandSaveBtn.click(); }
+            return; 
+          }
+          if (e.target.classList.contains('rename-input')) return; 
+          if (e.key === 'Enter' || e.key === 'Escape') return; 
+        }
         if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
         if (e.code === 'Escape') { 
-          if (expandedTextarea) { collapseAllTextareas(); e.preventDefault(); return; }
+          if (els.expandModal.classList.contains('modal-visible')) { closeExpandModal(); e.preventDefault(); return; }
           if (isPlaying) stopPlayback(); 
         }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
