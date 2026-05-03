@@ -146,7 +146,6 @@
       .glass-btn { padding: 0.3rem 0.45rem; font-size: 0.7rem; min-height: 40px; }
     }
 
-    /* Track card mobile layout */
     .track-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 0.6rem; cursor: pointer; user-select: none; }
     .track-header-row:hover { background: rgba(255,255,255,0.05); }
     .track-name-area { display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0; }
@@ -172,6 +171,130 @@
     .track-del-btn:hover { color: rgba(239,68,68,0.8); background: rgba(239,68,68,0.1); }
     .track-rename-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; }
     .track-rename-btn:hover { color: rgba(96,165,250,0.7); background: rgba(96,165,250,0.1); }
+
+    /* ===== Optimized Controls Layout ===== */
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 0.65rem;
+    }
+    .controls-row-sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+    }
+    .slider-card {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 0.85rem;
+      padding: 0.55rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .slider-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .slider-card-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.4);
+    }
+    .slider-card-value {
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: rgba(255,255,255,0.65);
+      min-width: 2.2em;
+      text-align: right;
+    }
+    .slider-card input[type="range"] {
+      width: 100%;
+      height: 5px;
+      margin: 0;
+    }
+    .slider-card input[type="range"]::-webkit-slider-runnable-track {
+      height: 5px;
+      background: rgba(255,255,255,0.1);
+    }
+    .feature-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.45rem;
+    }
+    .feature-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      padding: 0.55rem 0.2rem;
+      border-radius: 0.85rem;
+      min-height: 52px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-align: center;
+      line-height: 1.1;
+    }
+    .feature-btn-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+    .feature-btn-samples { color: #93c5fd; border-color: rgba(59,130,246,0.2); }
+    .feature-btn-samples:hover { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.1); }
+    .feature-btn-presets { color: #c084fc; border-color: rgba(139,92,246,0.2); }
+    .feature-btn-presets:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.1); }
+    .feature-btn-eq { color: #67e8f9; border-color: rgba(6,182,212,0.2); }
+    .feature-btn-eq:hover { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.1); }
+    .feature-btn-seq { color: #4ade80; border-color: rgba(34,197,94,0.2); }
+    .feature-btn-seq:hover { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); }
+
+    @media (min-width: 641px) {
+      .controls-section {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .controls-row-sliders {
+        display: flex;
+        gap: 0.75rem;
+        flex: 0 0 auto;
+      }
+      .slider-card {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.7rem;
+        min-width: 160px;
+      }
+      .slider-card input[type="range"] {
+        flex: 1;
+        min-width: 70px;
+      }
+      .feature-buttons-grid {
+        display: flex;
+        gap: 0.4rem;
+        margin-left: auto;
+      }
+      .feature-btn {
+        flex-direction: row;
+        padding: 0.4rem 0.7rem;
+        min-height: 36px;
+        font-size: 0.72rem;
+        border-radius: 0.65rem;
+        gap: 0.35rem;
+      }
+      .feature-btn-icon {
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
 <body class="text-white">
@@ -230,32 +353,48 @@
             <span id="playStopText" class="text-sm md:text-base">Старт</span>
           </button>
 
-          <!-- Record button - more visually distinct -->
           <button id="recBtn" class="px-2.5 md:px-3 py-2 md:py-2.5 rounded-xl font-semibold flex items-center gap-1 md:gap-1.5 touch-target bg-red-500/15 border-2 border-red-500/40 text-red-300 hover:bg-red-500/25 hover:border-red-500/60 hover:text-red-200 transition-all" title="Живая запись">
             <span id="recIcon" class="text-base">⏺</span>
             <span class="hidden sm:inline text-xs font-bold">Запись</span>
           </button>
-
-          
         </div>
       </div>
       
-      <div class="mt-2.5 md:mt-3 flex flex-wrap items-center gap-x-3 md:gap-x-4 gap-y-1.5 text-xs text-white/40">
-        <div class="flex items-center gap-1.5">
-          <span class="control-label">Громк.</span>
-          <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8" class="w-20 md:w-24">
-          <span id="volumeVal" class="font-mono text-white/60 w-8 text-xs">80%</span>
+      <!-- Optimized Controls Layout -->
+      <div class="controls-section">
+        <div class="controls-row-sliders">
+          <div class="slider-card">
+            <div class="slider-card-header">
+              <span class="slider-card-label">Громкость</span>
+              <span id="volumeVal" class="slider-card-value">80%</span>
+            </div>
+            <input type="range" id="volume" min="0" max="1" step="0.05" value="0.8">
+          </div>
+          <div class="slider-card">
+            <div class="slider-card-header">
+              <span class="slider-card-label">Свинг</span>
+              <span id="swingVal" class="slider-card-value">0%</span>
+            </div>
+            <input type="range" id="swing" min="0" max="100" step="5" value="0">
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <span class="control-label">Свинг</span>
-          <input type="range" id="swing" min="0" max="100" step="5" value="0" class="w-16 md:w-20">
-          <span id="swingVal" class="font-mono text-white/60 w-8 text-xs">0%</span>
-        </div>
-        <div class="ml-auto flex flex-wrap gap-1 md:gap-1.5">
-          <button id="openSettings" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-white/60 border-white/15 touch-target">🎛 Сэмплы</button>
-          <button id="openPresets" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-purple-200/70 border-purple-500/15 touch-target">🎵 Пресеты</button>
-          <button id="openEQ" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-cyan-200/70 border-cyan-500/15 touch-target">🔊 Экв.</button>
-          <button id="openSeq" class="glass-btn px-2 md:px-2.5 py-1.5 rounded-lg text-xs text-green-200/70 border-green-500/15 touch-target">🎹 Секв.</button>
+        <div class="feature-buttons-grid">
+          <button id="openSettings" class="glass-btn feature-btn feature-btn-samples touch-target" title="Сэмплы">
+            <span class="feature-btn-icon">🎛</span>
+            <span>Сэмплы</span>
+          </button>
+          <button id="openPresets" class="glass-btn feature-btn feature-btn-presets touch-target" title="Пресеты">
+            <span class="feature-btn-icon">🎵</span>
+            <span>Пресеты</span>
+          </button>
+          <button id="openEQ" class="glass-btn feature-btn feature-btn-eq touch-target" title="Эквалайзер">
+            <span class="feature-btn-icon">🔊</span>
+            <span>Экв.</span>
+          </button>
+          <button id="openSeq" class="glass-btn feature-btn feature-btn-seq touch-target" title="Секвенсор">
+            <span class="feature-btn-icon">🎹</span>
+            <span>Секв.</span>
+          </button>
         </div>
       </div>
     </div>
@@ -586,7 +725,6 @@
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
 
-          // Header row
           var headerHtml = '<div class="track-header-row" data-track-header="' + track.id + '">';
           headerHtml += '<div class="track-name-area">';
           headerHtml += '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
@@ -596,24 +734,20 @@
           headerHtml += '<button class="track-del-btn" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
           headerHtml += '</div>';
 
-          // Controls row (Solo, Mute, Loop, Volume, Move buttons)
           var controlsHtml = '<div class="track-controls-row">';
           controlsHtml += '<button class="track-sp-btn' + (track.solo ? ' solo-on' : '') + '" data-toggle-solo="' + track.id + '" title="Соло">С</button>';
           controlsHtml += '<button class="track-sp-btn' + (track.muted ? ' mute-on' : '') + '" data-toggle-mute="' + track.id + '" title="Приглушить">П</button>';
           controlsHtml += '<button class="track-sp-btn' + (track.loop ? ' loop-on' : '') + '" data-toggle-loop="' + track.id + '" title="Зациклить">З</button>';
           
-          // Volume label + slider
           controlsHtml += '<span class="text-[10px] text-white/30 uppercase font-bold shrink-0 ml-1">Громк.</span>';
           controlsHtml += '<div class="track-vol-slider"><input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '"></div>';
           
-          // Move buttons (vertical stack)
           controlsHtml += '<div class="track-move-btns">';
           controlsHtml += '<button class="track-move-btn" data-track-move-up="' + track.id + '" title="Вверх">▲</button>';
           controlsHtml += '<button class="track-move-btn" data-track-move-down="' + track.id + '" title="Вниз">▼</button>';
           controlsHtml += '</div>';
           controlsHtml += '</div>';
 
-          // Textarea body
           var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
           bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
@@ -622,7 +756,6 @@
           card.innerHTML = headerHtml + controlsHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
 
-          // Header click toggles body
           card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
             if (e.target.closest('[data-rename-track]')) return;
             if (e.target.closest('[data-remove-track]')) return;
@@ -631,37 +764,31 @@
             body.classList.toggle('track-body-visible');
           });
 
-          // Rename button
           card.querySelector('[data-rename-track="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             startRenameTrack(track);
           });
 
-          // Solo
           card.querySelector('[data-toggle-solo="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.solo = !track.solo;
             if (track.solo) tracks.forEach(function(t) { if (t.id !== track.id) t.solo = false; });
             renderTracks(); updateNoteInfo();
           });
 
-          // Mute
           card.querySelector('[data-toggle-mute="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.muted = !track.muted;
             renderTracks(); updateNoteInfo();
           });
 
-          // Loop
           card.querySelector('[data-toggle-loop="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation(); track.loop = !track.loop;
             renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
-          // Volume
           card.querySelector('[data-track-vol="' + track.id + '"]').addEventListener('input', function(e) {
             e.stopPropagation(); track.volume = parseFloat(e.target.value);
           });
 
-          // Remove
           card.querySelector('[data-remove-track="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             if (tracks.length <= 1) { setStatus('⚠️ Нужна минимум 1 дорожка', 'text-yellow-300'); return; }
@@ -669,13 +796,11 @@
             renderTracks(); updateNoteInfo(); markUnsaved();
           });
 
-          // Tab input
           card.querySelector('[data-track-tab="' + track.id + '"]').addEventListener('input', function(e) {
             track.tab = e.target.value;
             markUnsaved(); updateNoteInfo();
           });
 
-          // Move up
           card.querySelector('[data-track-move-up="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             var idx = tracks.findIndex(function(t) { return t.id === track.id; });
@@ -687,7 +812,6 @@
             }
           });
 
-          // Move down
           card.querySelector('[data-track-move-down="' + track.id + '"]').addEventListener('click', function(e) {
             e.stopPropagation();
             var idx = tracks.findIndex(function(t) { return t.id === track.id; });
