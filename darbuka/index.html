@@ -146,13 +146,19 @@
       .glass-btn { padding: 0.3rem 0.45rem; font-size: 0.7rem; min-height: 40px; }
     }
 
-    .track-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 0.6rem; cursor: pointer; user-select: none; }
+    /* ===== Track Card Header ===== */
+    .track-header-row { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; padding: 0.4rem 0.5rem; border-radius: 0.6rem; cursor: pointer; user-select: none; }
     .track-header-row:hover { background: rgba(255,255,255,0.05); }
+    .track-header-left { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
+    .track-move-btn { width: 26px; height: 26px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); font-size: 0.6rem; transition: all 0.15s; flex-shrink: 0; cursor: pointer; }
+    .track-move-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+    .track-move-btn:active { transform: scale(0.9); }
     .track-name-area { display: flex; align-items: center; gap: 0.4rem; flex: 1; min-width: 0; }
     .track-name-text { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 640px) { .track-name-text { font-size: 0.78rem; } }
+
     .track-controls-row { display: flex; align-items: center; gap: 0.35rem; flex-wrap: nowrap; padding: 0.25rem 0.5rem 0.4rem; }
-    .track-sp-btn { width: 32px; height: 32px; border-radius: 0.4rem; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.45); transition: all 0.15s; flex-shrink: 0; }
+    .track-sp-btn { width: 36px; height: 30px; border-radius: 0.4rem; font-size: 0.7rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.45); transition: all 0.15s; flex-shrink: 0; }
     .track-sp-btn:active { transform: scale(0.92); }
     .track-sp-btn.solo-on { background: rgba(234,179,8,0.25); border-color: rgba(234,179,8,0.4); color: #fde68a; box-shadow: 0 0 6px rgba(234,179,8,0.2); }
     .track-sp-btn.mute-on { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
@@ -161,16 +167,15 @@
     .track-vol-slider input[type="range"] { width: 100%; height: 4px; }
     .track-vol-slider input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
     @media (max-width: 640px) { .track-vol-slider input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -10px; } }
-    .track-move-btns { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-    .track-move-btn { width: 26px; height: 26px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); font-size: 0.6rem; transition: all 0.15s; flex-shrink: 0; }
-    .track-move-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
-    .track-move-btn:active { transform: scale(0.9); }
+
     .rename-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(96,165,250,0.5); border-radius: 0.35rem; padding: 2px 6px; font-size: 0.8rem; color: white; outline: none; flex: 1; min-width: 0; }
     .rename-input:focus { border-color: rgba(96,165,250,0.8); box-shadow: 0 0 6px rgba(96,165,250,0.2); }
-    .track-del-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.25); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; }
+    .track-del-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.25); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; cursor: pointer; }
     .track-del-btn:hover { color: rgba(239,68,68,0.8); background: rgba(239,68,68,0.1); }
-    .track-rename-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; }
+    .track-rename-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; cursor: pointer; }
     .track-rename-btn:hover { color: rgba(96,165,250,0.7); background: rgba(96,165,250,0.1); }
+    .track-seq-btn { width: 28px; height: 28px; border-radius: 0.35rem; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.2); font-size: 0.75rem; transition: all 0.15s; flex-shrink: 0; cursor: pointer; }
+    .track-seq-btn:hover { color: rgba(74,222,128,0.7); background: rgba(74,222,128,0.1); }
 
     /* ===== Optimized Controls Layout ===== */
     .controls-section {
@@ -224,7 +229,7 @@
     }
     .feature-buttons-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 0.45rem;
     }
     .feature-btn {
@@ -252,8 +257,6 @@
     .feature-btn-presets:hover { border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.1); }
     .feature-btn-eq { color: #67e8f9; border-color: rgba(6,182,212,0.2); }
     .feature-btn-eq:hover { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.1); }
-    .feature-btn-seq { color: #4ade80; border-color: rgba(34,197,94,0.2); }
-    .feature-btn-seq:hover { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.1); }
 
     @media (min-width: 641px) {
       .controls-section {
@@ -415,10 +418,6 @@
             <span class="feature-btn-icon">🔊</span>
             <span>Экв.</span>
           </button>
-          <button id="openSeq" class="glass-btn feature-btn feature-btn-seq touch-target" title="Секвенсор">
-            <span class="feature-btn-icon">🎹</span>
-            <span>Секв.</span>
-          </button>
         </div>
       </div>
     </div>
@@ -488,13 +487,14 @@
 
   <!-- Expanded Textarea Modal -->
   <div id="expandModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm transition-all duration-300 modal-hidden">
-    <div id="expandPanel" class="glass w-full max-w-3xl h-[80vh] rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden flex flex-col">
+    <div id="expandPanel" class="glass w-full max-w-3xl h-[85vh] rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden flex flex-col">
       <div class="flex items-center justify-between mb-3">
         <h2 id="expandModalTitle" class="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Редактор табулатуры</h2>
         <button id="closeExpand" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
       </div>
-      <textarea id="expandTextarea" class="flex-1 w-full bg-black/30 border border-white/15 rounded-xl p-4 font-mono text-base md:text-lg leading-relaxed resize-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 outline-none"></textarea>
-      <div class="flex gap-3 mt-3">
+      <textarea id="expandTextarea" class="flex-1 min-h-[120px] w-full bg-black/30 border border-white/15 rounded-xl p-4 font-mono text-base md:text-lg leading-relaxed resize-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 outline-none"></textarea>
+      <div id="expandTabBtns" class="flex flex-wrap gap-1.5 my-3"></div>
+      <div class="flex gap-3 shrink-0">
         <button id="expandSaveBtn" class="flex-1 py-3 rounded-xl font-semibold text-sm bg-blue-500/20 border border-blue-500/30 text-blue-300 hover:bg-blue-500/30 transition-all touch-target">💾 Сохранить</button>
         <button id="expandCancelBtn" class="px-6 py-3 rounded-xl font-semibold text-sm bg-white/10 border border-white/15 text-white/60 hover:bg-white/15 transition-all touch-target">Отмена</button>
       </div>
@@ -631,11 +631,13 @@
     </div>
   </div>
 
-  <!-- Sequencer Modal -->
+  <!-- Sequencer Modal (per-track) -->
   <div id="seqModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-black/60 backdrop-blur-sm transition-all duration-300 modal-hidden">
     <div id="seqPanel" class="glass w-full max-w-4xl rounded-3xl p-4 md:p-6 relative transform transition-all duration-300 modal-panel-hidden max-h-[90vh] flex flex-col">
-      <button id="closeSeq" class="absolute top-3 right-3 md:top-4 md:right-4 text-white/50 hover:text-white transition-colors z-10 text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
-      <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent pr-10">🎹 Секвенсор</h2>
+      <div class="flex items-center justify-between mb-3 md:mb-4">
+        <h2 id="seqModalTitle" class="text-lg md:text-xl font-bold bg-gradient-to-r from-green-300 to-emerald-300 bg-clip-text text-transparent pr-10">🎹 Секвенсор</h2>
+        <button id="closeSeq" class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target z-10">✕</button>
+      </div>
       <div id="seqGrid" class="overflow-x-auto pb-2 flex-1"></div>
       <div class="flex flex-wrap gap-2 mt-3 md:mt-4 shrink-0">
         <button id="seqPlayBtn" class="glass-btn flex-1 py-2.5 rounded-xl text-sm text-blue-200 font-semibold touch-target">▶ Воспроизвести</button>
@@ -688,7 +690,7 @@
         playStopBtn: document.getElementById('playStopBtn'), playStopIcon: document.getElementById('playStopIcon'), playStopText: document.getElementById('playStopText'),
         recBtn: document.getElementById('recBtn'), recIcon: document.getElementById('recIcon'), recOverlay: document.getElementById('recOverlay'),
         metronomeBtn: document.getElementById('metronomeBtn'), metroIcon: document.getElementById('metroIcon'),
-        openSettings: document.getElementById('openSettings'), openPresets: document.getElementById('openPresets'), openEQ: document.getElementById('openEQ'), openSeq: document.getElementById('openSeq'),
+        openSettings: document.getElementById('openSettings'), openPresets: document.getElementById('openPresets'), openEQ: document.getElementById('openEQ'),
         saveBtn: document.getElementById('saveBtn'), loadBtn: document.getElementById('loadBtn'), clearBtn: document.getElementById('clearBtn'),
         addTrackBtn: document.getElementById('addTrackBtn'), exportBtn: document.getElementById('exportBtn'), exportWavBtn: document.getElementById('exportWavBtn'),
         importBtn: document.getElementById('importBtn'), importFile: document.getElementById('importFile'),
@@ -711,6 +713,7 @@
         eqLowVal: document.getElementById('eqLowVal'), eqMidVal: document.getElementById('eqMidVal'), eqHighVal: document.getElementById('eqHighVal'),
         resetEQ: document.getElementById('resetEQ'),
         seqModal: document.getElementById('seqModal'), seqPanel: document.getElementById('seqPanel'),
+        seqModalTitle: document.getElementById('seqModalTitle'),
         closeSeq: document.getElementById('closeSeq'), seqGrid: document.getElementById('seqGrid'),
         seqPlayBtn: document.getElementById('seqPlayBtn'), seqClearBtn: document.getElementById('seqClearBtn'), seqExportTabBtn: document.getElementById('seqExportTabBtn'),
         exportModal: document.getElementById('exportModal'), exportPanel: document.getElementById('exportPanel'),
@@ -726,7 +729,8 @@
         expandModal: document.getElementById('expandModal'), expandPanel: document.getElementById('expandPanel'),
         closeExpand: document.getElementById('closeExpand'), expandTextarea: document.getElementById('expandTextarea'),
         expandModalTitle: document.getElementById('expandModalTitle'),
-        expandSaveBtn: document.getElementById('expandSaveBtn'), expandCancelBtn: document.getElementById('expandCancelBtn')
+        expandSaveBtn: document.getElementById('expandSaveBtn'), expandCancelBtn: document.getElementById('expandCancelBtn'),
+        expandTabBtns: document.getElementById('expandTabBtns')
       };
 
       var NOTE_INFO = {
@@ -741,10 +745,68 @@
       };
 
       var SEQ_NOTES = ['D', 'T', 'K', 'S', 't', 'k', 'B'];
-      var seqState = [];
-      for (var si = 0; si < SEQ_NOTES.length; si++) {
-        seqState.push(new Array(16).fill(false));
-      }
+      var TRACK_COLORS = ['#60a5fa','#c084fc','#facc15','#f87171','#34d399','#fb923c','#38bdf8','#e879f9'];
+      var getTrackColor = function(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; };
+
+      // Sequencer state per track: { trackId, grid[row][col] }
+      var trackSeqState = {};
+      var currentSeqTrackId = null;
+
+      var initTrackSeq = function(trackId) {
+        if (!trackSeqState[trackId]) {
+          var grid = [];
+          for (var r = 0; r < SEQ_NOTES.length; r++) {
+            grid.push(new Array(16).fill(false));
+          }
+          trackSeqState[trackId] = grid;
+        }
+      };
+
+      var getTrackSeq = function(trackId) {
+        initTrackSeq(trackId);
+        return trackSeqState[trackId];
+      };
+
+      var parseTabToSeq = function(tab, seqGrid) {
+        var parsed = parseTab(tab);
+        for (var r = 0; r < SEQ_NOTES.length; r++) {
+          for (var c = 0; c < 16; c++) {
+            seqGrid[r][c] = false;
+          }
+        }
+        var col = 0;
+        for (var i = 0; i < parsed.length && col < 16; i++) {
+          var noteObj = parsed[i];
+          var dur = Math.min(Math.round(noteObj.duration), 16 - col);
+          for (var d = 0; d < dur && col < 16; d++) {
+            for (var n = 0; n < noteObj.notes.length; n++) {
+              var noteType = noteObj.notes[n];
+              if (noteType === '-' || noteType === 'R') continue;
+              var rowIdx = SEQ_NOTES.indexOf(noteType);
+              if (rowIdx >= 0) {
+                seqGrid[rowIdx][col] = true;
+              }
+            }
+            col++;
+          }
+        }
+      };
+
+      var seqToTab = function(seqGrid) {
+        var tab = '';
+        for (var c = 0; c < 16; c++) {
+          var activeNotes = [];
+          for (var r = 0; r < SEQ_NOTES.length; r++) {
+            if (seqGrid[r][c]) activeNotes.push(SEQ_NOTES[r]);
+          }
+          if (activeNotes.length > 0) {
+            tab += activeNotes.length === 1 ? activeNotes[0] + ' ' : '(' + activeNotes.join('') + ') ';
+          } else {
+            tab += '- ';
+          }
+        }
+        return tab.trim();
+      };
 
       var ctx2d = els.canvas.getContext('2d');
       var resizeCanvas = function() { var r = els.canvas.getBoundingClientRect(); if (r.width > 0 && r.height > 0) { els.canvas.width = r.width * window.devicePixelRatio; els.canvas.height = r.height * window.devicePixelRatio; ctx2d.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0); } };
@@ -758,13 +820,10 @@
       var beatValueDenom = 4;
       var activePills = [], impulseBuffer = null, metronomeEnabled = false;
       var LOOKAHEAD_MS = 25.0, SCHEDULE_AHEAD_S = 0.1;
-      var TRACK_COLORS = ['#60a5fa','#c084fc','#facc15','#f87171','#34d399','#fb923c','#38bdf8','#e879f9'];
       var tracks = [];
       var trackIdCounter = 0;
       var isRecording = false, recordStartTime = 0, recordedEvents = [];
       var editingTrackId = null;
-
-      var getTrackColor = function(id) { return TRACK_COLORS[(id - 1) % TRACK_COLORS.length]; };
 
       var getBeatDuration = function(bpmVal, bvDenom) {
         return (60.0 / bpmVal) * (1 / bvDenom);
@@ -795,35 +854,44 @@
           var anySolo = tracks.some(function(t) { return t.solo; });
           var isActive = !anySolo || track.solo;
 
+          // ===== HEADER: Move btns (left) | Name area | Rename | Delete =====
           var headerHtml = '<div class="track-header-row" data-track-header="' + track.id + '">';
+          // Left: move buttons
+          headerHtml += '<div class="track-header-left">';
+          headerHtml += '<button class="track-move-btn" data-track-move-up="' + track.id + '" title="Вверх">▲</button>';
+          headerHtml += '<button class="track-move-btn" data-track-move-down="' + track.id + '" title="Вниз">▼</button>';
+          headerHtml += '</div>';
+          // Center-left: name area
           headerHtml += '<div class="track-name-area">';
           headerHtml += '<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:' + dot + '; box-shadow: 0 0 6px ' + dot + '"></span>';
           headerHtml += '<span class="track-name-text" data-track-name="' + track.id + '">' + track.name + '</span>';
           headerHtml += '<button class="track-rename-btn" data-rename-track="' + track.id + '" title="Переименовать">✎</button>';
           headerHtml += '</div>';
+          // Right: delete
           headerHtml += '<button class="track-del-btn" data-remove-track="' + track.id + '" title="Удалить">✕</button>';
           headerHtml += '</div>';
 
+          // ===== CONTROLS: Solo/Mute/Loop + Volume =====
           var controlsHtml = '<div class="track-controls-row">';
-          controlsHtml += '<button class="track-sp-btn' + (track.solo ? ' solo-on' : '') + '" data-toggle-solo="' + track.id + '" title="Соло">С</button>';
-          controlsHtml += '<button class="track-sp-btn' + (track.muted ? ' mute-on' : '') + '" data-toggle-mute="' + track.id + '" title="Приглушить">П</button>';
-          controlsHtml += '<button class="track-sp-btn' + (track.loop ? ' loop-on' : '') + '" data-toggle-loop="' + track.id + '" title="Зациклить">З</button>';
+          controlsHtml += '<button class="track-sp-btn' + (track.solo ? ' solo-on' : '') + '" data-toggle-solo="' + track.id + '" title="Соло">🎧С</button>';
+          controlsHtml += '<button class="track-sp-btn' + (track.muted ? ' mute-on' : '') + '" data-toggle-mute="' + track.id + '" title="Приглушить">🔇П</button>';
+          controlsHtml += '<button class="track-sp-btn' + (track.loop ? ' loop-on' : '') + '" data-toggle-loop="' + track.id + '" title="Зациклить">🔁З</button>';
           
           controlsHtml += '<span class="text-[10px] text-white/30 uppercase font-bold shrink-0 ml-1">Громк.</span>';
           controlsHtml += '<div class="track-vol-slider"><input type="range" min="0" max="1" step="0.05" value="' + track.volume + '" data-track-vol="' + track.id + '"></div>';
-          
-          controlsHtml += '<div class="track-move-btns">';
-          controlsHtml += '<button class="track-move-btn" data-track-move-up="' + track.id + '" title="Вверх">▲</button>';
-          controlsHtml += '<button class="track-move-btn" data-track-move-down="' + track.id + '" title="Вниз">▼</button>';
-          controlsHtml += '</div>';
           controlsHtml += '</div>';
 
+          // ===== BODY: Textarea with seq & expand buttons + tab input buttons =====
           var bodyHtml = '<div class="track-body-visible px-2 pb-2" data-track-body="' + track.id + '">';
           bodyHtml += '<div class="relative">';
-          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 pr-10 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
+          bodyHtml += '<textarea class="w-full h-16 md:h-20 lg:h-24 bg-black/20 border border-white/10 rounded-xl p-2.5 pr-16 font-mono text-xs md:text-sm leading-relaxed resize-y focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 transition-all" data-track-tab="' + track.id + '" placeholder="D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap, -=Rest"';
           if (!isActive) bodyHtml += ' disabled style="opacity:0.4"';
           bodyHtml += '>' + track.tab + '</textarea>';
-          bodyHtml += '<button class="expand-btn absolute bottom-3 right-3" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
+          // Buttons in top-right corner of textarea area
+          bodyHtml += '<div class="absolute top-1.5 right-1.5 flex flex-col gap-1">';
+          bodyHtml += '<button class="track-seq-btn" data-track-seq="' + track.id + '" title="Секвенсор">🎹</button>';
+          bodyHtml += '<button class="track-seq-btn" data-expand-ta="' + track.id + '" title="Развернуть">⛶</button>';
+          bodyHtml += '</div>';
           bodyHtml += '</div>';
 
           // Tab input buttons
@@ -843,9 +911,14 @@
           card.innerHTML = headerHtml + controlsHtml + bodyHtml;
           els.tracksContainer.appendChild(card);
 
+          // ===== EVENT LISTENERS =====
+          // Header click toggles body
           card.querySelector('[data-track-header="' + track.id + '"]').addEventListener('click', function(e) {
             if (e.target.closest('[data-rename-track]')) return;
             if (e.target.closest('[data-remove-track]')) return;
+            if (e.target.closest('[data-track-move-up]')) return;
+            if (e.target.closest('[data-track-move-down]')) return;
+            if (e.target.closest('[data-track-seq]')) return;
             if (e.target.closest('[data-expand-ta]')) return;
             var body = card.querySelector('[data-track-body="' + track.id + '"]');
             body.classList.toggle('track-body-hidden');
@@ -917,6 +990,12 @@
             expandTextarea(track.id);
           });
 
+          // Track sequencer button
+          card.querySelector('[data-track-seq="' + track.id + '"]').addEventListener('click', function(e) {
+            e.stopPropagation();
+            openSeqForTrack(track.id);
+          });
+
           // Tab input buttons
           card.querySelectorAll('[data-tab-btns="' + track.id + '"] [data-insert]').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
@@ -944,6 +1023,31 @@
         textarea.dispatchEvent(new Event('input'));
       };
 
+      // ===== Expand Modal =====
+      var buildExpandTabBtns = function() {
+        els.expandTabBtns.innerHTML = '';
+        var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
+        tabNoteTypes.forEach(function(nt) {
+          var pillBg = NOTE_INFO[nt] ? NOTE_INFO[nt].bg : 'rgba(255,255,255,0.06)';
+          var pillBorder = NOTE_INFO[nt] ? NOTE_INFO[nt].border : 'rgba(255,255,255,0.12)';
+          var pillColor = NOTE_INFO[nt] ? NOTE_INFO[nt].color : 'rgba(255,255,255,0.5)';
+          var label = nt === ' ' ? '␣' : nt;
+          var btn = document.createElement('button');
+          btn.className = 'tab-input-btn';
+          btn.style.background = pillBg;
+          btn.style.borderColor = pillBorder;
+          btn.style.color = pillColor;
+          btn.textContent = label;
+          btn.title = 'Вставить ' + nt;
+          btn.addEventListener('click', function() {
+            var ta = els.expandTextarea;
+            insertAtCursor(ta, nt);
+            ta.focus();
+          });
+          els.expandTabBtns.appendChild(btn);
+        });
+      };
+
       var expandTextarea = function(trackId) {
         var track = tracks.find(function(t) { return t.id === trackId; });
         if (!track) return;
@@ -951,6 +1055,7 @@
         els.expandTextarea.value = track.tab;
         els.expandModalTitle.textContent = 'Редактор: ' + track.name;
         els.expandTextarea.placeholder = 'D T2 (DK) S — D=Dum, T=Tak, K=Ka, S=Slap';
+        buildExpandTabBtns();
         openModal(els.expandModal, els.expandPanel);
         setTimeout(function() { els.expandTextarea.focus(); }, 350);
       };
@@ -975,6 +1080,111 @@
           }
         }
         closeExpandModal();
+      });
+
+      // ===== Sequencer per track =====
+      var openSeqForTrack = function(trackId) {
+        currentSeqTrackId = trackId;
+        var track = tracks.find(function(t) { return t.id === trackId; });
+        els.seqModalTitle.textContent = '🎹 Секвенсор: ' + (track ? track.name : 'Дорожка ' + trackId);
+        
+        var grid = getTrackSeq(trackId);
+        if (track && track.tab) {
+          parseTabToSeq(track.tab, grid);
+        }
+        buildSeqUI();
+        openModal(els.seqModal, els.seqPanel);
+      };
+
+      var buildSeqUI = function() {
+        var grid = getTrackSeq(currentSeqTrackId);
+        var seqEl = els.seqGrid; 
+        seqEl.innerHTML = '';
+        var headerRow = document.createElement('div');
+        headerRow.className = 'seq-grid'; 
+        headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
+        headerRow.appendChild(document.createElement('div')).className = 'seq-label';
+        for (var s = 0; s < 16; s++) { 
+          var lbl = document.createElement('div'); 
+          lbl.className = 'seq-label text-white/25 text-xs'; 
+          lbl.textContent = s + 1; 
+          if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.45)'; 
+          headerRow.appendChild(lbl); 
+        }
+        seqEl.appendChild(headerRow);
+        for (var r = 0; r < SEQ_NOTES.length; r++) {
+          var noteType = SEQ_NOTES[r];
+          var row = document.createElement('div'); 
+          row.className = 'seq-grid'; 
+          row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
+          var noteLabel = document.createElement('div'); 
+          noteLabel.className = 'seq-label'; 
+          noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>'; 
+          row.appendChild(noteLabel);
+          for (var c = 0; c < 16; c++) {
+            var cell = document.createElement('div'); 
+            cell.className = 'seq-cell' + (grid[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
+            cell.style.setProperty('--cell-color', getTrackColor(currentSeqTrackId)); 
+            cell.dataset.row = r; 
+            cell.dataset.col = c;
+            (function(rowIdx, colIdx, cellEl) {
+              cellEl.addEventListener('click', function(e) {
+                grid[rowIdx][colIdx] = !grid[rowIdx][colIdx];
+                cellEl.classList.toggle('active');
+                if (grid[rowIdx][colIdx]) playPreview(SEQ_NOTES[rowIdx]);
+              });
+            })(r, c, cell);
+            row.appendChild(cell);
+          }
+          seqEl.appendChild(row);
+        }
+      };
+
+      var closeSeqModal = function() {
+        closeModal(els.seqModal, els.seqPanel);
+        currentSeqTrackId = null;
+      };
+
+      els.closeSeq.addEventListener('click', closeSeqModal);
+      els.seqModal.addEventListener('click', function(e) { if (e.target === els.seqModal) closeSeqModal(); });
+
+      els.seqPlayBtn.addEventListener('click', function() {
+        initAudio();
+        if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(playSeq); } 
+        else { playSeq(); }
+      });
+
+      var playSeq = function() {
+        var grid = getTrackSeq(currentSeqTrackId);
+        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4; 
+        var startTime = audioCtx.currentTime + 0.05;
+        for (var r = 0; r < SEQ_NOTES.length; r++) { 
+          for (var c = 0; c < 16; c++) { 
+            if (grid[r][c]) playNote(SEQ_NOTES[r], startTime + c * stepDuration, 1); 
+          } 
+        }
+        setStatus('▶ Секвенсор: 16 шагов', 'text-green-300');
+      };
+
+      els.seqClearBtn.addEventListener('click', function() { 
+        var grid = getTrackSeq(currentSeqTrackId);
+        for (var r = 0; r < grid.length; r++) 
+          for (var c = 0; c < 16; c++) grid[r][c] = false; 
+        buildSeqUI(); 
+      });
+
+      els.seqExportTabBtn.addEventListener('click', function() {
+        var grid = getTrackSeq(currentSeqTrackId);
+        var tab = seqToTab(grid);
+        var track = tracks.find(function(t) { return t.id === currentSeqTrackId; });
+        if (track) {
+          track.tab = tab;
+          var ta = document.querySelector('[data-track-tab="' + currentSeqTrackId + '"]');
+          if (ta) ta.value = tab;
+          markUnsaved(); updateNoteInfo();
+        }
+        closeSeqModal();
+        setStatus('📤 Экспортировано в табулатуру дорожки', 'text-green-400');
       });
 
       var startRenameTrack = function(track) {
@@ -1210,6 +1420,8 @@
           if (audioCtx && audioCtx.state === 'running') playNote(type, audioCtx.currentTime + 0.01, 1); 
         }, 50); 
       };
+
+      var getNoteClass = function(type) { return NOTE_INFO[type] ? NOTE_INFO[type].css : 'r'; };
 
       var parseTab = function(text) {
         if (!text || !text.trim()) return [];
@@ -1454,8 +1666,6 @@
           }
         }; frame();
       };
-
-      var getNoteClass = function(type) { return NOTE_INFO[type] ? NOTE_INFO[type].css : 'r'; };
       
       var buildPreview = function() {
         els.noteDisplay.innerHTML = '';
@@ -1665,31 +1875,25 @@
           playNote(type, now, 1);
           setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
           e.preventDefault();
-          // Also flash the pad button
           var padBtn = document.querySelector('[data-rec-type="' + type + '"]');
           if (padBtn) { padBtn.classList.remove('flash'); void padBtn.offsetWidth; padBtn.classList.add('flash'); }
         }
       };
 
-      // Improved tab building with finer quantization (1/8 beat grid)
       var buildTabFromEvents = function(events) {
         if (events.length === 0) return '';
         events.sort(function(a, b) { return a.time - b.time; });
-        
-        // Use 1/8 beat quantization for finer precision
         var eighthNoteDur = getBeatDuration(bpm, beatValueDenom) / 2;
         var startTime = events[0].time;
         
         var quantizedEvents = [];
         for (var i = 0; i < events.length; i++) {
-          // Round to nearest 1/8 beat position
           var rawPos = (events[i].time - startTime) / eighthNoteDur;
           var beatPos = Math.round(rawPos);
           if (beatPos < 0) beatPos = 0;
           quantizedEvents.push({ beatPos: beatPos, type: events[i].type });
         }
 
-        // Group simultaneous notes (same quantized position)
         var beatGroupsArr = [];
         var currentBeatGroup = null;
         for (var i = 0; i < quantizedEvents.length; i++) {
@@ -1704,21 +1908,14 @@
           }
         }
 
-        // Build tab string
         var tab = '';
         var lastPos = 0;
         for (var i = 0; i < beatGroupsArr.length; i++) {
           var grp = beatGroupsArr[i];
-          
-          // Calculate duration in 1/8 beats, then convert to whole beats
           var nextPos = (i + 1 < beatGroupsArr.length) ? beatGroupsArr[i + 1].beatPos : (grp.beatPos + 2);
           var eighthDur = nextPos - grp.beatPos;
-          
-          // Convert 1/8 beat duration to whole beat duration for tab notation
-          // 2 eighth notes = 1 beat
           var beatDur = Math.max(1, Math.round(eighthDur / 2));
           
-          // Fill gaps with rests
           if (grp.beatPos > lastPos) {
             var gap = grp.beatPos - lastPos;
             for (var g = 0; g < gap; g++) {
@@ -1726,7 +1923,6 @@
             }
           }
           
-          // Add note(s)
           var noteStr = grp.notes.length === 1 ? grp.notes[0] : '(' + grp.notes.join('') + ')';
           if (beatDur > 1) noteStr += beatDur;
           tab += noteStr + ' ';
@@ -2021,51 +2217,6 @@
       els.eqHigh.addEventListener('input', updateEQ);
       els.resetEQ.addEventListener('click', function() { els.eqLow.value = 0; els.eqMid.value = 0; els.eqHigh.value = 0; updateEQ(); });
 
-      els.openSeq.addEventListener('click', function() { buildSeqUI(); openModal(els.seqModal, els.seqPanel); });
-      els.closeSeq.addEventListener('click', function() { closeModal(els.seqModal, els.seqPanel); });
-      els.seqModal.addEventListener('click', function(e) { if (e.target === els.seqModal) closeModal(els.seqModal, els.seqPanel); });
-
-      var buildSeqUI = function() {
-        var grid = els.seqGrid; grid.innerHTML = '';
-        var headerRow = document.createElement('div');
-        headerRow.className = 'seq-grid'; headerRow.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
-        headerRow.appendChild(document.createElement('div')).className = 'seq-label';
-        for (var s = 0; s < 16; s++) { var lbl = document.createElement('div'); lbl.className = 'seq-label text-white/25 text-xs'; lbl.textContent = s + 1; if (s % 4 === 0) lbl.style.color = 'rgba(255,255,255,0.45)'; headerRow.appendChild(lbl); }
-        grid.appendChild(headerRow);
-        for (var r = 0; r < SEQ_NOTES.length; r++) {
-          var noteType = SEQ_NOTES[r];
-          var row = document.createElement('div'); row.className = 'seq-grid'; row.style.gridTemplateColumns = 'auto repeat(16, minmax(28px, 1fr))';
-          var noteLabel = document.createElement('div'); noteLabel.className = 'seq-label'; noteLabel.innerHTML = '<span class="note-pill note-' + getNoteClass(noteType) + '">' + noteType + '</span>'; row.appendChild(noteLabel);
-          for (var c = 0; c < 16; c++) {
-            var cell = document.createElement('div'); cell.className = 'seq-cell' + (seqState[r][c] ? ' active' : '') + (c % 4 === 0 ? ' beat' : '');
-            cell.style.setProperty('--cell-color', getTrackColor(r + 1)); cell.dataset.row = r; cell.dataset.col = c;
-            cell.addEventListener('click', function(e) { var rowIdx = parseInt(e.target.dataset.row); var colIdx = parseInt(e.target.dataset.col); seqState[rowIdx][colIdx] = !seqState[rowIdx][colIdx]; e.target.classList.toggle('active'); if (seqState[rowIdx][colIdx]) playPreview(SEQ_NOTES[rowIdx]); });
-            row.appendChild(cell);
-          }
-          grid.appendChild(row);
-        }
-      };
-
-      els.seqPlayBtn.addEventListener('click', function() { initAudio(); if (!audioCtx || audioCtx.state !== 'running') { audioCtx.resume().then(playSeq); } else { playSeq(); } });
-      var playSeq = function() {
-        var stepDuration = getBeatDuration(bpm, beatValueDenom) / 4; var startTime = audioCtx.currentTime + 0.05;
-        for (var r = 0; r < SEQ_NOTES.length; r++) { for (var c = 0; c < 16; c++) { if (seqState[r][c]) playNote(SEQ_NOTES[r], startTime + c * stepDuration, 1); } }
-        setStatus('▶ Секвенсор: 16 шагов', 'text-green-300');
-      };
-      els.seqClearBtn.addEventListener('click', function() { for (var r = 0; r < seqState.length; r++) for (var c = 0; c < 16; c++) seqState[r][c] = false; buildSeqUI(); });
-      els.seqExportTabBtn.addEventListener('click', function() {
-        var tab = '';
-        for (var c = 0; c < 16; c++) {
-          var activeNotes = []; for (var r = 0; r < SEQ_NOTES.length; r++) if (seqState[r][c]) activeNotes.push(SEQ_NOTES[r]);
-          if (activeNotes.length > 0) { tab += activeNotes.length === 1 ? activeNotes[0] + ' ' : '(' + activeNotes.join('') + ') '; }
-          else { tab += '- '; }
-        }
-        if (tracks.length > 0 && !tracks[0].tab) { tracks[0].tab = tab.trim(); }
-        else { tracks.push(createTrack('Секвенсор')); tracks[tracks.length - 1].tab = tab.trim(); }
-        renderTracks(); updateNoteInfo(); markUnsaved(); closeModal(els.seqModal, els.seqPanel);
-        setStatus('📤 Экспортировано в табулатуру', 'text-green-400');
-      });
-
       document.addEventListener('keydown', function(e) {
         if (isRecording) { 
           var keyMap = { 'd': 'D', 'D': 'D', 't': 'T', 'T': 'T', 'е': 'T', 'Е': 'T', 'k': 'K', 'K': 'K', 's': 'S', 'S': 'S', 'ы': 'S', 'Ы': 'S', 'b': 'B', 'B': 'B', 'и': 'B', 'И': 'B', 'r': 'R', 'R': 'R', 'к': 'R', 'К': 'R' };
@@ -2076,7 +2227,6 @@
             playNote(type, now, 1);
             setStatus('🎵 ' + type + ' (' + recordedEvents.length + ')', 'text-cyan-300');
             e.preventDefault();
-            // Also flash the pad button
             var padBtn = document.querySelector('[data-rec-type="' + type + '"]');
             if (padBtn) { padBtn.classList.remove('flash'); void padBtn.offsetWidth; padBtn.classList.add('flash'); }
           }
@@ -2093,6 +2243,7 @@
         if (e.code === 'Space') { e.preventDefault(); togglePlayback(); }
         if (e.code === 'Escape') { 
           if (els.expandModal.classList.contains('modal-visible')) { closeExpandModal(); e.preventDefault(); return; }
+          if (els.seqModal.classList.contains('modal-visible')) { closeSeqModal(); e.preventDefault(); return; }
           if (isPlaying) stopPlayback(); 
         }
         if (e.code === 'ArrowUp') { e.preventDefault(); bpm = Math.min(300, bpm + 5); els.bpm.value = bpm; updateNoteInfo(); }
