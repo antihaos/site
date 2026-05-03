@@ -1677,7 +1677,7 @@
         <span class="text-xs font-bold text-white/40 uppercase tracking-wider">Шаги:</span>
         <div id="seqStepBtns" class="flex flex-wrap gap-1.5"></div>
         <button id="seqAutoStepsBtn"
-          class="glass-btn px-3 md:px-4 py-2.5 rounded-xl text-sm text-purple-200/80 border-purple-500/20 hover:border-purple-500/40 touch-target">🔄
+          class="hidden glass-btn px-3 md:px-4 py-2.5 rounded-xl text-sm text-purple-200/80 border-purple-500/20 hover:border-purple-500/40 touch-target">🔄
           Подогнать</button>
         <div class="ml-auto flex items-center gap-2">
           <span id="seqTabInfo" class="text-xs text-white/35 font-mono"></span>
@@ -1920,7 +1920,7 @@
         var readTrackTabsFromDOM = function () {
           tracks.forEach(function (track) {
             var ta = document.querySelector('[data-track-tab="' + track.id + '"]');
-            if (ta) track.tab = ta.value;
+            // if (ta) track.tab = ta.value;
           });
         };
         var renderTracks = function () {
