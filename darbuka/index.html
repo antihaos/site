@@ -1967,13 +1967,13 @@
             bodyHtml += '</div>';
             bodyHtml += '</div>';
             bodyHtml += '<div class="flex flex-wrap gap-1 mt-2 pb-1" data-tab-btns="' + track.id + '">';
-            var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' ', '\n'];
+            var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
             tabNoteTypes.forEach(function (nt) {
               var pillBg = NOTE_INFO[nt] ? NOTE_INFO[nt].bg : 'rgba(255,255,255,0.06)';
               var pillBorder = NOTE_INFO[nt] ? NOTE_INFO[nt].border : 'rgba(255,255,255,0.12)';
               var pillColor = NOTE_INFO[nt] ? NOTE_INFO[nt].color : 'rgba(255,255,255,0.5)';
               var label = nt === ' ' ? '␣' : nt;
-              var label = nt === '\n' ? '␤' : label;
+              // var label = nt === '\n' ? '␤' : label;
               bodyHtml += '<button class="tab-input-btn" data-insert="' + nt + '" style="background:' + pillBg + ';border-color:' + pillBorder + ';color:' + pillColor + '" title="Вставить ' + nt + '">' + label + '</button>';
             });
             bodyHtml += '</div>';
