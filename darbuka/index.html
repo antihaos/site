@@ -1398,7 +1398,7 @@
               <span class="text-xs font-bold text-white/30 uppercase tracking-wider">Файл</span>
               <button id="clearBtn"
                 class="glass-btn px-2.5 md:px-3 py-1 rounded-lg text-xs font-medium text-red-200/70 border-red-500/15 hover:border-red-500/30 touch-target">🗑
-                Очистить</button>
+                Очистить все дорожки</button>
             </div>
             <div class="flex gap-1.5 md:gap-2">
               <button id="exportBtn"
@@ -1446,7 +1446,7 @@
           class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Esc</kbd> Стоп | <kbd
           class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">↑↓</kbd> Темп ±5</p>
       <br>
-      <p class="text-white/25 text-xs">Версия: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">3.8.4</kbd></p>
+      <p class="text-white/25 text-xs">Версия: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">3.8.5</kbd></p>
     </footer>
   </main>
   <!-- Expanded Textarea Modal -->
@@ -1967,12 +1967,13 @@
             bodyHtml += '</div>';
             bodyHtml += '</div>';
             bodyHtml += '<div class="flex flex-wrap gap-1 mt-2 pb-1" data-tab-btns="' + track.id + '">';
-            var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
+            var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' ', '\n'];
             tabNoteTypes.forEach(function (nt) {
               var pillBg = NOTE_INFO[nt] ? NOTE_INFO[nt].bg : 'rgba(255,255,255,0.06)';
               var pillBorder = NOTE_INFO[nt] ? NOTE_INFO[nt].border : 'rgba(255,255,255,0.12)';
               var pillColor = NOTE_INFO[nt] ? NOTE_INFO[nt].color : 'rgba(255,255,255,0.5)';
               var label = nt === ' ' ? '␣' : nt;
+              var label = nt === '\n' ? '␤' : label;
               bodyHtml += '<button class="tab-input-btn" data-insert="' + nt + '" style="background:' + pillBg + ';border-color:' + pillBorder + ';color:' + pillColor + '" title="Вставить ' + nt + '">' + label + '</button>';
             });
             bodyHtml += '</div>';
@@ -2074,12 +2075,13 @@
         };
         var buildExpandTabBtns = function () {
           els.expandTabBtns.innerHTML = '';
-          var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' '];
+          var tabNoteTypes = ['D', 'T', 'K', 'S', 't', 'k', 'B', 'R', '-', '(', ')', '1', '2', '3', '4', ' ', '\n'];
           tabNoteTypes.forEach(function (nt) {
             var pillBg = NOTE_INFO[nt] ? NOTE_INFO[nt].bg : 'rgba(255,255,255,0.06)';
             var pillBorder = NOTE_INFO[nt] ? NOTE_INFO[nt].border : 'rgba(255,255,255,0.12)';
             var pillColor = NOTE_INFO[nt] ? NOTE_INFO[nt].color : 'rgba(255,255,255,0.5)';
             var label = nt === ' ' ? '␣' : nt;
+            var label = nt === '\n' ? '␤' : label;
             var btn = document.createElement('button');
             btn.className = 'tab-input-btn';
             btn.style.background = pillBg;
