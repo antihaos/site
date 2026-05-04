@@ -1446,7 +1446,7 @@
           class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">Esc</kbd> Стоп | <kbd
           class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">↑↓</kbd> Темп ±5</p>
       <br>
-      <p class="text-white/25 text-xs">Версия: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">3.8.2</kbd></p>
+      <p class="text-white/25 text-xs">Версия: <kbd class="bg-white/10 px-1.5 py-0.5 rounded text-white/50 font-mono">3.8.3</kbd></p>
     </footer>
   </main>
   <!-- Expanded Textarea Modal -->
@@ -1462,7 +1462,7 @@
           class="text-white/50 hover:text-white transition-colors text-xl leading-none w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 touch-target">✕</button>
       </div>
       <textarea id="expandTextarea"
-        class="flex-1 min-h-[120px] w-full bg-black/30 border border-white/15 rounded-xl p-4 font-mono text-base md:text-lg leading-relaxed resize-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 outline-none"></textarea>
+        class="flex-1 min-h-[120px] w-full bg-black/30 border border-white/15 rounded-xl p-4 font-mono text-base md:text-lg leading-relaxed resize-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent placeholder-white/15 outline-none" inputmode="none"></textarea>
       <div id="expandTabBtns" class="flex flex-wrap gap-1.5 my-3"></div>
       <div class="flex gap-3 shrink-0">
         <button id="expandSaveBtn"
@@ -1872,7 +1872,9 @@
                 if (noteType === '-' || noteType === 'R') continue;
                 var rowIdx = SEQ_NOTES.indexOf(noteType);
                 if (rowIdx >= 0) {
-                  grid[rowIdx][col] = true;
+                  if ( d === 0 ) {
+                    grid[rowIdx][col] = true;
+                  }
                 }
               }
               col++;
