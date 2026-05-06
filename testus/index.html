@@ -853,56 +853,71 @@
                         </div>
                         
                         <div class="grid md:grid-cols-3 gap-6 mb-8">
-                            ${Components.card(`
-                                <div class="text-center p-6">
-                                    <div class="text-4xl mb-4">📝</div>
-                                    <h3 class="text-2xl font-bold mb-2">${tests.length}</h3>
-                                    <p class="text-gray-600">Тестов создано</p>
-                                </div>
-                            `)}
-                            ${Components.card(`
-                                <div class="text-center p-6">
-                                    <div class="text-4xl mb-4">✅</div>
-                                    <h3 class="text-2xl font-bold mb-2">${results.length}</h3>
-                                    <p class="text-gray-600">Результатов сохранено</p>
-                                </div>
-                            `)}
-                            ${Components.card(`
-                                <div class="text-center p-6">
-                                    <div class="text-4xl mb-4">🎯</div>
-                                    <h3 class="text-2xl font-bold mb-2">${results.filter(r => {
-                                        const test = DataLayer.getTest(r.testId);
-                                        return test && r.percentage >= test.settings.passingScore;
-                                    }).length}</h3>
-                                    <p class="text-gray-600">Успешных прохождений</p>
-                                </div>
-                            `)}
+                            ${(() => {
+                                const card1Content = `
+                                    <div class="text-center p-6">
+                                        <div class="text-4xl mb-4">📝</div>
+                                        <h3 class="text-2xl font-bold mb-2">${tests.length}</h3>
+                                        <p class="text-gray-600">Тестов создано</p>
+                                    </div>
+                                `;
+                                return Components.card(card1Content);
+                            })()}
+                            ${(() => {
+                                const card2Content = `
+                                    <div class="text-center p-6">
+                                        <div class="text-4xl mb-4">✅</div>
+                                        <h3 class="text-2xl font-bold mb-2">${results.length}</h3>
+                                        <p class="text-gray-600">Результатов сохранено</p>
+                                    </div>
+                                `;
+                                return Components.card(card2Content);
+                            })()}
+                            ${(() => {
+                                const card3Content = `
+                                    <div class="text-center p-6">
+                                        <div class="text-4xl mb-4">🎯</div>
+                                        <h3 class="text-2xl font-bold mb-2">${results.filter(r => {
+                                            const test = DataLayer.getTest(r.testId);
+                                            return test && r.percentage >= test.settings.passingScore;
+                                        }).length}</h3>
+                                        <p class="text-gray-600">Успешных прохождений</p>
+                                    </div>
+                                `;
+                                return Components.card(card3Content);
+                            })()}
                         </div>
                         
                         <div class="grid md:grid-cols-2 gap-6">
-                            ${Components.card(`
-                                <div class="p-6">
-                                    <h3 class="text-2xl font-bold mb-4">Возможности системы</h3>
-                                    <ul class="space-y-2">
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> 6 типов вопросов</li>
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> Гибкая настройка оценивания</li>
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> Секции и веса вопросов</li>
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> Тайминг и лимиты времени</li>
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> История и прогресс</li>
-                                        <li class="flex items-center"><span class="text-success mr-2">✓</span> Экспорт результатов</li>
-                                    </ul>
-                                </div>
-                            `)}
-                            ${Components.card(`
-                                <div class="p-6">
-                                    <h3 class="text-2xl font-bold mb-4">Быстрый старт</h3>
-                                    <div class="space-y-3">
-                                        ${Components.button('Создать новый тест', "App.navigate('testCreate')")}
-                                        ${Components.button('Пройти тест', "App.navigate('testList')", 'secondary')}
-                                        ${Components.button('Посмотреть результаты', "App.navigate('results')", 'secondary')}
+                            ${(() => {
+                                const card4Content = `
+                                    <div class="p-6">
+                                        <h3 class="text-2xl font-bold mb-4">Возможности системы</h3>
+                                        <ul class="space-y-2">
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> 6 типов вопросов</li>
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Гибкая настройка оценивания</li>
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Секции и веса вопросов</li>
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Тайминг и лимиты времени</li>
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> История и прогресс</li>
+                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Экспорт результатов</li>
+                                        </ul>
                                     </div>
-                                </div>
-                            `)}
+                                `;
+                                return Components.card(card4Content);
+                            })()}
+                            ${(() => {
+                                const card5Content = `
+                                    <div class="p-6">
+                                        <h3 class="text-2xl font-bold mb-4">Быстрый старт</h3>
+                                        <div class="space-y-3">
+                                            ${Components.button('Создать новый тест', "App.navigate('testCreate')")}
+                                            ${Components.button('Пройти тест', "App.navigate('testList')", 'secondary')}
+                                            ${Components.button('Посмотреть результаты', "App.navigate('results')", 'secondary')}
+                                        </div>
+                                    </div>
+                                `;
+                                return Components.card(card5Content);
+                            })()}
                         </div>
                     </div>
                 `;
@@ -922,8 +937,8 @@
                     `;
                 }
                 
-                const testCards = tests.map(test => `
-                    ${Components.card(`
+                const testCards = tests.map(test => {
+                    const cardContent = `
                         <div class="p-6">
                             <h3 class="text-xl font-bold mb-2">${test.title}</h3>
                             <p class="text-gray-600 mb-4">${test.description || 'Описание отсутствует'}</p>
@@ -938,8 +953,9 @@
                                 ${Components.button('Удалить', `App.deleteTest('${test.id}')`, 'danger')}
                             </div>
                         </div>
-                    `, 'mb-4')
-                `).join('');
+                    `;
+                    return Components.card(cardContent, 'mb-4');
+                }).join('');
                 
                 return `
                     <div class="animate-fade-in">
@@ -956,44 +972,47 @@
                     <div class="animate-fade-in max-w-4xl mx-auto">
                         <h2 class="text-3xl font-bold mb-6">Создание нового теста</h2>
                         
-                        ${Components.card(`
-                            <div class="p-6">
-                                <div class="grid md:grid-cols-2 gap-4 mb-6">
-                                    ${Components.input('test-title', 'Название теста', 'text', 'Введите название')}
-                                    ${Components.textarea('test-description', 'Описание', 'Краткое описание теста', 3)}
+                        ${(() => {
+                            const cardContent = `
+                                <div class="p-6">
+                                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                        ${Components.input('test-title', 'Название теста', 'text', 'Введите название')}
+                                        ${Components.textarea('test-description', 'Описание', 'Краткое описание теста', 3)}
+                                    </div>
+                                    
+                                    <h3 class="text-xl font-bold mb-4">Настройки теста</h3>
+                                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                        ${Components.input('time-limit', 'Лимит времени (мин)', 'number', '0 для безлимита')}
+                                        ${Components.input('passing-score', 'Проходной балл (%)', 'number', '70')}
+                                    </div>
+                                    
+                                    <div class="space-y-4 mb-6">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="randomize" class="mr-2">
+                                            Перемешивать вопросы
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="show-results" class="mr-2" checked>
+                                            Показывать результаты после завершения
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="allow-review" class="mr-2">
+                                            Разрешить просмотр ответов
+                                        </label>
+                                    </div>
+                                    
+                                    ${Components.button('Добавить секцию', 'App.addSection()', 'secondary', 'w-full mb-4')}
+                                    
+                                    <div id="sections-container"></div>
+                                    
+                                    <div class="mt-6 flex justify-end space-x-4">
+                                        ${Components.button('Сохранить тест', 'App.saveTest()', 'success')}
+                                        ${Components.button('Отмена', "App.navigate('testList')", 'secondary')}
+                                    </div>
                                 </div>
-                                
-                                <h3 class="text-xl font-bold mb-4">Настройки теста</h3>
-                                <div class="grid md:grid-cols-2 gap-4 mb-6">
-                                    ${Components.input('time-limit', 'Лимит времени (мин)', 'number', '0 для безлимита')}
-                                    ${Components.input('passing-score', 'Проходной балл (%)', 'number', '70')}
-                                </div>
-                                
-                                <div class="space-y-4 mb-6">
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="randomize" class="mr-2">
-                                        Перемешивать вопросы
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="show-results" class="mr-2" checked>
-                                        Показывать результаты после завершения
-                                    </label>
-                                    <label class="flex items-center">
-                                        <input type="checkbox" id="allow-review" class="mr-2">
-                                        Разрешить просмотр ответов
-                                    </label>
-                                </div>
-                                
-                                ${Components.button('Добавить секцию', 'App.addSection()', 'secondary', 'w-full mb-4')}
-                                
-                                <div id="sections-container"></div>
-                                
-                                <div class="mt-6 flex justify-end space-x-4">
-                                    ${Components.button('Сохранить тест', 'App.saveTest()', 'success')}
-                                    ${Components.button('Отмена', "App.navigate('testList')", 'secondary')}
-                                </div>
-                            </div>
-                        `)}
+                            `;
+                            return Components.card(cardContent);
+                        })()}
                     </div>
                 `;
             },
@@ -1030,23 +1049,26 @@
                         
                         ${Components.progressBar(this.state.currentQuestion + 1, allQuestions.length, 'mb-6')}
                         
-                        ${Components.card(`
-                            <div class="p-6">
-                                <div class="mb-6">
-                                    <span class="inline-block px-3 py-1 bg-primary text-white text-sm rounded-full mb-2">
-                                        ${this.getTypeName(question.type)}
-                                    </span>
-                                    <h3 class="text-xl font-semibold">${question.text}</h3>
+                        ${(() => {
+                            const cardContent = `
+                                <div class="p-6">
+                                    <div class="mb-6">
+                                        <span class="inline-block px-3 py-1 bg-primary text-white text-sm rounded-full mb-2">
+                                            ${this.getTypeName(question.type)}
+                                        </span>
+                                        <h3 class="text-xl font-semibold">${question.text}</h3>
+                                    </div>
+                                    
+                                    ${renderer ? renderer(question, currentAnswer) : '<p>Неизвестный тип вопроса</p>'}
+                                    
+                                    <div class="mt-6 flex justify-between">
+                                        ${Components.button('← Назад', 'App.prevQuestion()', 'secondary', this.state.currentQuestion === 0 ? 'opacity-50 cursor-not-allowed' : '')}
+                                        ${Components.button(this.state.currentQuestion === allQuestions.length - 1 ? 'Завершить' : 'Далее →', 'App.nextQuestion()')}
+                                    </div>
                                 </div>
-                                
-                                ${renderer ? renderer(question, currentAnswer) : '<p>Неизвестный тип вопроса</p>'}
-                                
-                                <div class="mt-6 flex justify-between">
-                                    ${Components.button('← Назад', 'App.prevQuestion()', 'secondary', this.state.currentQuestion === 0 ? 'opacity-50 cursor-not-allowed' : '')}
-                                    ${Components.button(this.state.currentQuestion === allQuestions.length - 1 ? 'Завершить' : 'Далее →', 'App.nextQuestion()')}
-                                </div>
-                            </div>
-                        `)}
+                            `;
+                            return Components.card(cardContent);
+                        })()}
                         
                         <div class="mt-4 text-center text-sm text-gray-600">
                             Вес вопроса: ${question.weight} балл(а)
@@ -1087,14 +1109,17 @@
                 return `
                     <div class="animate-fade-in">
                         <h2 class="text-3xl font-bold mb-6">История прохождений</h2>
-                        ${Components.card(`
-                            <div class="p-6 overflow-x-auto">
-                                ${Components.table(
-                                    ['Тест', 'Дата', 'Время', 'Баллы', 'Процент', 'Статус'],
-                                    rows
-                                )}
-                            </div>
-                        `)}
+                        ${(() => {
+                            const cardContent = `
+                                <div class="p-6 overflow-x-auto">
+                                    ${Components.table(
+                                        ['Тест', 'Дата', 'Время', 'Баллы', 'Процент', 'Статус'],
+                                        rows
+                                    )}
+                                </div>
+                            `;
+                            return Components.card(cardContent);
+                        })()}
                         
                         <div class="mt-6">
                             ${Components.button('Экспорт в CSV', 'App.exportResults()', 'success')}
