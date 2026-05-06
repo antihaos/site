@@ -831,10 +831,11 @@
             },
             
             renderFooter() {
+                const currentYear = new Date().getFullYear();
                 return `
                     <footer class="bg-gray-800 text-white py-6 mt-8">
                         <div class="container mx-auto px-4 text-center">
-                            <p>&copy; 2024 TestUS - Профессиональная система тестирования</p>
+                            <p>&copy; ${currentYear} TestUS - Профессиональная система тестирования</p>
                             <p class="text-sm text-gray-400 mt-2">PWA Application | Local Storage | TailwindCSS</p>
                         </div>
                     </footer>
@@ -913,6 +914,7 @@
                                             ${Components.button('Создать новый тест', "App.navigate('testCreate')")}
                                             ${Components.button('Пройти тест', "App.navigate('testList')", 'secondary')}
                                             ${Components.button('Посмотреть результаты', "App.navigate('results')", 'secondary')}
+                                            ${Components.button('Загрузить демо-тест', "App.addDemoTest()", 'success')}
                                         </div>
                                     </div>
                                 `;
@@ -1707,91 +1709,131 @@
                     return;
                 }
 
+                this.state.editingTestId = testId;
                 this.navigate('testCreate');
 
                 // Wait for DOM to render
                 setTimeout(() => {
                     // Populate basic info
-                    document.getElementById('test-title').value = test.title;
+                    document.getElementById('test-title').value = test.title || '';
                     document.getElementById('test-description').value = test.description || '';
-                    document.getElementById('time-limit').value = test.settings.timeLimit || '';
-                    document.getElementById('passing-score').value = test.settings.passingScore || 70;
-                    document.getElementById('randomize').checked = test.settings.randomizeQuestions || false;
-                    document.getElementById('show-results').checked = test.settings.showResults !== false;
-                    document.getElementById('allow-review').checked = test.settings.allowReview || false;
+                    document.getElementById('time-limit').value = test.settings?.timeLimit || '';
+                    document.getElementById('passing-score').value = test.settings?.passingScore || 70;
+                    document.getElementById('randomize').checked = test.settings?.randomizeQuestions || false;
+                    document.getElementById('show-results').checked = test.settings?.showResults !== false;
+                    document.getElementById('allow-review').checked = test.settings?.allowReview || false;
 
-                    // Store editing test ID
-                    this.state.editingTestId = testId;
+                    // Clear sections container
+                    const sectionsContainer = document.getElementById('sections-container');
+                    if (sectionsContainer) {
+                        sectionsContainer.innerHTML = '';
+                    }
 
-                    // Clear default section and load test sections
-                    document.getElementById('sections-container').innerHTML = '';
+                    // Load test sections and questions
+                    if (test.sections && test.sections.length > 0) {
+                        test.sections.forEach(section => {
+                            this.addSection();
+                            const sectionEl = document.querySelector(`[data-section]:last-of-type`);
+                            if (sectionEl) {
+                                const titleInput = sectionEl.querySelector('[data-section-title]');
+                                if (titleInput) {
+                                    titleInput.value = section.title || '';
+                                }
 
-                    test.sections.forEach(section => {
-                        this.addSection();
-                        const sectionEl = document.querySelector(`[data-section]:last-of-type`);
-                        sectionEl.querySelector('[data-section-title]').value = section.title || '';
+                                const questionsContainer = sectionEl.querySelector('.questions-container');
+                                if (questionsContainer && section.questions && section.questions.length > 0) {
+                                    section.questions.forEach(question => {
+                                        this.addQuestion(sectionEl.getAttribute('data-section'));
+                                        const questionEl = document.querySelector(`[data-question]:last-of-type`);
+                                        
+                                        if (questionEl) {
+                                            // Set question type and text
+                                            const typeSelect = questionEl.querySelector('[data-question-type]');
+                                            const textArea = questionEl.querySelector('[data-question-text]');
+                                            const weightInput = questionEl.querySelector('[data-question-weight]');
+                                            
+                                            if (typeSelect) typeSelect.value = question.type || 'single';
+                                            if (textArea) textArea.value = question.text || '';
+                                            if (weightInput) weightInput.value = question.weight || 1;
 
-                        section.questions.forEach(question => {
-                            this.addQuestion(section.getAttribute('data-section'));
-                            const questionEl = sectionEl.querySelector('.question-item:last-of-type');
+                                            // Update UI based on type
+                                            this.updateQuestionType(questionEl.getAttribute('data-question'));
 
-                            // Set question type and text
-                            const typeSelect = questionEl.querySelector('[data-question-type]');
-                            typeSelect.value = question.type;
-                            questionEl.querySelector('[data-question-text]').value = question.text;
-                            questionEl.querySelector('[data-question-weight]').value = question.weight || 1;
-
-                            // Update UI based on type
-                            this.updateQuestionType(questionEl.getAttribute('data-question'));
-
-                            // Add options based on question type
-                            if (['single', 'multiple'].includes(question.type)) {
-                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
-                                if (optionsList) {
-                                    question.options.forEach((opt, idx) => {
-                                        this.addOption(questionEl.getAttribute('data-question'));
-                                        const optEl = optionsList.lastElementChild;
-                                        optEl.querySelector('[data-option-text]').value = opt.text;
-                                        if (question.correctAnswers.includes(idx)) {
-                                            optEl.querySelector('[data-correct]').checked = true;
+                                            // Add options based on question type
+                                            const qType = question.type;
+                                            
+                                            if (qType === 'single' || qType === 'multiple') {
+                                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
+                                                if (optionsList && question.options) {
+                                                    question.options.forEach((opt, idx) => {
+                                                        this.addOption(questionEl.getAttribute('data-question'));
+                                                        const optEl = optionsList.lastElementChild;
+                                                        if (optEl) {
+                                                            const textInput = optEl.querySelector('[data-option-text]');
+                                                            const correctCheckbox = optEl.querySelector('[data-correct]');
+                                                            if (textInput) textInput.value = opt.text || '';
+                                                            if (correctCheckbox && question.correctAnswers?.includes(idx)) {
+                                                                correctCheckbox.checked = true;
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            } else if (qType === 'fill') {
+                                                // For fill questions, set the correct answer
+                                                const fillInput = questionEl.querySelector('[data-fill-answer]');
+                                                if (fillInput && question.correctAnswers && question.correctAnswers.length > 0) {
+                                                    fillInput.value = question.correctAnswers[0];
+                                                }
+                                            } else if (qType === 'sequence') {
+                                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
+                                                if (optionsList && question.options) {
+                                                    question.options.forEach((opt, idx) => {
+                                                        this.addOption(questionEl.getAttribute('data-question'));
+                                                        const optEl = optionsList.lastElementChild;
+                                                        if (optEl) {
+                                                            const textInput = optEl.querySelector('[data-option-text]');
+                                                            if (textInput) textInput.value = opt.text || '';
+                                                        }
+                                                    });
+                                                }
+                                            } else if (qType === 'match') {
+                                                // Handle match questions - load pairs for editing
+                                                const optionsContainer = questionEl.querySelector('[data-options]');
+                                                const list = optionsContainer?.querySelector('.space-y-2');
+                                                if (list && question.options?.left && question.options?.right) {
+                                                    const leftItems = question.options.left;
+                                                    const rightItems = question.options.right;
+                                                    
+                                                    leftItems.forEach((l, i) => {
+                                                        const pairId = DataLayer.generateId();
+                                                        const rightText = rightItems[i]?.text || '';
+                                                        const pairHtml = `
+                                                            <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
+                                                                <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left value="${this.escapeHtml(l.text)}">
+                                                                <span class="text-gray-500">↔</span>
+                                                                <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right value="${this.escapeHtml(rightText)}">
+                                                                <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
+                                                            </div>
+                                                        `;
+                                                        list.insertAdjacentHTML('beforeend', pairHtml);
+                                                    });
+                                                }
+                                            }
+                                            // Open questions don't need special handling
                                         }
-                                    });
-                                }
-                            } else if (question.type === 'fill') {
-                                // For fill questions, correct answer is stored in correctAnswers[0]
-                                // The text should contain ___ for the blank
-                            } else if (question.type === 'sequence') {
-                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
-                                if (optionsList) {
-                                    question.options.forEach((opt, idx) => {
-                                        this.addOption(questionEl.getAttribute('data-question'));
-                                        const optEl = optionsList.lastElementChild;
-                                        optEl.querySelector('[data-option-text]').value = opt.text;
-                                    });
-                                }
-                            } else if (question.type === 'match') {
-                                // Handle match questions - load pairs for editing
-                                const optionsContainer = questionEl.querySelector('[data-options]');
-                                const list = optionsContainer?.querySelector('.space-y-2');
-                                if (list && question.options.left && question.options.right) {
-                                    question.options.left.forEach((l, i) => {
-                                        const pairId = DataLayer.generateId();
-                                        const rightText = question.options.right[i]?.text || '';
-                                        const pairHtml = `
-                                            <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
-                                                <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left value="${l.text}">
-                                                <span class="text-gray-500">↔</span>
-                                                <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right value="${rightText}">
-                                                <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
-                                            </div>
-                                        `;
-                                        list.insertAdjacentHTML('beforeend', pairHtml);
                                     });
                                 }
                             }
                         });
-                    });
-                }, 100);
+                    }
+                }, 150);
+            },
+            
+            escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
             },
             
             deleteTest(testId) {
@@ -1827,6 +1869,138 @@
                 link.href = URL.createObjectURL(blob);
                 link.download = `testus_results_${new Date().toISOString().split('T')[0]}.csv`;
                 link.click();
+            }
+
+            // Demo test generation with all question types
+            addDemoTest() {
+                if (confirm('Это создаст демо-тест со всеми типами вопросов. Продолжить?')) {
+                    const demoTest = {
+                        id: DataLayer.generateId(),
+                        title: 'Демо-тест: Все типы вопросов',
+                        description: 'Тест демонстрирующий все доступные типы вопросов и возможности системы',
+                        sections: [
+                            {
+                                id: DataLayer.generateId(),
+                                title: 'Секция 1: Тестовые вопросы',
+                                description: 'Вопросы с вариантами ответов',
+                                weight: 1,
+                                questions: [
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'single',
+                                        text: 'Какой язык программирования используется для веб-разработки на стороне клиента?',
+                                        options: [
+                                            { id: 0, text: 'Python' },
+                                            { id: 1, text: 'JavaScript' },
+                                            { id: 2, text: 'Java' },
+                                            { id: 3, text: 'C++' }
+                                        ],
+                                        correctAnswers: [1],
+                                        weight: 1,
+                                        explanation: 'JavaScript - основной язык для клиентской веб-разработки'
+                                    },
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'multiple',
+                                        text: 'Выберите все фреймворки JavaScript (можно несколько вариантов):',
+                                        options: [
+                                            { id: 0, text: 'React' },
+                                            { id: 1, text: 'Django' },
+                                            { id: 2, text: 'Vue' },
+                                            { id: 3, text: 'Angular' },
+                                            { id: 4, text: 'Flask' }
+                                        ],
+                                        correctAnswers: [0, 2, 3],
+                                        weight: 2,
+                                        explanation: 'React, Vue и Angular - это фреймворки JavaScript'
+                                    }
+                                ]
+                            },
+                            {
+                                id: DataLayer.generateId(),
+                                title: 'Секция 2: Вопросы на заполнение и последовательность',
+                                description: 'Вопросы требующие ввода ответа или установления порядка',
+                                weight: 1,
+                                questions: [
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'fill',
+                                        text: 'HTML расшифровывается как ___ Markup Language',
+                                        options: [{ id: 0, text: 'HTML расшифровывается как ___ Markup Language' }],
+                                        correctAnswers: ['HyperText'],
+                                        weight: 1,
+                                        explanation: 'HTML - HyperText Markup Language'
+                                    },
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'sequence',
+                                        text: 'Установите правильный порядок этапов разработки веб-приложения:',
+                                        options: [
+                                            { id: 0, text: 'Планирование и анализ требований' },
+                                            { id: 1, text: 'Проектирование архитектуры' },
+                                            { id: 2, text: 'Разработка кода' },
+                                            { id: 3, text: 'Тестирование' },
+                                            { id: 4, text: 'Деплой и поддержка' }
+                                        ],
+                                        correctAnswers: [0, 1, 2, 3, 4],
+                                        weight: 2,
+                                        explanation: 'Это стандартный порядок этапов разработки'
+                                    }
+                                ]
+                            },
+                            {
+                                id: DataLayer.generateId(),
+                                title: 'Секция 3: Сопоставление и открытые вопросы',
+                                description: 'Вопросы на сопоставление и эссе',
+                                weight: 1,
+                                questions: [
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'match',
+                                        text: 'Сопоставьте технологии с их назначением:',
+                                        options: {
+                                            left: [
+                                                { id: 0, text: 'HTML' },
+                                                { id: 1, text: 'CSS' },
+                                                { id: 2, text: 'JavaScript' }
+                                            ],
+                                            right: [
+                                                { id: 0, text: 'Стилизация и оформление' },
+                                                { id: 1, text: 'Структура и содержимое' },
+                                                { id: 2, text: 'Интерактивность и логика' }
+                                            ]
+                                        },
+                                        correctAnswers: [{ 0: 1, 1: 0, 2: 2 }],
+                                        weight: 2,
+                                        explanation: 'HTML - структура, CSS - стили, JS - интерактивность'
+                                    },
+                                    {
+                                        id: DataLayer.generateId(),
+                                        type: 'open',
+                                        text: 'Опишите своими словами, что такое PWA (Progressive Web Application) и какие преимущества оно дает:',
+                                        options: [{ id: 0, text: '' }],
+                                        correctAnswers: [],
+                                        weight: 3,
+                                        explanation: 'Ответ проверяется вручную'
+                                    }
+                                ]
+                            }
+                        ],
+                        settings: {
+                            timeLimit: 30,
+                            passingScore: 60,
+                            randomizeQuestions: false,
+                            showResults: true,
+                            allowReview: true
+                        },
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    DataLayer.saveTest(demoTest);
+                    alert('Демо-тест успешно создан! Теперь вы можете пройти его или отредактировать.');
+                    this.render();
+                }
             }
         };
         
