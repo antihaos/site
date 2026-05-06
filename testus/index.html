@@ -3,2020 +3,687 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#4F46E5">
-    <meta name="description" content="Профессиональная система тестирования с гибкой настройкой">
     <title>TestUS - Система тестирования</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlRlc3RVUyIsCiAgInNob3J0X25hbWUiOiAiVGVzdFVTIiwKICAic3RhcnRfdXJsIjogIi4vaW5kZXguaHRtbCIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiM0RjQ2RTUiLAogICJpY29ucyI6IFtdCn0=">
-    
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4F46E5',
-                        secondary: '#7C3AED',
-                        success: '#10B981',
-                        warning: '#F59E0B',
-                        danger: '#EF4444'
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Custom Styles -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiVGVzdFVTIiwic2hvcnRfbmFtZSI6IlRlc3RVUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjNGY0NmU1IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vdmlhLnBsYWNlaG9sZGVyLmNvbS8xOTIiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
     <style>
-        /* Base Styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-        
-        .animate-slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #4F46E5;
-            border-radius: 4px;
-        }
-        
-        /* Component Styles */
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .card:hover {
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
-            transform: translateY(-2px);
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-            outline: none;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #f3f4f6;
-            color: #374151;
-        }
-        
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.2s ease;
-        }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: #4F46E5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-        
-        /* Question Types */
-        .option-card {
-            padding: 16px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .option-card:hover {
-            border-color: #4F46E5;
-            background: #f5f3ff;
-        }
-        
-        .option-card.selected {
-            border-color: #4F46E5;
-            background: #ede9fe;
-        }
-        
-        .option-card.correct {
-            border-color: #10B981;
-            background: #d1fae5;
-        }
-        
-        .option-card.incorrect {
-            border-color: #EF4444;
-            background: #fee2e2;
-        }
-        
-        /* Drag and Drop */
-        .draggable {
-            cursor: grab;
-            touch-action: none;
-        }
-        
-        .draggable:active {
-            cursor: grabbing;
-        }
-        
-        .drop-zone {
-            border: 2px dashed #e5e7eb;
-            border-radius: 8px;
-            min-height: 60px;
-            transition: all 0.2s ease;
-        }
-        
-        .drop-zone.active {
-            border-color: #4F46E5;
-            background: #f5f3ff;
-        }
-        
-        /* Timer */
-        .timer {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-        
-        .timer.warning {
-            color: #F59E0B;
-            animation: pulse 1s infinite;
-        }
-        
-        .timer.danger {
-            color: #EF4444;
-            animation: pulse 0.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* Progress Bar */
-        .progress-bar {
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
-            transition: width 0.3s ease;
-        }
-        
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: 12px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        /* Table Styles */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th,
-        .data-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .data-table th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-        }
-        
-        .data-table tr:hover {
-            background: #f9fafb;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 16px;
-            }
-            
-            .btn {
-                padding: 10px 16px;
-                font-size: 14px;
-            }
-        }
-        
-        /* Print Styles */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-            
-            .card {
-                box-shadow: none;
-                border: 1px solid #ddd;
-            }
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .match-item.selected { background-color: #e0e7ff; border-color: #4f46e5; color: #4f46e5; }
+        .match-item.matched { opacity: 0.5; pointer-events: none; background-color: #dcfce7; border-color: #22c55e; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
     </style>
 </head>
-<body>
-    <div id="app"></div>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="App.navigate('home')">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">T</div>
+                <h1 class="text-xl font-bold text-gray-900">TestUS</h1>
+            </div>
+            <nav class="hidden md:flex space-x-4">
+                <button onclick="App.navigate('home')" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Тесты</button>
+                <button onclick="App.navigate('history')" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">История</button>
+                <button onclick="App.navigate('create')" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition">Создать тест</button>
+            </nav>
+            <button class="md:hidden text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-root" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in"></main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-gray-500 text-sm">&copy; <span id="current-year"></span> TestUS. Все права защищены.</p>
+            <div class="flex space-x-6 text-sm text-gray-500">
+                <a href="#" class="hover:text-gray-900">Политика конфиденциальности</a>
+                <a href="#" class="hover:text-gray-900">Условия использования</a>
+            </div>
+        </div>
+    </footer>
+
+<script>
+/**
+ * DATA LAYER
+ */
+const DataLayer = {
+    KEYS: { TESTS: 'testus_tests', RESULTS: 'testus_results' },
+
+    getTests() { return JSON.parse(localStorage.getItem(this.KEYS.TESTS) || '[]'); },
     
-    <!-- Application Scripts -->
-    <script>
-        // ============================================
-        // DATA LAYER - JSON Structures & Storage
-        // ============================================
-        
-        const DataLayer = {
-            // Default data structures
-            structures: {
-                test: {
-                    id: null,
-                    title: '',
-                    description: '',
-                    sections: [],
-                    settings: {
-                        timeLimit: null,
-                        passingScore: 70,
-                        randomizeQuestions: false,
-                        showResults: true,
-                        allowReview: false
-                    },
-                    createdAt: null,
-                    updatedAt: null
-                },
-                section: {
-                    id: null,
-                    title: '',
-                    description: '',
-                    questions: [],
-                    weight: 1
-                },
-                question: {
-                    id: null,
-                    type: 'single', // single, multiple, fill, sequence, match, open
-                    text: '',
-                    options: [],
-                    correctAnswers: [],
-                    weight: 1,
-                    explanation: ''
-                },
-                result: {
-                    id: null,
-                    testId: null,
-                    userId: null,
-                    answers: [],
-                    score: 0,
-                    maxScore: 0,
-                    percentage: 0,
-                    startTime: null,
-                    endTime: null,
-                    duration: 0,
-                    questionResults: []
-                }
-            },
-            
-            // Storage keys
-            keys: {
-                tests: 'testus_tests',
-                results: 'testus_results',
-                users: 'testus_users',
-                settings: 'testus_settings'
-            },
-            
-            // Generate unique ID
-            generateId() {
-                return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            },
-            
-            // LocalStorage operations
-            save(key, data) {
-                try {
-                    localStorage.setItem(this.keys[key], JSON.stringify(data));
-                    return true;
-                } catch (e) {
-                    console.error('Save error:', e);
-                    return false;
-                }
-            },
-            
-            load(key) {
-                try {
-                    const data = localStorage.getItem(this.keys[key]);
-                    return data ? JSON.parse(data) : [];
-                } catch (e) {
-                    console.error('Load error:', e);
-                    return [];
-                }
-            },
-            
-            // Test operations
-            saveTest(test) {
-                const tests = this.load('tests');
-                if (!test.id) test.id = this.generateId();
-                test.updatedAt = new Date().toISOString();
-                
-                const index = tests.findIndex(t => t.id === test.id);
-                if (index >= 0) {
-                    tests[index] = test;
-                } else {
-                    test.createdAt = new Date().toISOString();
-                    tests.push(test);
-                }
-                
-                this.save('tests', tests);
-                return test;
-            },
-            
-            getTest(id) {
-                const tests = this.load('tests');
-                return tests.find(t => t.id === id);
-            },
-            
-            deleteTest(id) {
-                const tests = this.load('tests');
-                const filtered = tests.filter(t => t.id !== id);
-                this.save('tests', filtered);
-                
-                // Also delete associated results
-                const results = this.load('results');
-                const filteredResults = results.filter(r => r.testId !== id);
-                this.save('results', filteredResults);
-            },
-            
-            getAllTests() {
-                return this.load('tests');
-            },
-            
-            // Result operations
-            saveResult(result) {
-                const results = this.load('results');
-                if (!result.id) result.id = this.generateId();
-                results.push(result);
-                this.save('results', results);
-                return result;
-            },
-            
-            getResults(testId = null) {
-                const results = this.load('results');
-                if (testId) {
-                    return results.filter(r => r.testId === testId);
-                }
-                return results;
-            },
-            
-            exportResults(testId) {
-                const results = this.getResults(testId);
-                const test = this.getTest(testId);
-                
-                if (!test) return '';
-                
-                // Create CSV
-                let csv = 'ID;Дата начала;Дата окончания;Продолжительность (сек);Баллы;Макс баллы;Процент;Статус\n';
-                
-                results.forEach(r => {
-                    const status = r.percentage >= test.settings.passingScore ? 'Сдан' : 'Не сдан';
-                    csv += `${r.id};${new Date(r.startTime).toLocaleString()};${new Date(r.endTime).toLocaleString()};${r.duration};${r.score};${r.maxScore};${r.percentage.toFixed(1)}%;${status}\n`;
-                });
-                
-                return csv;
-            }
+    saveTest(test) {
+        const tests = this.getTests();
+        const index = tests.findIndex(t => t.id === test.id);
+        if (index >= 0) tests[index] = test;
+        else tests.push(test);
+        localStorage.setItem(this.KEYS.TESTS, JSON.stringify(tests));
+        return test;
+    },
+
+    deleteTest(id) {
+        const tests = this.getTests().filter(t => t.id !== id);
+        localStorage.setItem(this.KEYS.TESTS, JSON.stringify(tests));
+    },
+
+    getTestById(id) { return this.getTests().find(t => t.id === id); },
+
+    saveResult(result) {
+        const results = JSON.parse(localStorage.getItem(this.KEYS.RESULTS) || '[]');
+        results.unshift(result);
+        localStorage.setItem(this.KEYS.RESULTS, JSON.stringify(results));
+    },
+
+    getResults() { return JSON.parse(localStorage.getItem(this.KEYS.RESULTS) || '[]'); },
+    getResultsByTest(testId) { return this.getResults().filter(r => r.testId === testId); }
+};
+
+/**
+ * UTILS
+ */
+const Utils = {
+    generateId: () => '_' + Math.random().toString(36).substr(2, 9),
+    formatDate: (d) => new Date(d).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    formatDuration: (s) => {
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        return h > 0 ? `${h}ч ${m}м ${sec}с` : m > 0 ? `${m}м ${sec}с` : `${sec}с`;
+    }
+};
+
+/**
+ * COMPONENTS
+ */
+const Components = {
+    card: (content, className = '') => `<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300 ${className}">${content}</div>`,
+    
+    button: (text, onClick, variant = 'primary', className = '', attrs = '') => {
+        const variants = {
+            primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
+            secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+            danger: 'bg-red-50 text-red-600 hover:bg-red-100 border border-transparent',
+            success: 'bg-green-600 text-white hover:bg-green-700'
         };
+        return `<button onclick="${onClick}" class="${variants[variant]} px-4 py-2 rounded-lg font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${className}" ${attrs}>${text}</button>`;
+    },
+
+    input: (label, type, id, value = '', placeholder = '') => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" /></div>`,
+
+    textarea: (label, id, value = '', rows = 3) => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <textarea id="${id}" rows="${rows}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">${value}</textarea></div>`,
+
+    select: (label, id, options, selected) => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <select id="${id}" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+        ${options.map(o => `<option value="${o.value}" ${o.value == selected ? 'selected' : ''}>${o.label}</option>`).join('')}</select></div>`,
+
+    badge: (text, color = 'gray') => {
+        const c = { gray:'bg-gray-100 text-gray-800', green:'bg-green-100 text-green-800', red:'bg-red-100 text-red-800', blue:'bg-blue-100 text-blue-800' };
+        return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}">${text}</span>`;
+    }
+};
+
+/**
+ * QUESTION RENDERERS
+ */
+const QuestionRenderers = {
+    single: (q, state) => `
+        <div class="space-y-3">${q.options.map((opt, i) => `
+            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${state.answer === i ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}">
+                <input type="radio" name="q_${q.id}" value="${i}" class="h-4 w-4 text-indigo-600" ${state.answer === i ? 'checked' : ''} onchange="App.handleAnswer('${q.id}', ${i})">
+                <span class="ml-3 text-sm font-medium text-gray-900">${opt}</span>
+            </label>`).join('')}</div>`,
+
+    multiple: (q, state) => `
+        <div class="space-y-3">${q.options.map((opt, i) => {
+            const checked = state.answers && state.answers.includes(i);
+            return `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${checked ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}">
+                <input type="checkbox" value="${i}" class="h-4 w-4 text-indigo-600 rounded" ${checked ? 'checked' : ''} onchange="App.handleMultipleAnswer('${q.id}', ${i}, this.checked)">
+                <span class="ml-3 text-sm font-medium text-gray-900">${opt}</span>
+            </label>`;
+        }).join('')}</div>`,
+
+    fill: (q, state) => `
+        <div class="space-y-4">
+            <p class="text-gray-700 text-lg">${q.text.replace('___', '<span class="inline-block w-24 border-b-2 border-indigo-300 mx-1"></span>')}</p>
+            <input type="text" value="${state.answer || ''}" class="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-indigo-500" placeholder="Ваш ответ" oninput="App.handleAnswer('${q.id}', this.value)">
+        </div>`,
+
+    sequence: (q, state) => {
+        let order = state.order || q.options.map((_, i) => i);
+        return `<div class="space-y-2">${order.map((optIdx, pos) => `
+            <div class="flex items-center gap-3 p-3 bg-white border rounded-lg shadow-sm">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full font-bold text-sm">${pos + 1}</span>
+                <span class="flex-grow">${q.options[optIdx]}</span>
+                <div class="flex gap-1">
+                    <button onclick="App.moveSequence('${q.id}', ${pos}, -1)" class="p-1 text-gray-400 hover:text-indigo-600" ${pos===0?'disabled':''}>▲</button>
+                    <button onclick="App.moveSequence('${q.id}', ${pos}, 1)" class="p-1 text-gray-400 hover:text-indigo-600" ${pos===order.length-1?'disabled':''}>▼</button>
+                </div>
+            </div>`).join('')}</div>`;
+    },
+
+    match: (q, state) => {
+        const matches = state.matches || {};
+        const selectedLeft = state.selectedLeft !== undefined ? state.selectedLeft : null;
+        return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><h4 class="font-medium mb-3">Левая колонка</h4><div class="space-y-2">
+                ${q.left.map((item, i) => {
+                    const isMatched = Object.values(matches).includes(i);
+                    const isSelected = selectedLeft === i;
+                    return `<div onclick="App.handleMatchSelect('${q.id}', 'left', ${i})" class="p-3 border rounded-lg cursor-pointer select-none ${isMatched?'bg-green-50 border-green-200 opacity-50':''} ${isSelected?'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-200':''} ${!isMatched&&!isSelected?'border-gray-200 hover:border-indigo-300':''}">${item}</div>`;
+                }).join('')}
+            </div></div>
+            <div><h4 class="font-medium mb-3">Правая колонка</h4><div class="space-y-2">
+                ${q.right.map((item, i) => {
+                    const matched = Object.keys(matches).find(k => matches[k] == i);
+                    return `<div onclick="App.handleMatchSelect('${q.id}', 'right', ${i})" class="p-3 border rounded-lg cursor-pointer select-none ${matched?'bg-green-50 border-green-200 opacity-50':'border-gray-200 hover:border-indigo-300'}">${item}</div>`;
+                }).join('')}
+            </div></div>
+        </div>${selectedLeft!==null?'<p class="mt-4 text-sm text-indigo-600 font-medium">Выберите элемент в правой колонке</p>':''}`;
+    },
+
+    open: (q, state) => `
+        <div class="space-y-4">
+            <p class="text-gray-700 text-lg">${q.text}</p>
+            <textarea rows="5" class="w-full px-4 py-3 border rounded-lg focus:ring-indigo-500" placeholder="Ваш ответ..." oninput="App.handleAnswer('${q.id}', this.value)">${state.answer||''}</textarea>
+        </div>`
+};
+
+/**
+ * APP CONTROLLER
+ */
+const App = {
+    state: { view: 'home', draftTest: null, session: null },
+
+    init() {
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        this.navigate('home');
+    },
+
+    navigate(view, params = {}) {
+        this.state.view = view;
+        const root = document.getElementById('app-root');
+        root.innerHTML = '';
+        window.scrollTo(0, 0);
+
+        if (view === 'home') this.renderHome(root);
+        else if (view === 'create') this.renderEditor(root);
+        else if (view === 'edit') this.renderEditor(root, params.id);
+        else if (view === 'take') this.startSession(params.id);
+        else if (view === 'history') this.renderHistory(root);
+    },
+
+    renderHome(container) {
+        const tests = DataLayer.getTests();
+        const stats = this.getStats();
         
-        // ============================================
-        // COMPONENT LIBRARY - Widget Components
-        // ============================================
-        
-        const Components = {
-            // Button component
-            button(text, onClick, variant = 'primary', className = '') {
-                const variants = {
-                    primary: 'btn-primary',
-                    secondary: 'btn-secondary',
-                    success: 'bg-success text-white hover:bg-green-600',
-                    danger: 'bg-danger text-white hover:bg-red-600'
-                };
-                
-                return `
-                    <button class="btn ${variants[variant]} ${className}" onclick="${onClick}">
-                        ${text}
-                    </button>
-                `;
-            },
+        container.innerHTML = `
+            <div class="mb-8"><h2 class="text-2xl font-bold mb-2">TestUS</h2><p class="text-gray-600">Система управления тестированием</p></div>
             
-            // Card component
-            card(content, className = '') {
-                return `<div class="card ${className}">${content}</div>`;
-            },
-            
-            // Input component
-            input(id, label, type = 'text', placeholder = '', value = '', onChange = '') {
-                return `
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-semibold mb-2">${label}</label>
-                        <input 
-                            type="${type}" 
-                            id="${id}" 
-                            class="input-field" 
-                            placeholder="${placeholder}"
-                            value="${value}"
-                            onchange="${onChange}"
-                        >
-                    </div>
-                `;
-            },
-            
-            // Textarea component
-            textarea(id, label, placeholder = '', rows = 4, value = '') {
-                return `
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-semibold mb-2">${label}</label>
-                        <textarea 
-                            id="${id}" 
-                            class="input-field" 
-                            placeholder="${placeholder}"
-                            rows="${rows}"
-                        >${value}</textarea>
-                    </div>
-                `;
-            },
-            
-            // Select component
-            select(id, label, options, value = '', onChange = '') {
-                const optionHtml = options.map(opt => 
-                    `<option value="${opt.value}" ${opt.value === value ? 'selected' : ''}>${opt.label}</option>`
-                ).join('');
-                
-                return `
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-semibold mb-2">${label}</label>
-                        <select id="${id}" class="input-field" onchange="${onChange}">
-                            ${optionHtml}
-                        </select>
-                    </div>
-                `;
-            },
-            
-            // Modal component
-            modal(title, content, onClose) {
-                return `
-                    <div class="modal-overlay" onclick="if(event.target === this) ${onClose}">
-                        <div class="modal animate-fade-in">
-                            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                                <h2 class="text-2xl font-bold text-gray-800">${title}</h2>
-                                <button onclick="${onClose}" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-indigo-100 rounded-full text-indigo-600 mr-4">📝</div><div><p class="text-sm text-gray-500">Тестов</p><p class="text-2xl font-bold">${tests.length}</p></div></div>`)}
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-green-100 rounded-full text-green-600 mr-4">✅</div><div><p class="text-sm text-gray-500">Попыток</p><p class="text-2xl font-bold">${stats.total}</p></div></div>`)}
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-yellow-100 rounded-full text-yellow-600 mr-4">📊</div><div><p class="text-sm text-gray-500">Средний балл</p><p class="text-2xl font-bold">${stats.avg}%</p></div></div>`)}
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold">Ваши тесты</h3>
+                <div class="space-x-2">
+                    ${Components.button('Демо-тест', 'App.addDemo()', 'secondary')}
+                    ${Components.button('Создать', 'App.navigate(\'create\')', 'primary')}
+                </div>
+            </div>
+
+            ${tests.length === 0 ? 
+                `<div class="text-center py-12 bg-white rounded-xl border border-dashed"><p class="text-gray-500">Нет тестов. Создайте первый или загрузите демо.</p></div>` :
+                `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${tests.map(t => {
+                        const res = DataLayer.getResultsByTest(t.id);
+                        const last = res.length ? res[0] : null;
+                        return Components.card(`
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">${t.sections.length} секций</span>
+                                    <div class="flex gap-2">
+                                        <button onclick="App.navigate('edit', {id:'${t.id}'})" class="text-gray-400 hover:text-indigo-600">✏️</button>
+                                        <button onclick="App.deleteTest('${t.id}')" class="text-gray-400 hover:text-red-600">🗑️</button>
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-lg mb-2 truncate">${t.title}</h3>
+                                <p class="text-sm text-gray-500 mb-4 line-clamp-2">${t.description||'Нет описания'}</p>
+                                <div class="pt-4 border-t flex justify-between items-center">
+                                    <span class="text-xs text-gray-500">${last ? `Результат: ${Math.round(last.score)}%` : 'Не пройден'}</span>
+                                    ${Components.button('Пройти', `App.navigate('take',{id:'${t.id}'})`, 'primary', 'text-xs px-3 py-1.5')}
+                                </div>
                             </div>
-                            <div class="p-6">${content}</div>
-                        </div>
-                    </div>
-                `;
-            },
-            
-            // Progress bar component
-            progressBar(current, total, className = '') {
-                const percentage = total > 0 ? (current / total) * 100 : 0;
-                return `
-                    <div class="progress-bar ${className}">
-                        <div class="progress-fill" style="width: ${percentage}%"></div>
-                    </div>
-                    <div class="text-sm text-gray-600 mt-1">${current} из ${total}</div>
-                `;
-            },
-            
-            // Timer component
-            timer(seconds, elementId = 'timer') {
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                const display = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-                
-                let className = 'timer text-2xl font-bold';
-                if (seconds <= 60) className += ' danger';
-                else if (seconds <= 180) className += ' warning';
-                
-                return `<div id="${elementId}" class="${className}">${display}</div>`;
-            },
-            
-            // Alert component
-            alert(message, type = 'info') {
-                const types = {
-                    info: 'bg-blue-100 border-blue-500 text-blue-700',
-                    success: 'bg-green-100 border-green-500 text-green-700',
-                    warning: 'bg-yellow-100 border-yellow-500 text-yellow-700',
-                    error: 'bg-red-100 border-red-500 text-red-700'
-                };
-                
-                return `
-                    <div class="${types[type]} border-l-4 p-4 mb-4 rounded">
-                        ${message}
-                    </div>
-                `;
-            },
-            
-            // Table component
-            table(headers, rows, className = '') {
-                const headerHtml = headers.map(h => `<th>${h}</th>`).join('');
-                const rowHtml = rows.map(row => {
-                    const cells = Array.isArray(row) ? row : Object.values(row);
-                    return `<tr>${cells.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
-                }).join('');
-                
-                return `
-                    <table class="data-table ${className}">
-                        <thead><tr>${headerHtml}</tr></thead>
-                        <tbody>${rowHtml}</tbody>
-                    </table>
-                `;
+                        `, 'cursor-pointer');
+                    }).join('')}
+                </div>`
             }
-        };
+        `;
+    },
+
+    renderEditor(container, editId = null) {
+        let test = { title:'', description:'', timeLimit:0, passPercent:50, sections:[{id:Utils.generateId(), title:'Секция 1', questions:[]}] };
         
-        // ============================================
-        // QUESTION RENDERERS - Type-specific Logic
-        // ============================================
-        
-        const QuestionRenderers = {
-            // Single choice
-            single(question, selectedAnswer, onAnswer) {
-                const options = question.options.map((opt, idx) => `
-                    <div class="option-card ${selectedAnswer === idx ? 'selected' : ''}" 
-                         onclick="App.handleAnswer(${idx})">
-                        <div class="flex items-center">
-                            <input type="radio" name="answer" ${selectedAnswer === idx ? 'checked' : ''} class="mr-3">
-                            <span>${opt.text}</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-                return `
-                    <div class="space-y-3">
-                        ${options}
-                    </div>
-                `;
-            },
-            
-            // Multiple choice
-            multiple(question, selectedAnswers, onAnswer) {
-                const selected = selectedAnswers || [];
-                const options = question.options.map((opt, idx) => `
-                    <div class="option-card ${selected.includes(idx) ? 'selected' : ''}" 
-                         onclick="App.toggleAnswer(${idx})">
-                        <div class="flex items-center">
-                            <input type="checkbox" name="answer" ${selected.includes(idx) ? 'checked' : ''} class="mr-3">
-                            <span>${opt.text}</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-                return `
-                    <div class="space-y-3">
-                        ${options}
-                    </div>
-                `;
-            },
-            
-            // Fill in the blank
-            fill(question, answer, onAnswer) {
-                return `
-                    <div>
-                        <p class="mb-4 text-lg">${question.text.replace('___', '<span class="border-b-2 border-primary px-4">___</span>')}</p>
-                        <input type="text" id="fill-answer" class="input-field" 
-                               placeholder="Введите ответ" value="${answer || ''}"
-                               oninput="App.handleFillAnswer(this.value)">
-                    </div>
-                `;
-            },
-            
-            // Sequence ordering
-            sequence(question, currentOrder, onAnswer) {
-                const items = question.options.map((opt, idx) => {
-                    const order = currentOrder ? currentOrder.indexOf(idx) : idx;
-                    return { id: idx, text: opt.text, order: order };
-                }).sort((a, b) => a.order - b.order);
-                
-                const itemsHtml = items.map((item, idx) => `
-                    <div class="draggable option-card p-3 mb-2 bg-white shadow" 
-                         data-id="${item.id}"
-                         onclick="App.moveSequenceItem(${item.id}, -1)"
-                         ondblclick="App.moveSequenceItem(${item.id}, 1)">
-                        <div class="flex justify-between items-center">
-                            <span>${item.text}</span>
-                            <span class="text-sm text-gray-500">Позиция: ${idx + 1}</span>
-                        </div>
-                    </div>
-                `).join('');
-                
-                return `
-                    <div class="space-y-2">
-                        <p class="text-gray-600 mb-4">Расставьте элементы в правильном порядке (клик - влево, двойной клик - вправо)</p>
-                        ${itemsHtml}
-                    </div>
-                `;
-            },
-            
-            // Matching
-            match(question, matches, onAnswer) {
-                const leftItems = question.options.left || [];
-                const rightItems = question.options.right || [];
-                
-                const leftHtml = leftItems.map((item, idx) => `
-                    <div class="p-3 bg-gray-50 rounded mb-2" data-left="${idx}">
-                        ${item.text}
-                    </div>
-                `).join('');
-                
-                const rightHtml = rightItems.map((item, idx) => `
-                    <div class="p-3 bg-gray-50 rounded mb-2 cursor-pointer hover:bg-purple-50" 
-                         data-right="${idx}"
-                         onclick="App.selectMatch(${idx})">
-                        ${item.text}
-                    </div>
-                `).join('');
-                
-                const matchesDisplay = matches ? Object.entries(matches).map(([left, right]) => `
-                    <div class="text-sm bg-purple-100 p-2 rounded mb-1">
-                        ${leftItems[left]?.text} ↔ ${rightItems[right]?.text}
-                    </div>
-                `).join('') : '';
-                
-                return `
+        if (editId) {
+            const saved = DataLayer.getTestById(editId);
+            if (saved) {
+                test = JSON.parse(JSON.stringify(saved));
+                this.state.draftTest = test;
+            } else { alert('Тест не найден'); this.navigate('home'); return; }
+        } else {
+            this.state.draftTest = test;
+        }
+
+        container.innerHTML = `
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">${editId?'Редактирование':'Создание'} теста</h2>
+                    ${Components.button('Назад', 'App.navigate(\'home\')', 'secondary')}
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 mb-6">
+                    ${Components.input('Название', 'text', 'edt_title', test.title)}
+                    ${Components.textarea('Описание', 'edt_desc', test.description)}
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <h4 class="font-semibold mb-2">Левая колонка</h4>
-                            ${leftHtml}
-                        </div>
-                        <div>
-                            <h4 class="font-semibold mb-2">Правая колонка (выберите соответствие)</h4>
-                            ${rightHtml}
-                        </div>
+                        ${Components.input('Время (мин)', 'number', 'edt_time', test.timeLimit||'')}
+                        ${Components.input('Проходной %', 'number', 'edt_pass', test.passPercent)}
                     </div>
-                    ${matchesDisplay ? `<div class="mt-4"><h4 class="font-semibold mb-2">Текущие соответствия:</h4>${matchesDisplay}</div>` : ''}
-                `;
-            },
-            
-            // Open question
-            open(question, answer, onAnswer) {
-                return `
-                    <div>
-                        <textarea id="open-answer" class="input-field" rows="6" 
-                                  placeholder="Введите ваш развернутый ответ..."
-                                  oninput="App.handleOpenAnswer(this.value)">${answer || ''}</textarea>
-                        <p class="text-sm text-gray-500 mt-2">Минимум 50 символов</p>
-                    </div>
-                `;
-            }
+                </div>
+
+                <div class="space-y-6">
+                    ${test.sections.map((sec, sIdx) => `
+                        <div class="bg-white rounded-xl shadow border overflow-hidden" id="sec_${sec.id}">
+                            <div class="bg-gray-50 px-6 py-3 border-b flex justify-between items-center">
+                                <input type="text" value="${sec.title}" onchange="App.updateSecTitle('${sec.id}', this.value)" class="bg-transparent font-bold focus:outline-none w-full">
+                                ${test.sections.length>1 ? `<button onclick="App.removeSection('${sec.id}')" class="text-red-500 hover:text-red-700">✕</button>` : ''}
+                            </div>
+                            <div class="p-6">
+                                ${sec.questions.length===0 ? '<p class="text-gray-500 text-sm italic">Нет вопросов</p>' : 
+                                  `<div class="space-y-3 mb-6">${sec.questions.map((q, qi) => `
+                                      <div class="flex justify-between items-center p-3 bg-gray-50 rounded border">
+                                          <div><span class="font-bold text-indigo-600 mr-2">${qi+1}.</span> ${q.text} <span class="text-xs bg-white px-2 py-0.5 rounded border ml-2">${q.type}</span></div>
+                                          <div class="flex gap-2">
+                                              <button onclick="App.editQuestion('${sec.id}','${q.id}')" class="text-gray-500 hover:text-indigo-600">✏️</button>
+                                              <button onclick="App.deleteQuestion('${sec.id}','${q.id}')" class="text-gray-500 hover:text-red-600">🗑️</button>
+                                          </div>
+                                      </div>
+                                  `).join('')}</div>`
+                                }
+                                <div class="border-t pt-4">
+                                    <h4 class="font-bold text-sm mb-3">Добавить вопрос</h4>
+                                    <div class="grid grid-cols-12 gap-2 items-end">
+                                        <div class="col-span-4">${Components.select('', 'q_type_'+sec.id, [{value:'single',label:'Один'}, {value:'multiple',label:'Много'}, {value:'fill',label:'Пропуск'}, {value:'sequence',label:'Порядок'}, {value:'match',label:'Пары'}, {value:'open',label:'Открытый'}], 'single')}</div>
+                                        <div class="col-span-6">${Components.input('', 'text', 'q_text_'+sec.id, '', 'Текст вопроса')}</div>
+                                        <div class="col-span-2">${Components.button('+', 'App.addQuestion(\''+sec.id+'\')', 'primary', 'w-full')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="mt-8 flex justify-center pb-20">
+                    ${Components.button('+ Секция', 'App.addSection()', 'secondary', 'mb-4')}
+                </div>
+                
+                <div class="fixed bottom-6 right-6">
+                    ${Components.button('Сохранить тест', 'App.saveDraft()', 'success', 'shadow-lg px-6 py-3 text-base')}
+                </div>
+            </div>
+        `;
+    },
+
+    renderHistory(container) {
+        const results = DataLayer.getResults();
+        const tests = DataLayer.getTests();
+        const tMap = Object.fromEntries(tests.map(t=>[t.id, t.title]));
+
+        container.innerHTML = `
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">История</h2>
+                ${Components.button('Экспорт CSV', 'App.exportCSV()', 'secondary')}
+            </div>
+            ${results.length===0 ? '<p class="text-gray-500">Пусто</p>' : `
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50"><tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тест</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Балл</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Время</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${results.map(r => `
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDate(r.date)}</td>
+                                <td class="px-6 py-4 text-sm font-bold">${tMap[r.testId]||'Удален'}</td>
+                                <td class="px-6 py-4 text-sm">${Math.round(r.score)}%</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDuration(r.duration)}</td>
+                                <td class="px-6 py-4 text-sm">${Components.badge(r.passed?'Сдан':'Не сдан', r.passed?'green':'red')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`}
+        `;
+    },
+
+    // --- SESSION LOGIC ---
+
+    startSession(testId) {
+        const test = DataLayer.getTestById(testId);
+        if (!test) return;
+
+        let flat = [];
+        test.sections.forEach(s => s.questions.forEach(q => flat.push({...q, secTitle: s.title})));
+
+        this.state.session = {
+            testId: test.id, questions: flat, idx: 0, answers: {}, start: Date.now(), qTimes: {}
         };
+        this.state.session.qTimes[flat[0].id] = Date.now();
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    renderTake(container) {
+        const sess = this.state.session;
+        if (!sess || sess.idx >= sess.questions.length) { this.finishTest(); return; }
+
+        const q = sess.questions[sess.idx];
+        const ans = sess.answers[q.id] || {};
+        if (q.type==='multiple' && !ans.answers) ans.answers = [];
+        if (q.type==='match' && !ans.matches) ans.matches = {};
+        if (q.type==='sequence' && !ans.order) ans.order = q.options.map((_,i)=>i);
         
-        // ============================================
-        // APPLICATION LOGIC - Main Controller
-        // ============================================
+        sess.answers[q.id] = ans;
+
+        const elapsed = Math.floor((Date.now() - sess.start)/1000);
+        const html = QuestionRenderers[q.type](q, ans);
+
+        container.innerHTML = `
+            <div class="max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-6 bg-white p-4 rounded shadow-sm">
+                    <div><span class="text-xs text-indigo-600 font-bold uppercase">Секция: ${q.secTitle}</span><h2 class="text-lg font-bold">Вопрос ${sess.idx+1}/${sess.questions.length}</h2></div>
+                    <div class="text-right"><div class="text-2xl font-mono font-bold">${new Date(elapsed*1000).toISOString().substr(14,5)}</div><div class="text-xs text-gray-500">Время</div></div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 mb-6"><h3 class="text-xl font-medium mb-6">${q.text}</h3><div id="q-area">${html}</div></div>
+                <div class="flex justify-between items-center">
+                    ${Components.button('Назад', 'App.prevQ()', 'secondary', sess.idx===0?'opacity-50':'')}
+                    <span class="text-sm text-gray-500">Вес: ${q.weight||1}</span>
+                    ${Components.button(sess.idx===sess.questions.length-1?'Финиш':'Далее', 'App.nextQ()', 'primary')}
+                </div>
+                <div class="mt-8 h-2 bg-gray-200 rounded-full"><div class="h-full bg-indigo-600 transition-all" style="width:${((sess.idx+1)/sess.questions.length)*100}%"></div></div>
+            </div>
+        `;
+    },
+
+    handleAnswer(qid, val) {
+        const s = this.state.session; if(!s) return;
+        if(!s.answers[qid]) s.answers[qid]={};
+        s.answers[qid].answer = val;
+    },
+
+    handleMultipleAnswer(qid, idx, checked) {
+        const s = this.state.session; if(!s) return;
+        if(!s.answers[qid]) s.answers[qid]={answers:[]};
+        let arr = s.answers[qid].answers;
+        if(checked) { if(!arr.includes(idx)) arr.push(idx); }
+        else { arr = arr.filter(i=>i!==idx); }
+        s.answers[qid].answers = arr;
+    },
+
+    moveSequence(qid, pos, dir) {
+        const s = this.state.session;
+        let order = s.answers[qid]?.order || s.questions.find(x=>x.id===qid).options.map((_,i)=>i);
+        const np = pos+dir;
+        if(np<0 || np>=order.length) return;
+        [order[pos], order[np]] = [order[np], order[pos]];
+        s.answers[qid] = {order};
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    handleMatchSelect(qid, side, idx) {
+        const s = this.state.session;
+        let st = s.answers[qid] || {matches:{}, selectedLeft:null};
+        if(side==='left') st.selectedLeft = idx;
+        else if(side==='right' && st.selectedLeft!==null) {
+            st.matches[st.selectedLeft] = idx;
+            st.selectedLeft = null;
+        }
+        s.answers[qid] = st;
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    prevQ() {
+        const s = this.state.session;
+        if(s.idx>0) {
+            const cur = s.questions[s.idx];
+            s.answers[cur.id].duration = Date.now() - (s.qTimes[cur.id]||Date.now());
+            s.idx--;
+            const nxt = s.questions[s.idx];
+            s.qTimes[nxt.id] = Date.now();
+            this.renderTake(document.getElementById('app-root'));
+        }
+    },
+
+    nextQ() {
+        const s = this.state.session;
+        if(s.idx < s.questions.length-1) {
+            const cur = s.questions[s.idx];
+            if(!s.answers[cur.id]) s.answers[cur.id]={};
+            s.answers[cur.id].duration = Date.now() - (s.qTimes[cur.id]||Date.now());
+            s.idx++;
+            const nxt = s.questions[s.idx];
+            s.qTimes[nxt.id] = Date.now();
+            if(!s.answers[nxt.id]) {
+                if(nxt.type==='multiple') s.answers[nxt.id]={answers:[]};
+                else if(nxt.type==='match') s.answers[nxt.id]={matches:{},selectedLeft:null};
+                else if(nxt.type==='sequence') s.answers[nxt.id]={order:nxt.options.map((_,i)=>i)};
+            }
+            this.renderTake(document.getElementById('app-root'));
+        } else this.finishTest();
+    },
+
+    finishTest() {
+        const s = this.state.session;
+        const t = DataLayer.getTestById(s.testId);
+        const last = s.questions[s.questions.length-1];
+        s.answers[last.id].duration = Date.now() - (s.qTimes[last.id]||Date.now());
+
+        let totalW=0, earnedW=0;
+        s.questions.forEach(q => {
+            const u = s.answers[q.id];
+            const w = q.weight||1;
+            totalW += w;
+            let ok = false;
+            if(q.type==='single') ok = u.answer == q.correct;
+            else if(q.type==='multiple') {
+                const us = new Set(u.answers||[]), cs = new Set(q.correct||[]);
+                ok = us.size===cs.size && [...us].every(v=>cs.has(v));
+            }
+            else if(q.type==='fill') ok = (u.answer||'').toLowerCase().trim() === (q.correct||'').toLowerCase().trim();
+            else if(q.type==='sequence') {
+                const uo = u.order||[], co = q.correct||[];
+                ok = uo.length===co.length && uo.every((v,i)=>v===co[i]);
+            }
+            else if(q.type==='match') {
+                const um = u.matches||{}, cm = q.matches||{};
+                const uk = Object.keys(um).sort(), ck = Object.keys(cm).sort();
+                ok = JSON.stringify(uk)===JSON.stringify(ck) && uk.every(k=>um[k]==cm[k]);
+            }
+            else if(q.type==='open') ok = false; // Auto-check disabled for open
+
+            if(ok) earnedW += w;
+        });
+
+        const score = totalW>0 ? (earnedW/totalW)*100 : 0;
+        const passed = score >= (t.passPercent||0);
+        const dur = Math.floor((Date.now()-s.start)/1000);
+
+        DataLayer.saveResult({ id:Utils.generateId(), testId:t.id, date:new Date().toISOString(), score, passed, duration:dur, details:s.answers });
+
+        document.getElementById('app-root').innerHTML = `
+            <div class="max-w-md mx-auto text-center py-12">
+                <div class="mb-6 inline-flex items-center justify-center w-24 h-24 rounded-full ${passed?'bg-green-100 text-green-600':'bg-red-100 text-red-600'} text-4xl">${passed?'🎉':'😞'}</div>
+                <h2 class="text-3xl font-bold mb-2">${passed?'Тест сдан!':'Не сдан'}</h2>
+                <p class="text-gray-600 mb-8">Ваш результат: <span class="font-bold text-gray-900">${Math.round(score)}%</span></p>
+                <div class="bg-white rounded shadow p-6 mb-8 text-left">
+                    <div class="flex justify-between mb-2"><span>Баллы:</span><span class="font-bold">${earnedW}/${totalW}</span></div>
+                    <div class="flex justify-between"><span>Время:</span><span class="font-bold">${Utils.formatDuration(dur)}</span></div>
+                </div>
+                <div class="flex gap-4 justify-center">${Components.button('Домой','App.navigate(\'home\')','primary')}${Components.button('История','App.navigate(\'history\')','secondary')}</div>
+            </div>
+        `;
+        this.state.session = null;
+    },
+
+    // --- EDITOR ACTIONS ---
+
+    addSection() {
+        this.syncDraftFromDOM();
+        this.state.draftTest.sections.push({id:Utils.generateId(), title:'Новая секция', questions:[]});
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    removeSection(id) {
+        this.syncDraftFromDOM();
+        this.state.draftTest.sections = this.state.draftTest.sections.filter(s=>s.id!==id);
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    updateSecTitle(id, val) {
+        const s = this.state.draftTest.sections.find(x=>x.id===id);
+        if(s) s.title = val;
+    },
+
+    addQuestion(secId) {
+        this.syncDraftFromDOM();
+        const type = document.getElementById('q_type_'+secId).value;
+        const text = document.getElementById('q_text_'+secId).value;
+        if(!text.trim()) { alert('Введите текст'); return; }
+
+        const q = { id:Utils.generateId(), type, text, weight:1, options:[], correct:null, left:[], right:[], matches:{} };
+        if(['single','multiple','sequence'].includes(type)) { q.options=['Вариант 1','Вариант 2']; q.correct=0; }
+        else if(type==='fill') q.correct='ответ';
+        else if(type==='match') { q.left=['А','Б']; q.right=['1','2']; q.matches={'0':0,'1':1}; }
+
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        sec.questions.push(q);
+        document.getElementById('q_text_'+secId).value = '';
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    editQuestion(secId, qId) {
+        this.syncDraftFromDOM();
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        const q = sec.questions.find(x=>x.id===qId);
         
-        const App = {
-            state: {
-                currentView: 'home',
-                currentTest: null,
-                currentQuestion: 0,
-                answers: {},
-                startTime: null,
-                questionStartTime: null,
-                timer: null,
-                timeRemaining: null,
-                selectedMatch: null,
-                currentMatches: {}
-            },
-            
-            init() {
-                this.render();
-                this.setupEventListeners();
-            },
-            
-            setupEventListeners() {
-                // Handle browser back button
-                window.addEventListener('popstate', (e) => {
-                    if (e.state && e.state.view) {
-                        this.state.currentView = e.state.view;
-                        this.render();
-                    }
-                });
-                
-                // Service Worker for PWA
-                if ('serviceWorker' in navigator) {
-                    // SW registration would go here
-                }
-            },
-            
-            navigate(view, params = {}) {
-                this.state.currentView = view;
-                history.pushState({ view, params }, '', '#' + view);
-                this.render();
-            },
-            
-            render() {
-                const app = document.getElementById('app');
-                const views = {
-                    home: this.renderHome(),
-                    testList: this.renderTestList(),
-                    testCreate: this.renderTestCreate(),
-                    testEdit: this.renderTestEdit(),
-                    testTake: this.renderTestTake(),
-                    results: this.renderResults(),
-                    statistics: this.renderStatistics()
-                };
-                
-                app.innerHTML = `
-                    <div class="min-h-screen">
-                        ${this.renderHeader()}
-                        <main class="container mx-auto px-4 py-8">
-                            ${views[this.state.currentView] || views.home}
-                        </main>
-                        ${this.renderFooter()}
-                    </div>
-                `;
-            },
-            
-            renderHeader() {
-                return `
-                    <header class="bg-white shadow-lg">
-                        <div class="container mx-auto px-4 py-4">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center space-x-4">
-                                    <h1 class="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                        TestUS
-                                    </h1>
-                                    <nav class="hidden md:flex space-x-4">
-                                        <button onclick="App.navigate('home')" class="text-gray-600 hover:text-primary">Главная</button>
-                                        <button onclick="App.navigate('testList')" class="text-gray-600 hover:text-primary">Тесты</button>
-                                        <button onclick="App.navigate('results')" class="text-gray-600 hover:text-primary">Результаты</button>
-                                    </nav>
-                                </div>
-                                <button onclick="App.navigate('testCreate')" class="btn btn-primary">
-                                    + Создать тест
-                                </button>
-                            </div>
-                        </div>
-                    </header>
-                `;
-            },
-            
-            renderFooter() {
-                const currentYear = new Date().getFullYear();
-                return `
-                    <footer class="bg-gray-800 text-white py-6 mt-8">
-                        <div class="container mx-auto px-4 text-center">
-                            <p>&copy; ${currentYear} TestUS - Профессиональная система тестирования</p>
-                            <p class="text-sm text-gray-400 mt-2">PWA Application | Local Storage | TailwindCSS</p>
-                        </div>
-                    </footer>
-                `;
-            },
-            
-            renderHome() {
-                const tests = DataLayer.getAllTests();
-                const results = DataLayer.getResults();
-                
-                return `
-                    <div class="animate-fade-in">
-                        <div class="text-center mb-12">
-                            <h2 class="text-4xl font-bold text-white mb-4">Добро пожаловать в TestUS</h2>
-                            <p class="text-xl text-white opacity-90">Профессиональная система создания и прохождения тестов</p>
-                        </div>
-                        
-                        <div class="grid md:grid-cols-3 gap-6 mb-8">
-                            ${(() => {
-                                const card1Content = `
-                                    <div class="text-center p-6">
-                                        <div class="text-4xl mb-4">📝</div>
-                                        <h3 class="text-2xl font-bold mb-2">${tests.length}</h3>
-                                        <p class="text-gray-600">Тестов создано</p>
-                                    </div>
-                                `;
-                                return Components.card(card1Content);
-                            })()}
-                            ${(() => {
-                                const card2Content = `
-                                    <div class="text-center p-6">
-                                        <div class="text-4xl mb-4">✅</div>
-                                        <h3 class="text-2xl font-bold mb-2">${results.length}</h3>
-                                        <p class="text-gray-600">Результатов сохранено</p>
-                                    </div>
-                                `;
-                                return Components.card(card2Content);
-                            })()}
-                            ${(() => {
-                                const card3Content = `
-                                    <div class="text-center p-6">
-                                        <div class="text-4xl mb-4">🎯</div>
-                                        <h3 class="text-2xl font-bold mb-2">${results.filter(r => {
-                                            const test = DataLayer.getTest(r.testId);
-                                            return test && r.percentage >= test.settings.passingScore;
-                                        }).length}</h3>
-                                        <p class="text-gray-600">Успешных прохождений</p>
-                                    </div>
-                                `;
-                                return Components.card(card3Content);
-                            })()}
-                        </div>
-                        
-                        <div class="grid md:grid-cols-2 gap-6">
-                            ${(() => {
-                                const card4Content = `
-                                    <div class="p-6">
-                                        <h3 class="text-2xl font-bold mb-4">Возможности системы</h3>
-                                        <ul class="space-y-2">
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> 6 типов вопросов</li>
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Гибкая настройка оценивания</li>
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Секции и веса вопросов</li>
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Тайминг и лимиты времени</li>
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> История и прогресс</li>
-                                            <li class="flex items-center"><span class="text-success mr-2">✓</span> Экспорт результатов</li>
-                                        </ul>
-                                    </div>
-                                `;
-                                return Components.card(card4Content);
-                            })()}
-                            ${(() => {
-                                const card5Content = `
-                                    <div class="p-6">
-                                        <h3 class="text-2xl font-bold mb-4">Быстрый старт</h3>
-                                        <div class="space-y-3">
-                                            ${Components.button('Создать новый тест', "App.navigate('testCreate')")}
-                                            ${Components.button('Пройти тест', "App.navigate('testList')", 'secondary')}
-                                            ${Components.button('Посмотреть результаты', "App.navigate('results')", 'secondary')}
-                                            ${Components.button('Загрузить демо-тест', "App.addDemoTest()", 'success')}
-                                        </div>
-                                    </div>
-                                `;
-                                return Components.card(card5Content);
-                            })()}
-                        </div>
-                    </div>
-                `;
-            },
-            
-            renderTestList() {
-                const tests = DataLayer.getAllTests();
-                
-                if (tests.length === 0) {
-                    return `
-                        <div class="text-center py-12">
-                            <div class="text-6xl mb-4">📝</div>
-                            <h3 class="text-2xl font-bold mb-4">Тесты не созданы</h3>
-                            <p class="text-gray-600 mb-6">Создайте свой первый тест прямо сейчас!</p>
-                            ${Components.button('Создать тест', "App.navigate('testCreate')")}
-                        </div>
-                    `;
-                }
-                
-                const testCards = tests.map(test => {
-                    const cardContent = `
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold mb-2">${test.title}</h3>
-                            <p class="text-gray-600 mb-4">${test.description || 'Описание отсутствует'}</p>
-                            <div class="flex justify-between items-center mb-4">
-                                <span class="text-sm text-gray-500">${test.sections.reduce((sum, s) => sum + s.questions.length, 0)} вопросов</span>
-                                <span class="text-sm text-gray-500">${test.settings.timeLimit ? test.settings.timeLimit + ' мин' : 'Без лимита'}</span>
-                            </div>
-                            <div class="flex space-x-2">
-                                ${Components.button('Пройти', `App.startTest('${test.id}')`)}
-                                ${Components.button('Редактировать', `App.editTest('${test.id}')`, 'secondary')}
-                                ${Components.button('Результаты', `App.viewTestResults('${test.id}')`, 'secondary')}
-                                ${Components.button('Удалить', `App.deleteTest('${test.id}')`, 'danger')}
-                            </div>
-                        </div>
-                    `;
-                    return Components.card(cardContent, 'mb-4');
-                }).join('');
-                
-                return `
-                    <div class="animate-fade-in">
-                        <h2 class="text-3xl font-bold mb-6">Список тестов</h2>
-                        ${testCards}
-                    </div>
-                `;
-            },
-            
-            renderTestCreate() {
-                const isEditing = !!this.state.editingTestId;
-                const test = isEditing ? DataLayer.getTest(this.state.editingTestId) : DataLayer.structures.test;
-                
-                return `
-                    <div class="animate-fade-in max-w-4xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6">${isEditing ? 'Редактирование теста' : 'Создание нового теста'}</h2>
-                        
-                        ${(() => {
-                            const cardContent = `
-                                <div class="p-6">
-                                    <div class="grid md:grid-cols-2 gap-4 mb-6">
-                                        ${Components.input('test-title', 'Название теста', 'text', 'Введите название')}
-                                        ${Components.textarea('test-description', 'Описание', 'Краткое описание теста', 3)}
-                                    </div>
-                                    
-                                    <h3 class="text-xl font-bold mb-4">Настройки теста</h3>
-                                    <div class="grid md:grid-cols-2 gap-4 mb-6">
-                                        ${Components.input('time-limit', 'Лимит времени (мин)', 'number', '0 для безлимита')}
-                                        ${Components.input('passing-score', 'Проходной балл (%)', 'number', '70')}
-                                    </div>
-                                    
-                                    <div class="space-y-4 mb-6">
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="randomize" class="mr-2">
-                                            Перемешивать вопросы
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="show-results" class="mr-2" checked>
-                                            Показывать результаты после завершения
-                                        </label>
-                                        <label class="flex items-center">
-                                            <input type="checkbox" id="allow-review" class="mr-2">
-                                            Разрешить просмотр ответов
-                                        </label>
-                                    </div>
-                                    
-                                    ${Components.button('Добавить секцию', 'App.addSection()', 'secondary', 'w-full mb-4')}
-                                    
-                                    <div id="sections-container"></div>
-                                    
-                                    <div class="mt-6 flex justify-end space-x-4">
-                                        ${Components.button(isEditing ? 'Обновить тест' : 'Сохранить тест', 'App.saveTest()', 'success')}
-                                        ${Components.button('Отмена', "App.navigate('testList')", 'secondary')}
-                                    </div>
-                                </div>
-                            `;
-                            return Components.card(cardContent);
-                        })()}
-                    </div>
-                `;
-            },
-            
-            renderTestEdit() {
-                return this.renderTestCreate();
-            },
-            
-            renderTestTake() {
-                if (!this.state.currentTest) {
-                    return this.renderTestList();
-                }
-                
-                const test = this.state.currentTest;
-                const allQuestions = test.sections.flatMap(s => s.questions);
-                const question = allQuestions[this.state.currentQuestion];
-                
-                if (!question) {
-                    return this.completeTest();
-                }
-                
-                const renderer = QuestionRenderers[question.type];
-                const currentAnswer = this.state.answers[question.id];
-                
-                return `
-                    <div class="animate-fade-in max-w-4xl mx-auto">
-                        <div class="mb-6 flex justify-between items-center">
-                            <div>
-                                <h2 class="text-2xl font-bold">${test.title}</h2>
-                                <p class="text-gray-600">Вопрос ${this.state.currentQuestion + 1} из ${allQuestions.length}</p>
-                            </div>
-                            ${test.settings.timeLimit ? Components.timer(this.state.timeRemaining) : ''}
-                        </div>
-                        
-                        ${Components.progressBar(this.state.currentQuestion + 1, allQuestions.length, 'mb-6')}
-                        
-                        ${(() => {
-                            const cardContent = `
-                                <div class="p-6">
-                                    <div class="mb-6">
-                                        <span class="inline-block px-3 py-1 bg-primary text-white text-sm rounded-full mb-2">
-                                            ${this.getTypeName(question.type)}
-                                        </span>
-                                        <h3 class="text-xl font-semibold">${question.text}</h3>
-                                    </div>
-                                    
-                                    ${renderer ? renderer(question, currentAnswer) : '<p>Неизвестный тип вопроса</p>'}
-                                    
-                                    <div class="mt-6 flex justify-between">
-                                        ${Components.button('← Назад', 'App.prevQuestion()', 'secondary', this.state.currentQuestion === 0 ? 'opacity-50 cursor-not-allowed' : '')}
-                                        ${Components.button(this.state.currentQuestion === allQuestions.length - 1 ? 'Завершить' : 'Далее →', 'App.nextQuestion()')}
-                                    </div>
-                                </div>
-                            `;
-                            return Components.card(cardContent);
-                        })()}
-                        
-                        <div class="mt-4 text-center text-sm text-gray-600">
-                            Вес вопроса: ${question.weight} балл(а)
-                        </div>
-                    </div>
-                `;
-            },
-            
-            renderResults() {
-                const results = DataLayer.getResults();
-                
-                if (results.length === 0) {
-                    return `
-                        <div class="text-center py-12">
-                            <div class="text-6xl mb-4">📊</div>
-                            <h3 class="text-2xl font-bold mb-4">Результаты отсутствуют</h3>
-                            <p class="text-gray-600">Пройдите тесты, чтобы увидеть результаты здесь</p>
-                        </div>
-                    `;
-                }
-                
-                const rows = results.map(r => {
-                    const test = DataLayer.getTest(r.testId);
-                    const status = r.percentage >= (test?.settings.passingScore || 70) ? 
-                        '<span class="text-success font-bold">Сдан</span>' : 
-                        '<span class="text-danger font-bold">Не сдан</span>';
-                    
-                    return [
-                        test?.title || 'Удален',
-                        new Date(r.startTime).toLocaleDateString(),
-                        `${Math.floor(r.duration / 60)}м ${r.duration % 60}с`,
-                        `${r.score}/${r.maxScore}`,
-                        `${r.percentage.toFixed(1)}%`,
-                        status
-                    ];
-                });
-                
-                return `
-                    <div class="animate-fade-in">
-                        <h2 class="text-3xl font-bold mb-6">История прохождений</h2>
-                        ${(() => {
-                            const cardContent = `
-                                <div class="p-6 overflow-x-auto">
-                                    ${Components.table(
-                                        ['Тест', 'Дата', 'Время', 'Баллы', 'Процент', 'Статус'],
-                                        rows
-                                    )}
-                                </div>
-                            `;
-                            return Components.card(cardContent);
-                        })()}
-                        
-                        <div class="mt-6">
-                            ${Components.button('Экспорт в CSV', 'App.exportResults()', 'success')}
-                        </div>
-                    </div>
-                `;
-            },
-            
-            renderStatistics() {
-                return `<div>Statistics</div>`;
-            },
-            
-            // Helper methods
-            getTypeName(type) {
-                const names = {
-                    single: 'Одиночный выбор',
-                    multiple: 'Множественный выбор',
-                    fill: 'Заполнить пропуск',
-                    sequence: 'Последовательность',
-                    match: 'Сопоставление',
-                    open: 'Открытый вопрос'
-                };
-                return names[type] || type;
-            },
-            
-            // Test management
-            addSection() {
-                const container = document.getElementById('sections-container');
-                if (!container) return;
-                
-                const sectionId = DataLayer.generateId();
-                const sectionHtml = `
-                    <div class="section-item bg-gray-50 p-4 rounded-lg mb-4" data-section="${sectionId}">
-                        <div class="flex justify-between items-center mb-4">
-                            <input type="text" class="input-field w-1/2" placeholder="Название секции" data-section-title>
-                            <button onclick="App.removeSection('${sectionId}')" class="text-danger">✕ Удалить секцию</button>
-                        </div>
-                        <div class="questions-container"></div>
-                        <button onclick="App.addQuestion('${sectionId}')" class="btn btn-secondary w-full mt-4">+ Добавить вопрос</button>
-                    </div>
-                `;
-                
-                container.insertAdjacentHTML('beforeend', sectionHtml);
-            },
-            
-            removeSection(sectionId) {
-                const section = document.querySelector(`[data-section="${sectionId}"]`);
-                if (section) section.remove();
-            },
-            
-            addQuestion(sectionId) {
-                const section = document.querySelector(`[data-section="${sectionId}"]`);
-                const container = section.querySelector('.questions-container');
-                
-                const questionId = DataLayer.generateId();
-                const questionHtml = `
-                    <div class="question-item bg-white p-4 rounded-lg mb-4 border border-gray-200" data-question="${questionId}">
-                        <div class="flex justify-between items-center mb-4">
-                            <select class="input-field w-48" data-question-type onchange="App.updateQuestionType('${questionId}')">
-                                <option value="single">Одиночный выбор</option>
-                                <option value="multiple">Множественный выбор</option>
-                                <option value="fill">Заполнить пропуск</option>
-                                <option value="sequence">Последовательность</option>
-                                <option value="match">Сопоставление</option>
-                                <option value="open">Открытый вопрос</option>
-                            </select>
-                            <input type="number" class="input-field w-24" placeholder="Вес" value="1" data-question-weight>
-                            <button onclick="App.removeQuestion('${questionId}')" class="text-danger">✕</button>
-                        </div>
-                        <textarea class="input-field mb-4" placeholder="Текст вопроса" data-question-text rows="3"></textarea>
-                        <div class="options-container" data-options></div>
-                        <button onclick="App.addOption('${questionId}')" class="btn btn-secondary text-sm mt-2">+ Добавить вариант</button>
-                    </div>
-                `;
-                
-                container.insertAdjacentHTML('beforeend', questionHtml);
-                this.updateQuestionType(questionId);
-            },
-            
-            removeQuestion(questionId) {
-                const question = document.querySelector(`[data-question="${questionId}"]`);
-                if (question) question.remove();
-            },
-            
-            updateQuestionType(questionId) {
-                const question = document.querySelector(`[data-question="${questionId}"]`);
-                const type = question.querySelector('[data-question-type]').value;
-                const optionsContainer = question.querySelector('[data-options]');
-                
-                if (['single', 'multiple'].includes(type)) {
-                    optionsContainer.innerHTML = `
-                        <p class="text-sm text-gray-600 mb-2">Варианты ответов (отметьте правильные):</p>
-                        <div class="space-y-2"></div>
-                    `;
-                } else if (type === 'fill') {
-                    optionsContainer.innerHTML = `
-                        <p class="text-sm text-gray-600 mb-2">Введите правильный ответ для пропуска:</p>
-                        <input type="text" class="input-field" placeholder="Правильный ответ" data-fill-answer>
-                        <p class="text-xs text-gray-500 mt-1">В тексте вопроса используйте ___ для обозначения пропуска</p>
-                    `;
-                } else if (type === 'sequence') {
-                    optionsContainer.innerHTML = `
-                        <p class="text-sm text-gray-600 mb-2">Элементы последовательности:</p>
-                        <div class="space-y-2"></div>
-                    `;
-                } else if (type === 'match') {
-                    optionsContainer.innerHTML = `
-                        <p class="text-sm text-gray-600 mb-2">Пары для сопоставления:</p>
-                        <div class="space-y-2"></div>
-                        <button onclick="App.addMatchPair('${questionId}')" class="btn btn-secondary text-sm mt-2">+ Добавить пару</button>
-                    `;
-                } else if (type === 'open') {
-                    optionsContainer.innerHTML = `<p class="text-sm text-gray-600">Открытый вопрос проверяется вручную</p>`;
-                }
-            },
-            
-            addOption(questionId) {
-                const question = document.querySelector(`[data-question="${questionId}"]`);
-                const type = question.querySelector('[data-question-type]').value;
-                const optionsContainer = question.querySelector('[data-options]');
-                const list = optionsContainer.querySelector('.space-y-2') || optionsContainer;
-                
-                const optionId = DataLayer.generateId();
-                const optionHtml = `
-                    <div class="flex items-center space-x-2" data-option="${optionId}">
-                        ${['single', 'multiple'].includes(type) ? '<input type="checkbox" data-correct class="mr-2">' : ''}
-                        <input type="text" class="input-field flex-1" placeholder="Текст варианта" data-option-text>
-                        <button onclick="App.removeOption('${optionId}')" class="text-danger text-sm">✕</button>
-                    </div>
-                `;
-                
-                list.insertAdjacentHTML('beforeend', optionHtml);
-            },
-            
-            removeOption(optionId) {
-                const option = document.querySelector(`[data-option="${optionId}"]`);
-                if (option) option.remove();
-            },
-            addMatchPair(questionId) {
-                const question = document.querySelector(`[data-question="${questionId}"]`);
-                const optionsContainer = question.querySelector('[data-options]');
-                const list = optionsContainer.querySelector('.space-y-2');
+        const txt = prompt('Текст:', q.text); if(txt) q.text=txt;
+        const w = prompt('Вес:', q.weight); if(w) q.weight=parseInt(w);
 
-                const pairId = DataLayer.generateId();
-                const pairHtml = `
-                    <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
-                        <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left>
-                        <span class="text-gray-500">↔</span>
-                        <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right>
-                        <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
-                    </div>
-                `;
+        if(['single','multiple','sequence'].includes(q.type)) {
+            const o = prompt('Варианты (через запятую):', q.options.join(', '));
+            if(o) q.options = o.split(',').map(s=>s.trim());
+            const c = prompt('Индекс правильного:', q.correct);
+            if(c!==null) q.correct = parseInt(c);
+        } else if(q.type==='fill') {
+            const c = prompt('Ответ:', q.correct); if(c!==null) q.correct=c;
+        } else if(q.type==='match') {
+            alert('Для изменения пар удалите вопрос и создайте новый.');
+        }
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
 
-                if (list) {
-                    list.insertAdjacentHTML('beforeend', pairHtml);
-                }
-            },
+    deleteQuestion(secId, qId) {
+        if(!confirm('Удалить?')) return;
+        this.syncDraftFromDOM();
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        sec.questions = sec.questions.filter(x=>x.id!==qId);
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
 
-            removeMatchPair(pairId) {
-                const pair = document.querySelector(`[data-pair="${pairId}"]`);
-                if (pair) pair.remove();
-            },
+    syncDraftFromDOM() {
+        if(!document.getElementById('edt_title')) return;
+        const t = this.state.draftTest;
+        t.title = document.getElementById('edt_title').value;
+        t.description = document.getElementById('edt_desc').value;
+        t.timeLimit = parseInt(document.getElementById('edt_time').value)||0;
+        t.passPercent = parseInt(document.getElementById('edt_pass').value)||50;
+        
+        // Sync section titles
+        t.sections.forEach(sec => {
+            const el = document.querySelector(`#sec_${sec.id} input[type="text"]`);
+            if(el) sec.title = el.value;
+        });
+    },
 
+    saveDraft() {
+        this.syncDraftFromDOM();
+        const t = this.state.draftTest;
+        if(!t.title) { alert('Название обязательно'); return; }
+        DataLayer.saveTest(t);
+        alert('Сохранено!');
+        this.state.draftTest = null;
+        this.navigate('home');
+    },
 
-            
-            saveTest() {
-                const title = document.getElementById('test-title').value;
-                const description = document.getElementById('test-description').value;
-                const timeLimit = parseInt(document.getElementById('time-limit').value) || null;
-                const passingScore = parseInt(document.getElementById('passing-score').value) || 70;
-                
-                if (!title) {
-                    alert('Введите название теста');
-                    return;
-                }
-                
-                // Check if we're editing an existing test
-                const isEditing = !!this.state.editingTestId;
-                let test = isEditing ? DataLayer.getTest(this.state.editingTestId) : null;
-                
-                if (isEditing && test) {
-                    // Update existing test
-                    test.title = title;
-                    test.description = description;
-                    test.settings = {
-                        timeLimit,
-                        passingScore,
-                        randomizeQuestions: document.getElementById('randomize').checked,
-                        showResults: document.getElementById('show-results').checked,
-                        allowReview: document.getElementById('allow-review').checked
-                    };
-                    test.sections = [];
-                    test.updatedAt = new Date().toISOString();
-                } else {
-                    // Create new test
-                    test = {
-                        ...DataLayer.structures.test,
-                        title,
-                        description,
-                        settings: {
-                            timeLimit,
-                            passingScore,
-                            randomizeQuestions: document.getElementById('randomize').checked,
-                            showResults: document.getElementById('show-results').checked,
-                            allowReview: document.getElementById('allow-review').checked
-                        }
-                    };
-                }
-                
-                // Collect sections
-                const sections = document.querySelectorAll('.section-item');
-                sections.forEach(sectionEl => {
-                    const section = {
-                        ...DataLayer.structures.section,
-                        title: sectionEl.querySelector('[data-section-title]').value,
-                        questions: []
-                    };
-                    
-                    const questions = sectionEl.querySelectorAll('.question-item');
-                    questions.forEach(questionEl => {
-                        const type = questionEl.querySelector('[data-question-type]').value;
-                        const text = questionEl.querySelector('[data-question-text]').value;
-                        const weight = parseInt(questionEl.querySelector('[data-question-weight]').value) || 1;
-                        
-                        const question = {
-                            ...DataLayer.structures.question,
-                            type,
-                            text,
-                            weight
-                        };
-                        
-                        // Collect options based on question type
-                        const options = [];
-                        const correctAnswers = [];
+    deleteTest(id) {
+        if(confirm('Удалить тест и историю?')) { DataLayer.deleteTest(id); this.navigate('home'); }
+    },
 
-                        if (['single', 'multiple', 'sequence'].includes(type)) {
-                            questionEl.querySelectorAll('[data-option]').forEach((optEl, idx) => {
-                                const text = optEl.querySelector('[data-option-text]').value;
-                                if (text) {
-                                    options.push({ id: idx, text });
-                                    if (type !== 'sequence' && optEl.querySelector('[data-correct]')?.checked) {
-                                        correctAnswers.push(idx);
-                                    }
-                                }
-                            });
-                            
-                            // For sequence, correct answer is the order of options (0, 1, 2, ...)
-                            if (type === 'sequence') {
-                                for (let i = 0; i < options.length; i++) {
-                                    correctAnswers.push(i);
-                                }
-                            }
-                        } else if (type === 'fill') {
-                            // For fill questions, get answer from special input
-                            const fillInput = questionEl.querySelector('[data-fill-answer]');
-                            if (fillInput && fillInput.value) {
-                                correctAnswers.push(fillInput.value.trim());
-                            }
-                            options.push({ id: 0, text: text });
-                        } else if (type === 'match') {
-                            // For match questions, collect left/right pairs
-                            const leftItems = [];
-                            const rightItems = [];
-                            const matches = {};
-                            
-                            const matchRows = questionEl.querySelectorAll('.match-row');
-                            matchRows.forEach((row, idx) => {
-                                const leftText = row.querySelector('[data-match-left]')?.value;
-                                const rightText = row.querySelector('[data-match-right]')?.value;
-                                if (leftText && rightText) {
-                                    leftItems.push({ id: idx, text: leftText });
-                                    rightItems.push({ id: idx, text: rightText });
-                                    matches[idx] = idx;
-                                }
-                            });
-                            
-                            question.options = { left: leftItems, right: rightItems };
-                            question.correctAnswers = [matches];
-                            section.questions.push(question);
-                            return; // Skip the rest for match type
-                        } else if (type === 'open') {
-                            // Open questions don't have predefined answers
-                            options.push({ id: 0, text: '' });
-                        }
-
-                        question.options = options;
-                        question.correctAnswers = correctAnswers;
-                        section.questions.push(question);
-                    });
-                    
-                    test.sections.push(section);
-                });
-                
-                DataLayer.saveTest(test);
-                
-                if (isEditing) {
-                    alert('Тест успешно обновлен!');
-                    this.state.editingTestId = null;
-                } else {
-                    alert('Тест успешно сохранен!');
-                }
-                this.navigate('testList');
-            },
-            
-            // Test taking logic
-            startTest(testId) {
-                const test = DataLayer.getTest(testId);
-                if (!test) return;
-                
-                this.state.currentTest = test;
-                this.state.currentQuestion = 0;
-                this.state.answers = {};
-                this.state.startTime = Date.now();
-                this.state.questionStartTime = Date.now();
-                this.state.selectedMatch = null;
-                this.state.currentMatches = {};
-                
-                if (test.settings.timeLimit) {
-                    this.state.timeRemaining = test.settings.timeLimit * 60;
-                    this.startTimer();
-                }
-                
-                this.navigate('testTake');
-            },
-            
-            startTimer() {
-                if (this.state.timer) clearInterval(this.state.timer);
-                
-                this.state.timer = setInterval(() => {
-                    this.state.timeRemaining--;
-                    
-                    if (this.state.timeRemaining <= 0) {
-                        this.completeTest();
-                    } else {
-                        const timerEl = document.getElementById('timer');
-                        if (timerEl) {
-                            timerEl.outerHTML = Components.timer(this.state.timeRemaining);
-                        }
-                    }
-                }, 1000);
-            },
-            
-            handleAnswer(optionIdx) {
-                const question = this.getCurrentQuestion();
-                this.state.answers[question.id] = optionIdx;
-                this.render();
-            },
-            
-            toggleAnswer(optionIdx) {
-                const question = this.getCurrentQuestion();
-                let answers = this.state.answers[question.id] || [];
-                
-                if (answers.includes(optionIdx)) {
-                    answers = answers.filter(a => a !== optionIdx);
-                } else {
-                    answers.push(optionIdx);
-                }
-                
-                this.state.answers[question.id] = answers;
-                this.render();
-            },
-            
-            handleFillAnswer(value) {
-                const question = this.getCurrentQuestion();
-                this.state.answers[question.id] = value;
-            },
-            
-            handleOpenAnswer(value) {
-                const question = this.getCurrentQuestion();
-                this.state.answers[question.id] = value;
-            },
-            
-            moveSequenceItem(itemId, direction) {
-                const question = this.getCurrentQuestion();
-                let order = this.state.answers[question.id] || 
-                           question.options.map((_, i) => i);
-                
-                const idx = order.indexOf(itemId);
-                const newIdx = idx + direction;
-                
-                if (newIdx >= 0 && newIdx < order.length) {
-                    [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
-                    this.state.answers[question.id] = order;
-                    this.render();
-                }
-            },
-            
-            selectMatch(rightIdx) {
-                const question = this.getCurrentQuestion();
-                if (this.state.selectedMatch === null) {
-                    this.state.selectedMatch = rightIdx;
-                } else {
-                    this.state.currentMatches[this.state.selectedMatch] = rightIdx;
-                    this.state.selectedMatch = null;
-                    this.state.answers[question.id] = { ...this.state.currentMatches };
-                    this.render();
-                }
-            },
-            
-            getCurrentQuestion() {
-                const test = this.state.currentTest;
-                const allQuestions = test.sections.flatMap(s => s.questions);
-                return allQuestions[this.state.currentQuestion];
-            },
-            
-            prevQuestion() {
-                if (this.state.currentQuestion > 0) {
-                    this.state.currentQuestion--;
-                    this.state.questionStartTime = Date.now();
-                    // Reset match state when navigating
-                    this.state.selectedMatch = null;
-                    this.state.currentMatches = {};
-                    this.render();
-                }
-            },
-            
-            nextQuestion() {
-                const test = this.state.currentTest;
-                const allQuestions = test.sections.flatMap(s => s.questions);
-                
-                // Reset match state when navigating
-                this.state.selectedMatch = null;
-                this.state.currentMatches = {};
-                
-                if (this.state.currentQuestion < allQuestions.length - 1) {
-                    this.state.currentQuestion++;
-                    this.state.questionStartTime = Date.now();
-                    this.render();
-                } else {
-                    this.completeTest();
-                }
-            },
-            
-            completeTest() {
-                if (this.state.timer) clearInterval(this.state.timer);
-                
-                const test = this.state.currentTest;
-                const allQuestions = test.sections.flatMap(s => s.questions);
-                const endTime = Date.now();
-                const duration = Math.floor((endTime - this.state.startTime) / 1000);
-                
-                // Calculate score
-                let score = 0;
-                let maxScore = 0;
-                const questionResults = [];
-                
-                allQuestions.forEach((q, idx) => {
-                    const userAnswer = this.state.answers[q.id];
-                    const maxPoints = q.weight;
-                    maxScore += maxPoints;
-                    
-                    let points = 0;
-                    let isCorrect = false;
-                    
-                    switch (q.type) {
-                        case 'single':
-                            isCorrect = userAnswer === q.correctAnswers[0];
-                            points = isCorrect ? maxPoints : 0;
-                            break;
-                            
-                        case 'multiple':
-                            const correct = q.correctAnswers.sort().join(',');
-                            const user = (userAnswer || []).sort().join(',');
-                            isCorrect = correct === user;
-                            points = isCorrect ? maxPoints : 0;
-                            break;
-                            
-                        case 'fill':
-                            isCorrect = (userAnswer || '').toLowerCase().trim() === 
-                                      q.correctAnswers[0]?.toLowerCase().trim();
-                            points = isCorrect ? maxPoints : 0;
-                            break;
-                            
-                        case 'sequence':
-                            const correctOrder = q.correctAnswers.join(',');
-                            const userOrder = (userAnswer || []).join(',');
-                            isCorrect = correctOrder === userOrder;
-                            points = isCorrect ? maxPoints : 0;
-                            break;
-                            
-                        case 'match':
-                            // Simplified matching check
-                            isCorrect = JSON.stringify(userAnswer) === JSON.stringify(q.correctAnswers[0]);
-                            points = isCorrect ? maxPoints : 0;
-                            break;
-                            
-                        case 'open':
-                            // Open questions need manual review
-                            points = 0;
-                            isCorrect = false;
-                            break;
-                    }
-                    
-                    score += points;
-                    questionResults.push({
-                        questionId: q.id,
-                        questionText: q.text,
-                        correct: isCorrect,
-                        points,
-                        maxPoints,
-                        userAnswer,
-                        correctAnswer: q.correctAnswers
-                    });
-                });
-                
-                const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
-                
-                const result = {
-                    ...DataLayer.structures.result,
-                    testId: test.id,
-                    userId: 'user_' + Date.now(),
-                    answers: this.state.answers,
-                    score,
-                    maxScore,
-                    percentage,
-                    startTime: new Date(this.state.startTime).toISOString(),
-                    endTime: new Date(endTime).toISOString(),
-                    duration,
-                    questionResults
-                };
-                
-                DataLayer.saveResult(result);
-                
-                // Show results
-                this.showTestResults(result, test);
-            },
-            
-            showTestResults(result, test) {
-                const passed = result.percentage >= test.settings.passingScore;
-                
-                const modalContent = `
-                    <div class="text-center">
-                        <div class="text-6xl mb-4">${passed ? '🎉' : '😔'}</div>
-                        <h3 class="text-3xl font-bold mb-4">${passed ? 'Тест сдан!' : 'Тест не сдан'}</h3>
-                        <div class="grid md:grid-cols-3 gap-4 mb-6">
-                            <div class="bg-gray-100 p-4 rounded">
-                                <div class="text-2xl font-bold text-primary">${result.score}/${result.maxScore}</div>
-                                <div class="text-sm text-gray-600">Баллы</div>
-                            </div>
-                            <div class="bg-gray-100 p-4 rounded">
-                                <div class="text-2xl font-bold text-primary">${result.percentage.toFixed(1)}%</div>
-                                <div class="text-sm text-gray-600">Процент</div>
-                            </div>
-                            <div class="bg-gray-100 p-4 rounded">
-                                <div class="text-2xl font-bold text-primary">${Math.floor(result.duration / 60)}м ${result.duration % 60}с</div>
-                                <div class="text-sm text-gray-600">Время</div>
-                            </div>
-                        </div>
-                        
-                        ${test.settings.showResults ? `
-                            <div class="text-left max-h-96 overflow-y-auto">
-                                <h4 class="font-bold mb-2">Детализация по вопросам:</h4>
-                                ${result.questionResults.map((qr, idx) => `
-                                    <div class="p-3 mb-2 rounded ${qr.correct ? 'bg-green-100' : 'bg-red-100'}">
-                                        <div class="flex justify-between">
-                                            <span>Вопрос ${idx + 1}: ${qr.questionText.substring(0, 50)}...</span>
-                                            <span class="font-bold">${qr.points}/${qr.maxPoints}</span>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="mt-6 space-x-4">
-                            ${Components.button('Закрыть', "App.navigate('home')", 'success')}
-                            ${Components.button('Экспорт результата', 'App.downloadResult()', 'secondary')}
-                        </div>
-                    </div>
-                `;
-                
-                document.getElementById('app').insertAdjacentHTML('beforeend', 
-                    Components.modal('Результаты теста', modalContent, "this.remove()")
-                );
-            },
-            
-            downloadResult() {
-                alert('Функция экспорта одного результата будет реализована');
-            },
-            
-            editTest(testId) {
-                const test = DataLayer.getTest(testId);
-                if (!test) {
-                    alert('Тест не найден');
-                    return;
-                }
-
-                this.state.editingTestId = testId;
-                this.navigate('testCreate');
-
-                // Wait for DOM to render
-                setTimeout(() => {
-                    // Populate basic info
-                    document.getElementById('test-title').value = test.title || '';
-                    document.getElementById('test-description').value = test.description || '';
-                    document.getElementById('time-limit').value = test.settings?.timeLimit || '';
-                    document.getElementById('passing-score').value = test.settings?.passingScore || 70;
-                    document.getElementById('randomize').checked = test.settings?.randomizeQuestions || false;
-                    document.getElementById('show-results').checked = test.settings?.showResults !== false;
-                    document.getElementById('allow-review').checked = test.settings?.allowReview || false;
-
-                    // Clear sections container
-                    const sectionsContainer = document.getElementById('sections-container');
-                    if (sectionsContainer) {
-                        sectionsContainer.innerHTML = '';
-                    }
-
-                    // Load test sections and questions
-                    if (test.sections && test.sections.length > 0) {
-                        test.sections.forEach(section => {
-                            this.addSection();
-                            const sectionEl = document.querySelector(`[data-section]:last-of-type`);
-                            if (sectionEl) {
-                                const titleInput = sectionEl.querySelector('[data-section-title]');
-                                if (titleInput) {
-                                    titleInput.value = section.title || '';
-                                }
-
-                                const questionsContainer = sectionEl.querySelector('.questions-container');
-                                if (questionsContainer && section.questions && section.questions.length > 0) {
-                                    section.questions.forEach(question => {
-                                        this.addQuestion(sectionEl.getAttribute('data-section'));
-                                        const questionEl = document.querySelector(`[data-question]:last-of-type`);
-                                        
-                                        if (questionEl) {
-                                            // Set question type and text
-                                            const typeSelect = questionEl.querySelector('[data-question-type]');
-                                            const textArea = questionEl.querySelector('[data-question-text]');
-                                            const weightInput = questionEl.querySelector('[data-question-weight]');
-                                            
-                                            if (typeSelect) typeSelect.value = question.type || 'single';
-                                            if (textArea) textArea.value = question.text || '';
-                                            if (weightInput) weightInput.value = question.weight || 1;
-
-                                            // Update UI based on type
-                                            this.updateQuestionType(questionEl.getAttribute('data-question'));
-
-                                            // Add options based on question type
-                                            const qType = question.type;
-                                            
-                                            if (qType === 'single' || qType === 'multiple') {
-                                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
-                                                if (optionsList && question.options) {
-                                                    question.options.forEach((opt, idx) => {
-                                                        this.addOption(questionEl.getAttribute('data-question'));
-                                                        const optEl = optionsList.lastElementChild;
-                                                        if (optEl) {
-                                                            const textInput = optEl.querySelector('[data-option-text]');
-                                                            const correctCheckbox = optEl.querySelector('[data-correct]');
-                                                            if (textInput) textInput.value = opt.text || '';
-                                                            if (correctCheckbox && question.correctAnswers?.includes(idx)) {
-                                                                correctCheckbox.checked = true;
-                                                            }
-                                                        }
-                                                    });
-                                                }
-                                            } else if (qType === 'fill') {
-                                                // For fill questions, set the correct answer
-                                                const fillInput = questionEl.querySelector('[data-fill-answer]');
-                                                if (fillInput && question.correctAnswers && question.correctAnswers.length > 0) {
-                                                    fillInput.value = question.correctAnswers[0];
-                                                }
-                                            } else if (qType === 'sequence') {
-                                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
-                                                if (optionsList && question.options) {
-                                                    question.options.forEach((opt, idx) => {
-                                                        this.addOption(questionEl.getAttribute('data-question'));
-                                                        const optEl = optionsList.lastElementChild;
-                                                        if (optEl) {
-                                                            const textInput = optEl.querySelector('[data-option-text]');
-                                                            if (textInput) textInput.value = opt.text || '';
-                                                        }
-                                                    });
-                                                }
-                                            } else if (qType === 'match') {
-                                                // Handle match questions - load pairs for editing
-                                                const optionsContainer = questionEl.querySelector('[data-options]');
-                                                const list = optionsContainer?.querySelector('.space-y-2');
-                                                if (list && question.options?.left && question.options?.right) {
-                                                    const leftItems = question.options.left;
-                                                    const rightItems = question.options.right;
-                                                    
-                                                    leftItems.forEach((l, i) => {
-                                                        const pairId = DataLayer.generateId();
-                                                        const rightText = rightItems[i]?.text || '';
-                                                        const pairHtml = `
-                                                            <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
-                                                                <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left value="${this.escapeHtml(l.text)}">
-                                                                <span class="text-gray-500">↔</span>
-                                                                <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right value="${this.escapeHtml(rightText)}">
-                                                                <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
-                                                            </div>
-                                                        `;
-                                                        list.insertAdjacentHTML('beforeend', pairHtml);
-                                                    });
-                                                }
-                                            }
-                                            // Open questions don't need special handling
-                                        }
-                                    });
-                                }
-                            }
-                        });
-                    }
-                }, 150);
-            },
-            
-            escapeHtml(text) {
-                if (!text) return '';
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            },
-            
-            deleteTest(testId) {
-                if (confirm('Вы уверены, что хотите удалить этот тест?')) {
-                    DataLayer.deleteTest(testId);
-                    this.render();
-                }
-            },
-            
-            viewTestResults(testId) {
-                this.navigate('results');
-            },
-            
-            exportResults() {
-                const tests = DataLayer.getAllTests();
-                if (tests.length === 0) {
-                    alert('Нет тестов для экспорта');
-                    return;
-                }
-                
-                let csv = 'Тест;ID;Дата начала;Дата окончания;Продолжительность (сек);Баллы;Макс баллы;Процент;Статус\n';
-                
-                tests.forEach(test => {
-                    const results = DataLayer.getResults(test.id);
-                    results.forEach(r => {
-                        const status = r.percentage >= test.settings.passingScore ? 'Сдан' : 'Не сдан';
-                        csv += `${test.title};${r.id};${new Date(r.startTime).toLocaleString()};${new Date(r.endTime).toLocaleString()};${r.duration};${r.score};${r.maxScore};${r.percentage.toFixed(1)}%;${status}\n`;
-                    });
-                });
-                
-                const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `testus_results_${new Date().toISOString().split('T')[0]}.csv`;
-                link.click();
-            }
-
-            // Demo test generation with all question types
-            addDemoTest() {
-                if (confirm('Это создаст демо-тест со всеми типами вопросов. Продолжить?')) {
-                    const demoTest = {
-                        id: DataLayer.generateId(),
-                        title: 'Демо-тест: Все типы вопросов',
-                        description: 'Тест демонстрирующий все доступные типы вопросов и возможности системы',
-                        sections: [
-                            {
-                                id: DataLayer.generateId(),
-                                title: 'Секция 1: Тестовые вопросы',
-                                description: 'Вопросы с вариантами ответов',
-                                weight: 1,
-                                questions: [
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'single',
-                                        text: 'Какой язык программирования используется для веб-разработки на стороне клиента?',
-                                        options: [
-                                            { id: 0, text: 'Python' },
-                                            { id: 1, text: 'JavaScript' },
-                                            { id: 2, text: 'Java' },
-                                            { id: 3, text: 'C++' }
-                                        ],
-                                        correctAnswers: [1],
-                                        weight: 1,
-                                        explanation: 'JavaScript - основной язык для клиентской веб-разработки'
-                                    },
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'multiple',
-                                        text: 'Выберите все фреймворки JavaScript (можно несколько вариантов):',
-                                        options: [
-                                            { id: 0, text: 'React' },
-                                            { id: 1, text: 'Django' },
-                                            { id: 2, text: 'Vue' },
-                                            { id: 3, text: 'Angular' },
-                                            { id: 4, text: 'Flask' }
-                                        ],
-                                        correctAnswers: [0, 2, 3],
-                                        weight: 2,
-                                        explanation: 'React, Vue и Angular - это фреймворки JavaScript'
-                                    }
-                                ]
-                            },
-                            {
-                                id: DataLayer.generateId(),
-                                title: 'Секция 2: Вопросы на заполнение и последовательность',
-                                description: 'Вопросы требующие ввода ответа или установления порядка',
-                                weight: 1,
-                                questions: [
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'fill',
-                                        text: 'HTML расшифровывается как ___ Markup Language',
-                                        options: [{ id: 0, text: 'HTML расшифровывается как ___ Markup Language' }],
-                                        correctAnswers: ['HyperText'],
-                                        weight: 1,
-                                        explanation: 'HTML - HyperText Markup Language'
-                                    },
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'sequence',
-                                        text: 'Установите правильный порядок этапов разработки веб-приложения:',
-                                        options: [
-                                            { id: 0, text: 'Планирование и анализ требований' },
-                                            { id: 1, text: 'Проектирование архитектуры' },
-                                            { id: 2, text: 'Разработка кода' },
-                                            { id: 3, text: 'Тестирование' },
-                                            { id: 4, text: 'Деплой и поддержка' }
-                                        ],
-                                        correctAnswers: [0, 1, 2, 3, 4],
-                                        weight: 2,
-                                        explanation: 'Это стандартный порядок этапов разработки'
-                                    }
-                                ]
-                            },
-                            {
-                                id: DataLayer.generateId(),
-                                title: 'Секция 3: Сопоставление и открытые вопросы',
-                                description: 'Вопросы на сопоставление и эссе',
-                                weight: 1,
-                                questions: [
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'match',
-                                        text: 'Сопоставьте технологии с их назначением:',
-                                        options: {
-                                            left: [
-                                                { id: 0, text: 'HTML' },
-                                                { id: 1, text: 'CSS' },
-                                                { id: 2, text: 'JavaScript' }
-                                            ],
-                                            right: [
-                                                { id: 0, text: 'Стилизация и оформление' },
-                                                { id: 1, text: 'Структура и содержимое' },
-                                                { id: 2, text: 'Интерактивность и логика' }
-                                            ]
-                                        },
-                                        correctAnswers: [{ 0: 1, 1: 0, 2: 2 }],
-                                        weight: 2,
-                                        explanation: 'HTML - структура, CSS - стили, JS - интерактивность'
-                                    },
-                                    {
-                                        id: DataLayer.generateId(),
-                                        type: 'open',
-                                        text: 'Опишите своими словами, что такое PWA (Progressive Web Application) и какие преимущества оно дает:',
-                                        options: [{ id: 0, text: '' }],
-                                        correctAnswers: [],
-                                        weight: 3,
-                                        explanation: 'Ответ проверяется вручную'
-                                    }
-                                ]
-                            }
-                        ],
-                        settings: {
-                            timeLimit: 30,
-                            passingScore: 60,
-                            randomizeQuestions: false,
-                            showResults: true,
-                            allowReview: true
-                        },
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    };
-
-                    DataLayer.saveTest(demoTest);
-                    alert('Демо-тест успешно создан! Теперь вы можете пройти его или отредактировать.');
-                    this.render();
-                }
-            }
+    addDemo() {
+        const demo = {
+            id: Utils.generateId(), title: 'Демо: Все типы', description: 'Пример всех типов вопросов', timeLimit: 5, passPercent: 50,
+            sections: [
+                { id: Utils.generateId(), title: 'База', questions: [
+                    { id: Utils.generateId(), type:'single', text:'Столица Франции?', weight:1, options:['Лондон','Париж','Берлин'], correct:1 },
+                    { id: Utils.generateId(), type:'multiple', text:'Четные числа:', weight:2, options:['1','2','3','4'], correct:[1,3] },
+                    { id: Utils.generateId(), type:'fill', text:'2 + 2 = ___', weight:1, correct:'4' }
+                ]},
+                { id: Utils.generateId(), title: 'Сложные', questions: [
+                    { id: Utils.generateId(), type:'sequence', text:'Времена года:', weight:2, options:['Лето','Зима','Весна','Осень'], correct:[2,0,3,1] },
+                    { id: Utils.generateId(), type:'match', text:'Цвета:', weight:2, left:['Красный','Синий'], right:['Blue','Red'], matches:{'0':1,'1':0} },
+                    { id: Utils.generateId(), type:'open', text:'Что такое JS?', weight:3, correct:'' }
+                ]}
+            ]
         };
-        
-        // Initialize application
-        document.addEventListener('DOMContentLoaded', () => {
-            App.init();
-        });
-        
-        // Handle offline mode
-        window.addEventListener('offline', () => {
-            alert('Вы работаете в офлайн режиме. Данные сохраняются локально.');
-        });
-        
-        window.addEventListener('online', () => {
-            alert('Соединение восстановлено!');
-        });
-    </script>
+        DataLayer.saveTest(demo);
+        alert('Демо добавлено!');
+        this.navigate('home');
+    },
+
+    getStats() {
+        const res = DataLayer.getResults();
+        if(!res.length) return {total:0, avg:0};
+        return { total: res.length, avg: Math.round(res.reduce((a,b)=>a+b.score,0)/res.length) };
+    },
+
+    exportCSV() {
+        const res = DataLayer.getResults();
+        const ts = DataLayer.getTests();
+        const map = Object.fromEntries(ts.map(t=>[t.id,t.title]));
+        let csv = "Date,Test,Score,Duration\n";
+        res.forEach(r => csv += `${r.date},"${map[r.testId]||'?'}",${r.score},${r.duration}\n`);
+        const b = new Blob([csv],{type:'text/csv'});
+        const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='export.csv'; a.click();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
 </body>
 </html>
