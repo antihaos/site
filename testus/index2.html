@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
   <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="Профессиональная система тестирования PWA с редактором и drag-and-drop">
-  <title>TestUS — Редактор с перетаскиванием</title>
+  <meta name="description" content="Профессиональная система тестирования PWA с редактором, drag-and-drop и таймером">
+  <title>TestUS — Система тестирования с таймером</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlRlc3RVUyIsCiAgInNob3J0X25hbWUiOiAiVGVzdFVTIiwKICAic3RhcnRfdXJsIjogIi4vaW5kZXguaHRtbCIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsCiAgInRoZW1lX2NvbG9yIjogIiMwZjE3MmEiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWwsPHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz48dGV4dCB5PScuOWVtJyBmb250LXNpemU9JzkwJz7wn5OlPC90ZXh0Pjwvc3ZnPiIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
   <style>
@@ -24,13 +24,18 @@
     .section-drop-zone { transition: all 0.2s; }
     .section-drag-over { border: 2px dashed #06b6d4 !important; background: rgba(6, 182, 212, 0.05) !important; }
     .bank-item-dragging { opacity: 0.4; }
-    
-    /* Drag handles */
     .drag-handle { cursor: grab; user-select: none; }
     .drag-handle:active { cursor: grabbing; }
-    
-    /* Предотвращение выделения текста при перетаскивании */
     .no-select { user-select: none; -webkit-user-select: none; }
+    
+    /* Timer pulse animation */
+    @keyframes pulse-warning {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .timer-warning {
+      animation: pulse-warning 1s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
@@ -39,19 +44,38 @@
     <header class="bg-slate-900/80 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-30 px-4 py-3">
       <div class="max-w-6xl mx-auto flex items-center justify-between">
         <h1 class="text-2xl font-bold bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text text-transparent">TestUS</h1>
-        <nav id="main-nav" class="flex gap-2 text-sm font-medium flex-wrap"></nav>
+        <div class="flex items-center gap-4">
+          <!-- Таймер (показывается только во время теста) -->
+          <div id="timer-display" class="hidden items-center gap-2">
+            <span class="text-lg font-mono font-bold" id="timer-text">00:00</span>
+            <div class="w-1.5 h-1.5 rounded-full bg-green-400" id="timer-indicator"></div>
+          </div>
+          <nav id="main-nav" class="flex gap-2 text-sm font-medium flex-wrap"></nav>
+        </div>
       </div>
     </header>
 
     <main id="view-container" class="flex-1 max-w-6xl mx-auto w-full px-4 py-6 custom-scroll"></main>
 
     <footer class="bg-slate-900/50 border-t border-slate-800 text-center text-xs text-slate-500 py-3">
-      TestUS PWA · Банк вопросов · Drag & Drop редактор
+      TestUS PWA · Банк вопросов · Drag & Drop · Таймер
     </footer>
   </div>
 
   <div id="modal-container" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay"></div>
   <div id="drag-tooltip" class="fixed hidden bg-cyan-600 text-white text-xs px-2 py-1 rounded pointer-events-none z-50 shadow-lg"></div>
+
+  <!-- Модальное окно предупреждения о времени -->
+  <div id="timeout-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-800 border border-red-500/50 rounded-xl p-8 max-w-md w-full mx-4 text-center shadow-2xl">
+      <div class="text-5xl mb-4">⏰</div>
+      <h2 class="text-2xl font-bold text-red-400 mb-2">Время вышло!</h2>
+      <p class="text-slate-300 mb-6">Отведённое время на прохождение теста истекло. Ваши ответы будут сохранены автоматически.</p>
+      <button id="timeout-ok-btn" class="px-6 py-2 bg-red-600 rounded-lg hover:bg-red-500 transition font-semibold">
+        Посмотреть результаты
+      </button>
+    </div>
+  </div>
 
   <script>
     // ───────────────────────────── ДАННЫЕ (JSON-структуры) ─────────────────────────────
@@ -67,8 +91,8 @@
       demoQuiz: { 
         id: 'quiz_demo_001', 
         title: 'Демо: Все типы вопросов', 
-        description: 'Тест демонстрирует механику виджетов.', 
-        timeLimit: 0, 
+        description: 'Тест с ограничением времени 5 минут.', 
+        timeLimit: 300, // 5 минут в секундах
         shuffleQuestions: false, 
         sections: [
           { 
@@ -92,6 +116,24 @@
             ]
           }
         ] 
+      },
+      quickQuiz: {
+        id: 'quiz_quick_002',
+        title: 'Быстрый опрос (30 сек)',
+        description: 'Тест с жёстким ограничением времени для демонстрации таймера.',
+        timeLimit: 30,
+        shuffleQuestions: false,
+        sections: [
+          {
+            id: 'sec_quick',
+            title: 'Быстрые вопросы',
+            weight: 1,
+            questions: [
+              { id: 'qq1', type: 'single_choice', text: '2 + 2 = ?', weight: 1, options: [{id:'a',text:'3',correct:false},{id:'b',text:'4',correct:true},{id:'c',text:'5',correct:false}] },
+              { id: 'qq2', type: 'fill_blank', text: 'Столица Франции: ______', weight: 2, correctAnswer: 'Париж' }
+            ]
+          }
+        ]
       }
     };
 
@@ -127,7 +169,6 @@
       return 'id_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11); 
     }
 
-    // Глубокое клонирование вопроса (важно для банка вопросов)
     function cloneQuestion(q) {
       return JSON.parse(JSON.stringify(q));
     }
@@ -136,8 +177,9 @@
       currentView: 'quizzes',
       activeQuizId: null,
       activeSession: null,
-      quizzes: Storage.get('quizzes', [APP_DATA.demoQuiz]),
+      quizzes: Storage.get('quizzes', [APP_DATA.demoQuiz, APP_DATA.quickQuiz]),
       questionBank: Storage.get('questionBank', []),
+      timerInterval: null,
       saveQuizzes() { 
         Storage.set('quizzes', this.quizzes); 
       },
@@ -152,20 +194,134 @@
       }
     };
 
+    // ──────────────────────── МЕНЕДЖЕР ТАЙМЕРА ────────────────────────
+    const Timer = {
+      totalSeconds: 0,
+      remainingSeconds: 0,
+      intervalId: null,
+      onTick: null,
+      onTimeout: null,
+      isRunning: false,
+      warnThreshold: 60, // Предупреждение за 60 секунд
+
+      start(seconds, onTickCallback, onTimeoutCallback) {
+        this.stop();
+        this.totalSeconds = seconds;
+        this.remainingSeconds = seconds;
+        this.onTick = onTickCallback;
+        this.onTimeout = onTimeoutCallback;
+        this.isRunning = true;
+        
+        // Показываем таймер
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) timerDisplay.classList.remove('hidden');
+        
+        this.updateDisplay();
+        
+        this.intervalId = setInterval(() => {
+          this.remainingSeconds--;
+          this.updateDisplay();
+          
+          if (this.onTick) this.onTick(this.remainingSeconds, this.totalSeconds);
+          
+          if (this.remainingSeconds <= 0) {
+            this.stop();
+            if (this.onTimeout) this.onTimeout();
+          }
+        }, 1000);
+      },
+
+      stop() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+        this.isRunning = false;
+        
+        const timerDisplay = document.getElementById('timer-display');
+        if (timerDisplay) timerDisplay.classList.add('hidden');
+        
+        // Сбрасываем индикатор
+        const indicator = document.getElementById('timer-indicator');
+        if (indicator) {
+          indicator.className = 'w-1.5 h-1.5 rounded-full bg-green-400';
+        }
+      },
+
+      pause() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+        this.isRunning = false;
+      },
+
+      resume() {
+        if (!this.isRunning && this.remainingSeconds > 0) {
+          this.isRunning = true;
+          this.intervalId = setInterval(() => {
+            this.remainingSeconds--;
+            this.updateDisplay();
+            
+            if (this.onTick) this.onTick(this.remainingSeconds, this.totalSeconds);
+            
+            if (this.remainingSeconds <= 0) {
+              this.stop();
+              if (this.onTimeout) this.onTimeout();
+            }
+          }, 1000);
+        }
+      },
+
+      updateDisplay() {
+        const timerText = document.getElementById('timer-text');
+        const indicator = document.getElementById('timer-indicator');
+        
+        if (timerText) {
+          const minutes = Math.floor(this.remainingSeconds / 60);
+          const seconds = this.remainingSeconds % 60;
+          timerText.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+          
+          // Цветовое кодирование
+          if (this.remainingSeconds <= this.warnThreshold) {
+            timerText.className = 'text-lg font-mono font-bold text-red-400 timer-warning';
+          } else if (this.remainingSeconds <= this.warnThreshold * 2) {
+            timerText.className = 'text-lg font-mono font-bold text-yellow-400';
+          } else {
+            timerText.className = 'text-lg font-mono font-bold text-green-400';
+          }
+        }
+        
+        if (indicator) {
+          const percentage = (this.remainingSeconds / this.totalSeconds) * 100;
+          if (percentage <= 10) {
+            indicator.className = 'w-1.5 h-1.5 rounded-full bg-red-500 timer-warning';
+          } else if (percentage <= 25) {
+            indicator.className = 'w-1.5 h-1.5 rounded-full bg-yellow-500';
+          } else {
+            indicator.className = 'w-1.5 h-1.5 rounded-full bg-green-400';
+          }
+        }
+      },
+
+      getElapsedSeconds() {
+        return this.totalSeconds - this.remainingSeconds;
+      }
+    };
+
     // ──────────────────────── DRAG & DROP МЕНЕДЖЕР ────────────────────────
     const DragDrop = {
       draggedElement: null,
       draggedData: null,
-      dragType: null, // 'section', 'question'
+      dragType: null,
       sourceSectionIndex: null,
       sourceQuestionIndex: null,
       tooltip: null,
-      draggedBankItem: null, // Для отслеживания элемента банка
+      draggedBankItem: null,
 
       init() {
         this.tooltip = document.getElementById('drag-tooltip');
         
-        // Глобальные обработчики для тултипа
         document.addEventListener('dragover', (e) => {
           if (this.dragType && this.tooltip) {
             this.tooltip.style.left = (e.clientX + 15) + 'px';
@@ -174,11 +330,10 @@
           }
         });
         
-        document.addEventListener('dragend', (e) => {
+        document.addEventListener('dragend', () => {
           this.cleanup();
         });
 
-        // Предотвращаем стандартное поведение для drop на document
         document.addEventListener('drop', (e) => {
           e.preventDefault();
         });
@@ -214,7 +369,7 @@
           if (this.tooltip) this.tooltip.textContent = 'Переместить секцию';
         });
         
-        element.addEventListener('dragend', (e) => {
+        element.addEventListener('dragend', () => {
           element.classList.remove('dragging');
           this.cleanup();
         });
@@ -224,12 +379,11 @@
         element.addEventListener('dragover', (e) => {
           if (this.dragType !== 'section' && this.dragType !== 'question' && !this.draggedBankItem) return;
           e.preventDefault();
-          e.dataTransfer.dropEffect = this.dragType === 'section' ? 'move' : 'move';
+          e.dataTransfer.dropEffect = 'move';
           element.classList.add('section-drag-over');
         });
         
         element.addEventListener('dragleave', (e) => {
-          // Убираем класс только если действительно покидаем элемент
           if (!element.contains(e.relatedTarget)) {
             element.classList.remove('section-drag-over');
           }
@@ -240,23 +394,19 @@
           e.stopPropagation();
           element.classList.remove('section-drag-over');
           
-          // Обработка дропа вопроса из банка на секцию
           if (this.draggedBankItem) {
             this.handleBankItemDrop(sectionIndex);
             this.cleanup();
             return;
           }
           
-          // Обработка дропа секции
           if (this.dragType === 'section' && this.sourceSectionIndex !== null) {
             this.handleSectionDrop(sectionIndex);
           }
-          // Обработка дропа вопроса в конец секции
           else if (this.dragType === 'question' && this.sourceSectionIndex !== null && this.sourceQuestionIndex !== null) {
             const quiz = State.quizzes.find(q => q.id === Editor.currentQuizId);
             if (quiz && quiz.sections[sectionIndex]) {
               const targetSection = quiz.sections[sectionIndex];
-              // Добавляем в конец целевой секции
               const sourceSection = quiz.sections[this.sourceSectionIndex];
               if (sourceSection) {
                 const [movedQuestion] = sourceSection.questions.splice(this.sourceQuestionIndex, 1);
@@ -275,7 +425,7 @@
         element.setAttribute('draggable', 'true');
         
         element.addEventListener('dragstart', (e) => {
-          e.stopPropagation(); // Важно: предотвращаем всплытие к секции
+          e.stopPropagation();
           this.dragType = 'question';
           this.sourceSectionIndex = sectionIndex;
           this.sourceQuestionIndex = questionIndex;
@@ -286,7 +436,7 @@
           if (this.tooltip) this.tooltip.textContent = 'Переместить вопрос';
         });
         
-        element.addEventListener('dragend', (e) => {
+        element.addEventListener('dragend', () => {
           element.classList.remove('dragging');
           this.cleanup();
         });
@@ -322,18 +472,18 @@
 
       makeBankItemDraggable(element, questionData) {
         element.setAttribute('draggable', 'true');
+        element.__dragData = JSON.stringify(questionData);
         
         element.addEventListener('dragstart', (e) => {
           this.draggedBankItem = element;
-          this.dragType = null; // Сбрасываем тип, чтобы не конфликтовало
+          this.dragType = null;
           element.classList.add('bank-item-dragging');
           e.dataTransfer.effectAllowed = 'copy';
-          // Сохраняем данные вопроса в формате JSON
           e.dataTransfer.setData('application/json', JSON.stringify(questionData));
           if (this.tooltip) this.tooltip.textContent = 'Копировать в секцию';
         });
         
-        element.addEventListener('dragend', (e) => {
+        element.addEventListener('dragend', () => {
           element.classList.remove('bank-item-dragging');
           this.draggedBankItem = null;
           this.cleanup();
@@ -346,7 +496,6 @@
         if (this.sourceSectionIndex === targetIndex) return;
         
         const [movedSection] = quiz.sections.splice(this.sourceSectionIndex, 1);
-        // Корректируем индекс если перемещаем вниз
         const finalIndex = targetIndex > this.sourceSectionIndex ? targetIndex - 1 : targetIndex;
         quiz.sections.splice(finalIndex, 0, movedSection);
         State.saveQuizzes();
@@ -361,23 +510,16 @@
         const targetSection = quiz.sections[targetSectionIndex];
         
         if (!sourceSection || !targetSection) return;
-        
-        // Проверяем, что в источнике есть такой вопрос
         if (this.sourceQuestionIndex >= sourceSection.questions.length) return;
         
         const [movedQuestion] = sourceSection.questions.splice(this.sourceQuestionIndex, 1);
         
-        // Вычисляем финальную позицию
         let finalTarget = targetQuestionIndex;
-        
-        // Если перемещаем в ту же секцию и вопрос был выше целевой позиции
         if (this.sourceSectionIndex === targetSectionIndex && this.sourceQuestionIndex < targetQuestionIndex) {
           finalTarget--;
         }
         
-        // Ограничиваем индекс
         finalTarget = Math.max(0, Math.min(finalTarget, targetSection.questions.length));
-        
         targetSection.questions.splice(finalTarget, 0, movedQuestion);
         State.saveQuizzes();
         Editor.renderSections(quiz);
@@ -390,26 +532,21 @@
         if (!quiz || sectionIndex < 0 || sectionIndex >= quiz.sections.length) return;
         
         try {
-          // Получаем данные из dataTransfer (они были установлены в dragstart)
-          const questionData = JSON.parse(this.draggedBankItem.__dragData || '{}');
-          if (questionData && questionData.text) {
-            const newQuestion = cloneQuestion(questionData);
-            newQuestion.id = generateId();
-            quiz.sections[sectionIndex].questions.push(newQuestion);
-            State.saveQuizzes();
-            Editor.renderSections(quiz);
+          const jsonData = this.draggedBankItem.__dragData;
+          if (jsonData) {
+            const questionData = JSON.parse(jsonData);
+            if (questionData && questionData.text) {
+              const newQuestion = cloneQuestion(questionData);
+              newQuestion.id = generateId();
+              quiz.sections[sectionIndex].questions.push(newQuestion);
+              State.saveQuizzes();
+              Editor.renderSections(quiz);
+            }
           }
         } catch (err) {
           console.error('Bank item drop error:', err);
         }
       }
-    };
-
-    // Переопределим makeBankItemDraggable для сохранения данных
-    const originalMakeBankItemDraggable = DragDrop.makeBankItemDraggable.bind(DragDrop);
-    DragDrop.makeBankItemDraggable = function(element, questionData) {
-      element.__dragData = JSON.stringify(questionData);
-      originalMakeBankItemDraggable(element, questionData);
     };
 
     // ──────────────────────── ОЦЕНИВАНИЕ ────────────────────────
@@ -623,7 +760,7 @@
           if (src) src.classList.remove('opacity-50');
           src = null;
         }); 
-        ul.addEventListener('dragend', e => {
+        ul.addEventListener('dragend', () => {
           if (src) src.classList.remove('opacity-50');
           src = null;
         });
@@ -723,9 +860,26 @@
         c.innerHTML = '';
       },
       init() { 
-        document.getElementById('modal-container').addEventListener('click', e => { 
+        const container = document.getElementById('modal-container');
+        container.addEventListener('click', e => { 
           if (e.target === e.currentTarget) this.hide(); 
-        }); 
+        });
+        
+        // Инициализация модального окна тайм-аута
+        document.getElementById('timeout-ok-btn').addEventListener('click', () => {
+          this.hideTimeout();
+          Timer.stop();
+          App.finishQuiz();
+        });
+      },
+      showTimeout() {
+        document.getElementById('timeout-modal').classList.remove('hidden');
+        document.getElementById('timeout-modal').classList.add('flex');
+      },
+      hideTimeout() {
+        const tm = document.getElementById('timeout-modal');
+        tm.classList.add('hidden');
+        tm.classList.remove('flex');
       }
     };
 
@@ -758,10 +912,19 @@
           const totalQuestions = quiz.sections.reduce((a, s) => a + (s.questions ? s.questions.length : 0), 0);
           const card = document.createElement('div'); 
           card.className = 'bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-cyan-500/50 transition cursor-pointer';
+          
+          const timeLimitText = quiz.timeLimit > 0 
+            ? `⏱️ ${Math.floor(quiz.timeLimit / 60)} мин ${quiz.timeLimit % 60 > 0 ? quiz.timeLimit % 60 + ' сек' : ''}`
+            : '⏱️ Без ограничения';
+          
           card.innerHTML = `
             <h3 class="text-xl font-semibold">${this.esc(quiz.title)}</h3>
             <p class="text-slate-400 mt-1">${this.esc(quiz.description || '')}</p>
-            <div class="mt-3 text-xs text-slate-500">Секций: ${quiz.sections.length} | Вопросов: ${totalQuestions}</div>
+            <div class="mt-3 flex gap-3 text-xs text-slate-500">
+              <span>📋 Секций: ${quiz.sections.length}</span>
+              <span>❓ Вопросов: ${totalQuestions}</span>
+              <span>${timeLimitText}</span>
+            </div>
             <div class="flex gap-2 mt-3">
               <button class="start-btn px-3 py-1 bg-cyan-700 rounded text-sm hover:bg-cyan-600 transition">Пройти</button>
               <button class="edit-btn px-3 py-1 bg-slate-700 rounded text-sm hover:bg-slate-600 transition">Изменить</button>
@@ -826,13 +989,24 @@
           return;
         }
         
+        // Прогресс-бар
+        const totalQuestions = quiz.sections.reduce((acc, sec) => acc + (sec.questions ? sec.questions.length : 0), 0);
+        const answeredCount = Object.keys(s.answers).length;
+        const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+        
         c.innerHTML = `
-          <div class="flex justify-between mb-4">
+          <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold">${this.esc(quiz.title)}</h2>
             <span class="text-sm bg-slate-800 px-3 py-1 rounded-full">Секция ${s.sectionIndex + 1}/${quiz.sections.length}</span>
           </div>
-          <div class="bg-slate-800/40 p-3 rounded-lg mb-4 text-sm text-slate-300">
-            ${this.esc(sec.title)} — вопрос ${s.questionIndex + 1}/${sec.questions.length}
+          <div class="bg-slate-800/40 p-3 rounded-lg mb-4">
+            <div class="flex justify-between text-sm text-slate-300 mb-1">
+              <span>${this.esc(sec.title)} — вопрос ${s.questionIndex + 1}/${sec.questions.length}</span>
+              <span>Отвечено: ${answeredCount}/${totalQuestions}</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-1.5">
+              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full transition-all duration-300" style="width: ${progressPercent}%"></div>
+            </div>
           </div>
         `;
         
@@ -866,17 +1040,29 @@
       results(data) {
         const c = document.getElementById('view-container');
         const percentage = data.totalMax > 0 ? Math.round((data.totalEarned / data.totalMax) * 100) : 0;
+        
+        let message = '';
+        if (percentage >= 80) message = '🌟 Отличный результат!';
+        else if (percentage >= 60) message = '👍 Хорошая работа!';
+        else if (percentage >= 40) message = '📚 Есть куда расти.';
+        else message = '💪 Продолжайте учиться!';
+        
         c.innerHTML = `
           <h2 class="text-2xl font-bold mb-4">Результаты</h2>
           <div class="bg-slate-800 p-6 rounded-xl mb-4">
-            <p class="text-lg mb-2">Набрано: <span class="text-cyan-400 font-bold">${data.totalEarned.toFixed(2)}</span> из ${data.totalMax.toFixed(2)}</p>
+            <p class="text-3xl font-bold text-cyan-400 mb-2">${percentage}%</p>
+            <p class="text-lg mb-2">Набрано: <span class="text-white font-bold">${data.totalEarned.toFixed(2)}</span> из ${data.totalMax.toFixed(2)}</p>
             <div class="w-full bg-slate-700 rounded-full h-2.5 mb-2">
-              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
+              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
             </div>
-            <p class="text-sm text-slate-400">${percentage}%</p>
+            <p class="text-slate-300 mt-1">${message}</p>
+            ${data.timeElapsed ? `<p class="text-xs text-slate-500 mt-2">⏱️ Затрачено времени: ${Math.floor(data.timeElapsed / 60)} мин ${data.timeElapsed % 60} сек</p>` : ''}
+            ${data.timedOut ? '<p class="text-xs text-red-400 mt-1">⚠️ Тест завершён автоматически (время вышло)</p>' : ''}
           </div>
-          <button onclick="App.navigate('quizzes')" class="px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition">← К списку тестов</button>
-          <button onclick="App.navigate('history')" class="px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition ml-2">История</button>
+          <div class="flex gap-2">
+            <button onclick="App.navigate('quizzes')" class="px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition">← К списку тестов</button>
+            <button onclick="App.navigate('history')" class="px-4 py-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition">📊 История</button>
+          </div>
         `;
       },
       
@@ -905,6 +1091,7 @@
               <th class="py-3 px-2">Результат</th>
               <th class="py-3 px-2">Процент</th>
               <th class="py-3 px-2">Время</th>
+              <th class="py-3 px-2">Статус</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -922,13 +1109,13 @@
             <td class="py-2 px-2">
               <span class="${percentage >= 80 ? 'text-green-400' : percentage >= 50 ? 'text-yellow-400' : 'text-red-400'}">${percentage}%</span>
             </td>
-            <td class="py-2 px-2">${e.duration ? Math.round(e.duration / 60) + ' мин' : '—'}</td>
+            <td class="py-2 px-2">${e.duration ? Math.round(e.duration / 60) + ' мин ' + Math.round(e.duration % 60) + ' сек' : '—'}</td>
+            <td class="py-2 px-2">${e.timedOut ? '⏰ Тайм-аут' : '✅ Завершён'}</td>
           `; 
         }); 
         
         c.appendChild(t);
         
-        // Кнопка очистки истории
         const clearBtn = document.createElement('button');
         clearBtn.className = 'mt-4 px-4 py-2 bg-red-900/60 rounded-lg hover:bg-red-800/60 transition text-sm';
         clearBtn.textContent = 'Очистить историю';
@@ -980,6 +1167,9 @@
       },
 
       buildEditorLayout(quiz) {
+        const timeLimitMinutes = quiz.timeLimit > 0 ? Math.floor(quiz.timeLimit / 60) : 0;
+        const timeLimitSeconds = quiz.timeLimit > 0 ? quiz.timeLimit % 60 : 0;
+        
         return `
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold">Редактор: ${this.esc(quiz.title)}</h2>
@@ -990,9 +1180,37 @@
           </div>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-4">
-              <div class="bg-slate-800 p-4 rounded-xl">
-                <label class="block text-sm mb-1 text-slate-300">Название теста</label>
-                <input id="quiz-title" class="w-full bg-slate-900 border border-slate-700 p-2 rounded focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500" value="${this.esc(quiz.title)}">
+              <div class="bg-slate-800 p-4 rounded-xl space-y-3">
+                <div>
+                  <label class="block text-sm mb-1 text-slate-300">Название теста</label>
+                  <input id="quiz-title" class="w-full bg-slate-900 border border-slate-700 p-2 rounded focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500" value="${this.esc(quiz.title)}">
+                </div>
+                <div>
+                  <label class="block text-sm mb-1 text-slate-300">Описание</label>
+                  <input id="quiz-description" class="w-full bg-slate-900 border border-slate-700 p-2 rounded focus:border-cyan-500" value="${this.esc(quiz.description || '')}" placeholder="Краткое описание теста">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm mb-1 text-slate-300">⏱️ Ограничение времени</label>
+                    <div class="flex gap-2">
+                      <div class="flex-1">
+                        <input id="quiz-time-min" type="number" class="w-full bg-slate-900 border border-slate-700 p-2 rounded" value="${timeLimitMinutes}" min="0" placeholder="Мин">
+                        <span class="text-xs text-slate-500">Минут</span>
+                      </div>
+                      <div class="flex-1">
+                        <input id="quiz-time-sec" type="number" class="w-full bg-slate-900 border border-slate-700 p-2 rounded" value="${timeLimitSeconds}" min="0" max="59" placeholder="Сек">
+                        <span class="text-xs text-slate-500">Секунд</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm mb-1 text-slate-300">Перемешивать вопросы</label>
+                    <label class="flex items-center gap-2 mt-2 cursor-pointer">
+                      <input id="quiz-shuffle" type="checkbox" class="accent-cyan-500 w-4 h-4" ${quiz.shuffleQuestions ? 'checked' : ''}>
+                      <span class="text-sm">Случайный порядок</span>
+                    </label>
+                  </div>
+                </div>
               </div>
               <div class="bg-slate-800 p-4 rounded-xl">
                 <div class="flex justify-between items-center mb-3">
@@ -1019,10 +1237,30 @@
           App.navigate('quizzes'); 
         };
         
-        const titleInput = document.getElementById('quiz-title');
-        titleInput.oninput = (e) => { 
+        document.getElementById('quiz-title').oninput = (e) => { 
           quiz.title = e.target.value; 
           State.saveQuizzes(); 
+        };
+        
+        document.getElementById('quiz-description').oninput = (e) => {
+          quiz.description = e.target.value;
+          State.saveQuizzes();
+        };
+        
+        // Обработчик времени
+        const updateTimeLimit = () => {
+          const min = parseInt(document.getElementById('quiz-time-min').value) || 0;
+          const sec = parseInt(document.getElementById('quiz-time-sec').value) || 0;
+          quiz.timeLimit = (min * 60) + sec;
+          State.saveQuizzes();
+        };
+        
+        document.getElementById('quiz-time-min').oninput = updateTimeLimit;
+        document.getElementById('quiz-time-sec').oninput = updateTimeLimit;
+        
+        document.getElementById('quiz-shuffle').onchange = (e) => {
+          quiz.shuffleQuestions = e.target.checked;
+          State.saveQuizzes();
         };
         
         this.renderSections(quiz);
@@ -1032,6 +1270,7 @@
         document.getElementById('create-bank-question-btn').onclick = () => this.openQuestionEditor(null);
       },
 
+      // Остальные методы Editor остаются без изменений...
       renderSections(quiz) {
         const cont = document.getElementById('sections-container'); 
         if (!cont) return;
@@ -1047,7 +1286,6 @@
           div.className = 'bg-slate-900/70 border-2 border-slate-700 rounded-lg p-4 transition-all hover:border-slate-600';
           div.dataset.sectionIndex = sIdx;
           
-          // Делаем секцию перетаскиваемой
           DragDrop.makeSectionDraggable(div, sIdx);
           DragDrop.makeSectionDropZone(div, sIdx);
           
@@ -1071,7 +1309,6 @@
             <div class="questions-list space-y-2 pl-6 min-h-[20px]" data-section-index="${sIdx}"></div>
           `;
           
-          // Привязка событий для заголовка и веса секции
           const titleInp = div.querySelector('.section-title');
           titleInp.oninput = (e) => { 
             sec.title = e.target.value; 
@@ -1112,7 +1349,6 @@
               qDiv.dataset.questionIndex = qIdx;
               qDiv.dataset.sectionIndex = sIdx;
               
-              // Делаем вопросы перетаскиваемыми
               DragDrop.makeQuestionDraggable(qDiv, sIdx, qIdx);
               DragDrop.makeQuestionDropZone(qDiv, sIdx, qIdx);
               
@@ -1152,7 +1388,6 @@
           cont.appendChild(div);
         });
         
-        // После рендеринга всех секций, добавляем обработчики drop для списков вопросов
         setTimeout(() => {
           document.querySelectorAll('.questions-list').forEach(list => {
             const sectionIndex = parseInt(list.dataset.sectionIndex);
@@ -1193,7 +1428,6 @@
           const div = document.createElement('div'); 
           div.className = 'flex justify-between items-center bg-slate-700/50 p-2 rounded text-sm border border-transparent hover:border-cyan-500/50 transition-all';
           
-          // Делаем вопросы банка перетаскиваемыми
           DragDrop.makeBankItemDraggable(div, q);
           
           const typeInfo = APP_DATA.questionTypes[q.type] || { icon: '❓' };
@@ -1307,7 +1541,6 @@
         
         typeSelect.onchange = () => { 
           q.type = typeSelect.value; 
-          // Сброс данных специфичных для типа
           if (['single_choice', 'multiple_choice'].includes(q.type)) {
             if (!q.options) q.options = [];
             q.correctAnswer = '';
@@ -1359,7 +1592,6 @@
       },
 
       validateAndCollect(q) {
-        // Сбор основных данных
         const textEl = document.getElementById('eq-text');
         const weightEl = document.getElementById('eq-weight');
         
@@ -1377,7 +1609,6 @@
           return false;
         }
         
-        // Валидация специфичных данных
         if (['single_choice', 'multiple_choice'].includes(q.type)) {
           if (!q.options || q.options.length < 2) {
             alert('Добавьте минимум 2 варианта ответа!');
@@ -1446,7 +1677,6 @@
               d.querySelector('.opt-text').oninput = e => { q.options[i].text = e.target.value; };
               d.querySelector('.opt-correct').onchange = e => { 
                 if (q.type === 'single_choice') {
-                  // Снимаем все остальные
                   q.options.forEach((opt, j) => opt.correct = (j === i));
                 } else {
                   q.options[i].correct = e.target.checked; 
@@ -1557,7 +1787,7 @@
             if (!q.matchingPairs) q.matchingPairs = { left: [], right: [], correctMapping: {} };
             if (!q.matchingPairs.correctMapping) q.matchingPairs.correctMapping = {};
             
-            (q.matchingPairs.left || []).forEach((left, i) => {
+            (q.matchingPairs.left || []).forEach((left) => {
               const d = document.createElement('div'); 
               d.className = 'flex items-center gap-2 text-sm';
               d.innerHTML = `
@@ -1603,12 +1833,10 @@
               </div>
             `).join('');
             
-            // Привязка событий
             leftList.querySelectorAll('.left-val').forEach((inp, i) => {
               inp.oninput = e => { 
                 const oldValue = q.matchingPairs.left[i];
                 q.matchingPairs.left[i] = e.target.value;
-                // Обновляем связи если значение изменилось
                 if (q.matchingPairs.correctMapping && oldValue !== e.target.value) {
                   if (q.matchingPairs.correctMapping[oldValue]) {
                     q.matchingPairs.correctMapping[e.target.value] = q.matchingPairs.correctMapping[oldValue];
@@ -1636,7 +1864,6 @@
             rightList.querySelectorAll('.del-right').forEach((btn, j) => {
               btn.onclick = () => { 
                 const removed = q.matchingPairs.right.splice(j, 1)[0];
-                // Удаляем все связи с этим элементом
                 if (q.matchingPairs.correctMapping) {
                   Object.keys(q.matchingPairs.correctMapping).forEach(key => {
                     if (q.matchingPairs.correctMapping[key] === removed) {
@@ -1690,7 +1917,6 @@
         this.updateNav(); 
         this.navigate(State.currentView);
         
-        // Глобальный обработчик клавиш
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             Modal.hide();
@@ -1724,23 +1950,39 @@
       },
       
       startQuiz(id) { 
-        const q = State.quizzes.find(q => q.id === id); 
-        if (!q) {
+        const quiz = State.quizzes.find(q => q.id === id); 
+        if (!quiz) {
           alert('Тест не найден!');
           return;
         }
-        const totalQuestions = q.sections.reduce((a, s) => a + (s.questions ? s.questions.length : 0), 0);
+        const totalQuestions = quiz.sections.reduce((a, s) => a + (s.questions ? s.questions.length : 0), 0);
         if (totalQuestions === 0) {
           alert('Тест не содержит вопросов!');
           return;
         }
+        
         State.activeSession = {
           quizId: id, 
           answers: {}, 
           startTime: Date.now(), 
           sectionIndex: 0, 
           questionIndex: 0
-        }; 
+        };
+        
+        // Запуск таймера если есть ограничение
+        if (quiz.timeLimit > 0) {
+          Timer.start(
+            quiz.timeLimit,
+            (remaining, total) => {
+              // Колбек тика (опционально можно обновлять UI)
+            },
+            () => {
+              // Колбек при истечении времени
+              Modal.showTimeout();
+            }
+          );
+        }
+        
         this.navigate('quiz-active'); 
       },
       
@@ -1755,7 +1997,6 @@
         
         const sec = quiz.sections[s.sectionIndex];
         if (!sec || !sec.questions || sec.questions.length === 0) {
-          // Переход к следующей секции или завершение
           if (s.sectionIndex < quiz.sections.length - 1) {
             s.sectionIndex++;
             s.questionIndex = 0;
@@ -1791,6 +2032,9 @@
         const quiz = State.quizzes.find(q => q.id === s.quizId); 
         if (!quiz) return;
         
+        const timedOut = Modal.hideTimeout || false;
+        Modal.hideTimeout = false;
+        
         let totalEarned = 0, totalMax = 0; 
         quiz.sections.forEach(sec => { 
           if (!sec.questions) return;
@@ -1802,7 +2046,13 @@
           }); 
         }); 
         
-        const dur = (Date.now() - s.startTime) / 1000; 
+        const dur = Timer.isRunning ? Timer.getElapsedSeconds() : 
+                   ((Date.now() - s.startTime) / 1000);
+        
+        // Останавливаем таймер
+        const wasTimerRunning = Timer.isRunning;
+        Timer.stop();
+        
         const rec = {
           quizId: quiz.id,
           quizTitle: quiz.title,
@@ -1810,6 +2060,7 @@
           totalEarned,
           totalMax,
           duration: dur,
+          timedOut: wasTimerRunning && dur >= quiz.timeLimit,
           answers: s.answers
         }; 
         
@@ -1817,7 +2068,16 @@
         hist.push(rec); 
         State.history = hist; 
         State.activeSession = null; 
-        this.navigate('results', { totalEarned, totalMax }); 
+        
+        this.navigate('results', { 
+          totalEarned, 
+          totalMax,
+          timeElapsed: Math.round(dur),
+          timedOut: rec.timedOut
+        }); 
+        
+        // Скрываем модальное окно тайм-аута если открыто
+        Modal.hideTimeout();
       }
     };
 
