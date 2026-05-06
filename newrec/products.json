@@ -1,0 +1,37 @@
+[
+    {
+        "id": 1,
+        "name": "Смартфон Galaxy X",
+        "description": "Мощный смартфон с отличной камерой и длительным временем работы батареи",
+        "price": 29999.0,
+        "imageUrl": "https://example.com/phone.jpg"
+    },
+    {
+        "id": 2,
+        "name": "Ноутбук ProBook",
+        "description": "Легкий и производительный ноутбук для работы и развлечений",
+        "price": 89990.0,
+        "imageUrl": "https://example.com/laptop.jpg"
+    },
+    {
+        "id": 3,
+        "name": "Наушники SoundMax",
+        "description": "Беспроводные наушники с активным шумоподавлением",
+        "price": 12990.0,
+        "imageUrl": "https://example.com/headphones.jpg"
+    },
+    {
+        "id": 4,
+        "name": "Умные часы FitWatch",
+        "description": "Фитнес-трекер с мониторингом здоровья и уведомлениями",
+        "price": 7990.0,
+        "imageUrl": "https://example.com/watch.jpg"
+    },
+    {
+        "id": 5,
+        "name": "Планшет TabUltra",
+        "description": "Планшет с большим экраном для работы и медиа",
+        "price": 34990.0,
+        "imageUrl": "https://example.com/tablet.jpg"
+    }
+]
