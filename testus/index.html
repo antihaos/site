@@ -966,11 +966,12 @@
             },
             
             renderTestCreate() {
-                const test = DataLayer.structures.test;
+                const isEditing = !!this.state.editingTestId;
+                const test = isEditing ? DataLayer.getTest(this.state.editingTestId) : DataLayer.structures.test;
                 
                 return `
                     <div class="animate-fade-in max-w-4xl mx-auto">
-                        <h2 class="text-3xl font-bold mb-6">Создание нового теста</h2>
+                        <h2 class="text-3xl font-bold mb-6">${isEditing ? 'Редактирование теста' : 'Создание нового теста'}</h2>
                         
                         ${(() => {
                             const cardContent = `
@@ -1006,7 +1007,7 @@
                                     <div id="sections-container"></div>
                                     
                                     <div class="mt-6 flex justify-end space-x-4">
-                                        ${Components.button('Сохранить тест', 'App.saveTest()', 'success')}
+                                        ${Components.button(isEditing ? 'Обновить тест' : 'Сохранить тест', 'App.saveTest()', 'success')}
                                         ${Components.button('Отмена', "App.navigate('testList')", 'secondary')}
                                     </div>
                                 </div>
@@ -1018,7 +1019,7 @@
             },
             
             renderTestEdit() {
-                return this.renderTestCreate(); // Same as create for now
+                return this.renderTestCreate();
             },
             
             renderTestTake() {
@@ -1215,14 +1216,22 @@
                         <div class="space-y-2"></div>
                     `;
                 } else if (type === 'fill') {
-                    optionsContainer.innerHTML = `<p class="text-sm text-gray-600">В вопросе используйте ___ для обозначения пропуска</p>`;
+                    optionsContainer.innerHTML = `
+                        <p class="text-sm text-gray-600 mb-2">Введите правильный ответ для пропуска:</p>
+                        <input type="text" class="input-field" placeholder="Правильный ответ" data-fill-answer>
+                        <p class="text-xs text-gray-500 mt-1">В тексте вопроса используйте ___ для обозначения пропуска</p>
+                    `;
                 } else if (type === 'sequence') {
                     optionsContainer.innerHTML = `
                         <p class="text-sm text-gray-600 mb-2">Элементы последовательности:</p>
                         <div class="space-y-2"></div>
                     `;
                 } else if (type === 'match') {
-                    optionsContainer.innerHTML = `<p class="text-sm text-gray-600">Формат сопоставления настраивается отдельно</p>`;
+                    optionsContainer.innerHTML = `
+                        <p class="text-sm text-gray-600 mb-2">Пары для сопоставления:</p>
+                        <div class="space-y-2"></div>
+                        <button onclick="App.addMatchPair('${questionId}')" class="btn btn-secondary text-sm mt-2">+ Добавить пару</button>
+                    `;
                 } else if (type === 'open') {
                     optionsContainer.innerHTML = `<p class="text-sm text-gray-600">Открытый вопрос проверяется вручную</p>`;
                 }
@@ -1250,6 +1259,32 @@
                 const option = document.querySelector(`[data-option="${optionId}"]`);
                 if (option) option.remove();
             },
+            addMatchPair(questionId) {
+                const question = document.querySelector(`[data-question="${questionId}"]`);
+                const optionsContainer = question.querySelector('[data-options]');
+                const list = optionsContainer.querySelector('.space-y-2');
+
+                const pairId = DataLayer.generateId();
+                const pairHtml = `
+                    <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
+                        <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left>
+                        <span class="text-gray-500">↔</span>
+                        <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right>
+                        <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
+                    </div>
+                `;
+
+                if (list) {
+                    list.insertAdjacentHTML('beforeend', pairHtml);
+                }
+            },
+
+            removeMatchPair(pairId) {
+                const pair = document.querySelector(`[data-pair="${pairId}"]`);
+                if (pair) pair.remove();
+            },
+
+
             
             saveTest() {
                 const title = document.getElementById('test-title').value;
@@ -1262,18 +1297,38 @@
                     return;
                 }
                 
-                const test = {
-                    ...DataLayer.structures.test,
-                    title,
-                    description,
-                    settings: {
+                // Check if we're editing an existing test
+                const isEditing = !!this.state.editingTestId;
+                let test = isEditing ? DataLayer.getTest(this.state.editingTestId) : null;
+                
+                if (isEditing && test) {
+                    // Update existing test
+                    test.title = title;
+                    test.description = description;
+                    test.settings = {
                         timeLimit,
                         passingScore,
                         randomizeQuestions: document.getElementById('randomize').checked,
                         showResults: document.getElementById('show-results').checked,
                         allowReview: document.getElementById('allow-review').checked
-                    }
-                };
+                    };
+                    test.sections = [];
+                    test.updatedAt = new Date().toISOString();
+                } else {
+                    // Create new test
+                    test = {
+                        ...DataLayer.structures.test,
+                        title,
+                        description,
+                        settings: {
+                            timeLimit,
+                            passingScore,
+                            randomizeQuestions: document.getElementById('randomize').checked,
+                            showResults: document.getElementById('show-results').checked,
+                            allowReview: document.getElementById('allow-review').checked
+                        }
+                    };
+                }
                 
                 // Collect sections
                 const sections = document.querySelectorAll('.section-item');
@@ -1297,20 +1352,60 @@
                             weight
                         };
                         
-                        // Collect options
+                        // Collect options based on question type
                         const options = [];
                         const correctAnswers = [];
-                        
-                        questionEl.querySelectorAll('[data-option]').forEach((optEl, idx) => {
-                            const text = optEl.querySelector('[data-option-text]').value;
-                            if (text) {
-                                options.push({ id: idx, text });
-                                if (optEl.querySelector('[data-correct]')?.checked) {
-                                    correctAnswers.push(idx);
+
+                        if (['single', 'multiple', 'sequence'].includes(type)) {
+                            questionEl.querySelectorAll('[data-option]').forEach((optEl, idx) => {
+                                const text = optEl.querySelector('[data-option-text]').value;
+                                if (text) {
+                                    options.push({ id: idx, text });
+                                    if (type !== 'sequence' && optEl.querySelector('[data-correct]')?.checked) {
+                                        correctAnswers.push(idx);
+                                    }
+                                }
+                            });
+                            
+                            // For sequence, correct answer is the order of options (0, 1, 2, ...)
+                            if (type === 'sequence') {
+                                for (let i = 0; i < options.length; i++) {
+                                    correctAnswers.push(i);
                                 }
                             }
-                        });
-                        
+                        } else if (type === 'fill') {
+                            // For fill questions, get answer from special input
+                            const fillInput = questionEl.querySelector('[data-fill-answer]');
+                            if (fillInput && fillInput.value) {
+                                correctAnswers.push(fillInput.value.trim());
+                            }
+                            options.push({ id: 0, text: text });
+                        } else if (type === 'match') {
+                            // For match questions, collect left/right pairs
+                            const leftItems = [];
+                            const rightItems = [];
+                            const matches = {};
+                            
+                            const matchRows = questionEl.querySelectorAll('.match-row');
+                            matchRows.forEach((row, idx) => {
+                                const leftText = row.querySelector('[data-match-left]')?.value;
+                                const rightText = row.querySelector('[data-match-right]')?.value;
+                                if (leftText && rightText) {
+                                    leftItems.push({ id: idx, text: leftText });
+                                    rightItems.push({ id: idx, text: rightText });
+                                    matches[idx] = idx;
+                                }
+                            });
+                            
+                            question.options = { left: leftItems, right: rightItems };
+                            question.correctAnswers = [matches];
+                            section.questions.push(question);
+                            return; // Skip the rest for match type
+                        } else if (type === 'open') {
+                            // Open questions don't have predefined answers
+                            options.push({ id: 0, text: '' });
+                        }
+
                         question.options = options;
                         question.correctAnswers = correctAnswers;
                         section.questions.push(question);
@@ -1320,7 +1415,13 @@
                 });
                 
                 DataLayer.saveTest(test);
-                alert('Тест успешно сохранен!');
+                
+                if (isEditing) {
+                    alert('Тест успешно обновлен!');
+                    this.state.editingTestId = null;
+                } else {
+                    alert('Тест успешно сохранен!');
+                }
                 this.navigate('testList');
             },
             
@@ -1334,6 +1435,8 @@
                 this.state.answers = {};
                 this.state.startTime = Date.now();
                 this.state.questionStartTime = Date.now();
+                this.state.selectedMatch = null;
+                this.state.currentMatches = {};
                 
                 if (test.settings.timeLimit) {
                     this.state.timeRemaining = test.settings.timeLimit * 60;
@@ -1427,6 +1530,9 @@
                 if (this.state.currentQuestion > 0) {
                     this.state.currentQuestion--;
                     this.state.questionStartTime = Date.now();
+                    // Reset match state when navigating
+                    this.state.selectedMatch = null;
+                    this.state.currentMatches = {};
                     this.render();
                 }
             },
@@ -1434,6 +1540,10 @@
             nextQuestion() {
                 const test = this.state.currentTest;
                 const allQuestions = test.sections.flatMap(s => s.questions);
+                
+                // Reset match state when navigating
+                this.state.selectedMatch = null;
+                this.state.currentMatches = {};
                 
                 if (this.state.currentQuestion < allQuestions.length - 1) {
                     this.state.currentQuestion++;
@@ -1591,8 +1701,97 @@
             },
             
             editTest(testId) {
-                // Load test and populate form
+                const test = DataLayer.getTest(testId);
+                if (!test) {
+                    alert('Тест не найден');
+                    return;
+                }
+
                 this.navigate('testCreate');
+
+                // Wait for DOM to render
+                setTimeout(() => {
+                    // Populate basic info
+                    document.getElementById('test-title').value = test.title;
+                    document.getElementById('test-description').value = test.description || '';
+                    document.getElementById('time-limit').value = test.settings.timeLimit || '';
+                    document.getElementById('passing-score').value = test.settings.passingScore || 70;
+                    document.getElementById('randomize').checked = test.settings.randomizeQuestions || false;
+                    document.getElementById('show-results').checked = test.settings.showResults !== false;
+                    document.getElementById('allow-review').checked = test.settings.allowReview || false;
+
+                    // Store editing test ID
+                    this.state.editingTestId = testId;
+
+                    // Clear default section and load test sections
+                    document.getElementById('sections-container').innerHTML = '';
+
+                    test.sections.forEach(section => {
+                        this.addSection();
+                        const sectionEl = document.querySelector(`[data-section]:last-of-type`);
+                        sectionEl.querySelector('[data-section-title]').value = section.title || '';
+
+                        section.questions.forEach(question => {
+                            this.addQuestion(section.getAttribute('data-section'));
+                            const questionEl = sectionEl.querySelector('.question-item:last-of-type');
+
+                            // Set question type and text
+                            const typeSelect = questionEl.querySelector('[data-question-type]');
+                            typeSelect.value = question.type;
+                            questionEl.querySelector('[data-question-text]').value = question.text;
+                            questionEl.querySelector('[data-question-weight]').value = question.weight || 1;
+
+                            // Update UI based on type
+                            this.updateQuestionType(questionEl.getAttribute('data-question'));
+
+                            // Add options based on question type
+                            if (['single', 'multiple'].includes(question.type)) {
+                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
+                                if (optionsList) {
+                                    question.options.forEach((opt, idx) => {
+                                        this.addOption(questionEl.getAttribute('data-question'));
+                                        const optEl = optionsList.lastElementChild;
+                                        optEl.querySelector('[data-option-text]').value = opt.text;
+                                        if (question.correctAnswers.includes(idx)) {
+                                            optEl.querySelector('[data-correct]').checked = true;
+                                        }
+                                    });
+                                }
+                            } else if (question.type === 'fill') {
+                                // For fill questions, correct answer is stored in correctAnswers[0]
+                                // The text should contain ___ for the blank
+                            } else if (question.type === 'sequence') {
+                                const optionsList = questionEl.querySelector('[data-options] .space-y-2');
+                                if (optionsList) {
+                                    question.options.forEach((opt, idx) => {
+                                        this.addOption(questionEl.getAttribute('data-question'));
+                                        const optEl = optionsList.lastElementChild;
+                                        optEl.querySelector('[data-option-text]').value = opt.text;
+                                    });
+                                }
+                            } else if (question.type === 'match') {
+                                // Handle match questions - load pairs for editing
+                                const optionsContainer = questionEl.querySelector('[data-options]');
+                                const list = optionsContainer?.querySelector('.space-y-2');
+                                if (list && question.options.left && question.options.right) {
+                                    question.options.left.forEach((l, i) => {
+                                        const pairId = DataLayer.generateId();
+                                        const rightText = question.options.right[i]?.text || '';
+                                        const pairHtml = `
+                                            <div class="match-row flex items-center space-x-2 bg-purple-50 p-2 rounded" data-pair="${pairId}">
+                                                <input type="text" class="input-field flex-1" placeholder="Левая часть" data-match-left value="${l.text}">
+                                                <span class="text-gray-500">↔</span>
+                                                <input type="text" class="input-field flex-1" placeholder="Правая часть" data-match-right value="${rightText}">
+                                                <button onclick="App.removeMatchPair('${pairId}')" class="text-danger text-sm">✕</button>
+                                            </div>
+                                        `;
+                                        list.insertAdjacentHTML('beforeend', pairHtml);
+                                    });
+                                }
+                            }
+                        });
+                    });
+                }, 100);
             },
             
             deleteTest(testId) {
