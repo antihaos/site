@@ -1,0 +1,691 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TestUS - Система тестирования</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiVGVzdFVTIiwic2hvcnRfbmFtZSI6IlRlc3RVUyIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjNGY0NmU1IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vdmlhLnBsYWNlaG9sZGVyLmNvbS8xOTIiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .match-item.selected { background-color: #e0e7ff; border-color: #4f46e5; color: #4f46e5; }
+        .match-item.matched { opacity: 0.5; pointer-events: none; background-color: #dcfce7; border-color: #22c55e; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="App.navigate('home')">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">T</div>
+                <h1 class="text-xl font-bold text-gray-900">TestUS</h1>
+            </div>
+            <nav class="hidden md:flex space-x-4">
+                <button onclick="App.navigate('home')" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Тесты</button>
+                <button onclick="App.navigate('history')" class="text-gray-600 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">История</button>
+                <button onclick="App.navigate('create')" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition">Создать тест</button>
+            </nav>
+            <button class="md:hidden text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app-root" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in"></main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-gray-500 text-sm">&copy; <span id="current-year"></span> TestUS. Все права защищены.</p>
+            <div class="flex space-x-6 text-sm text-gray-500">
+                <a href="#" class="hover:text-gray-900">Политика конфиденциальности</a>
+                <a href="#" class="hover:text-gray-900">Условия использования</a>
+            </div>
+        </div>
+    </footer>
+
+<script>
+/**
+ * DATA LAYER
+ */
+const DataLayer = {
+    KEYS: { TESTS: 'testus_tests', RESULTS: 'testus_results' },
+
+    getTests() { return JSON.parse(localStorage.getItem(this.KEYS.TESTS) || '[]'); },
+    
+    saveTest(test) {
+        const tests = this.getTests();
+        const index = tests.findIndex(t => t.id === test.id);
+        if (index >= 0) tests[index] = test;
+        else tests.push(test);
+        localStorage.setItem(this.KEYS.TESTS, JSON.stringify(tests));
+        return test;
+    },
+
+    deleteTest(id) {
+        const tests = this.getTests().filter(t => t.id !== id);
+        localStorage.setItem(this.KEYS.TESTS, JSON.stringify(tests));
+    },
+
+    getTestById(id) { return this.getTests().find(t => t.id === id); },
+
+    saveResult(result) {
+        const results = JSON.parse(localStorage.getItem(this.KEYS.RESULTS) || '[]');
+        results.unshift(result);
+        localStorage.setItem(this.KEYS.RESULTS, JSON.stringify(results));
+    },
+
+    getResults() { return JSON.parse(localStorage.getItem(this.KEYS.RESULTS) || '[]'); },
+    getResultsByTest(testId) { return this.getResults().filter(r => r.testId === testId); }
+};
+
+/**
+ * UTILS
+ */
+const Utils = {
+    generateId: () => '_' + Math.random().toString(36).substr(2, 9),
+    formatDate: (d) => new Date(d).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    formatDuration: (s) => {
+        const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+        return h > 0 ? `${h}ч ${m}м ${sec}с` : m > 0 ? `${m}м ${sec}с` : `${sec}с`;
+    }
+};
+
+/**
+ * COMPONENTS
+ */
+const Components = {
+    card: (content, className = '') => `<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300 ${className}">${content}</div>`,
+    
+    button: (text, onClick, variant = 'primary', className = '', attrs = '') => {
+        const variants = {
+            primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
+            secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+            danger: 'bg-red-50 text-red-600 hover:bg-red-100 border border-transparent',
+            success: 'bg-green-600 text-white hover:bg-green-700'
+        };
+        return `<button onclick="${onClick}" class="${variants[variant]} px-4 py-2 rounded-lg font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${className}" ${attrs}>${text}</button>`;
+    },
+
+    input: (label, type, id, value = '', placeholder = '') => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <input type="${type}" id="${id}" value="${value}" placeholder="${placeholder}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" /></div>`,
+
+    textarea: (label, id, value = '', rows = 3) => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <textarea id="${id}" rows="${rows}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">${value}</textarea></div>`,
+
+    select: (label, id, options, selected) => `
+        <div class="mb-4"><label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+        <select id="${id}" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white">
+        ${options.map(o => `<option value="${o.value}" ${o.value == selected ? 'selected' : ''}>${o.label}</option>`).join('')}</select></div>`,
+
+    badge: (text, color = 'gray') => {
+        const c = { gray:'bg-gray-100 text-gray-800', green:'bg-green-100 text-green-800', red:'bg-red-100 text-red-800', blue:'bg-blue-100 text-blue-800' };
+        return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}">${text}</span>`;
+    }
+};
+
+/**
+ * QUESTION RENDERERS
+ */
+const QuestionRenderers = {
+    single: (q, state) => `
+        <div class="space-y-3">${q.options.map((opt, i) => `
+            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${state.answer === i ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}">
+                <input type="radio" name="q_${q.id}" value="${i}" class="h-4 w-4 text-indigo-600" ${state.answer === i ? 'checked' : ''} onchange="App.handleAnswer('${q.id}', ${i})">
+                <span class="ml-3 text-sm font-medium text-gray-900">${opt}</span>
+            </label>`).join('')}</div>`,
+
+    multiple: (q, state) => `
+        <div class="space-y-3">${q.options.map((opt, i) => {
+            const checked = state.answers && state.answers.includes(i);
+            return `<label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${checked ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200'}">
+                <input type="checkbox" value="${i}" class="h-4 w-4 text-indigo-600 rounded" ${checked ? 'checked' : ''} onchange="App.handleMultipleAnswer('${q.id}', ${i}, this.checked)">
+                <span class="ml-3 text-sm font-medium text-gray-900">${opt}</span>
+            </label>`;
+        }).join('')}</div>`,
+
+    fill: (q, state) => `
+        <div class="space-y-4">
+            <p class="text-gray-700 text-lg">${q.text.replace('___', '<span class="inline-block w-24 border-b-2 border-indigo-300 mx-1"></span>')}</p>
+            <input type="text" value="${state.answer || ''}" class="w-full max-w-md px-4 py-2 border rounded-lg focus:ring-indigo-500" placeholder="Ваш ответ" oninput="App.handleAnswer('${q.id}', this.value)">
+        </div>`,
+
+    sequence: (q, state) => {
+        let order = state.order || q.options.map((_, i) => i);
+        return `<div class="space-y-2">${order.map((optIdx, pos) => `
+            <div class="flex items-center gap-3 p-3 bg-white border rounded-lg shadow-sm">
+                <span class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full font-bold text-sm">${pos + 1}</span>
+                <span class="flex-grow">${q.options[optIdx]}</span>
+                <div class="flex gap-1">
+                    <button onclick="App.moveSequence('${q.id}', ${pos}, -1)" class="p-1 text-gray-400 hover:text-indigo-600" ${pos===0?'disabled':''}>▲</button>
+                    <button onclick="App.moveSequence('${q.id}', ${pos}, 1)" class="p-1 text-gray-400 hover:text-indigo-600" ${pos===order.length-1?'disabled':''}>▼</button>
+                </div>
+            </div>`).join('')}</div>`;
+    },
+
+    match: (q, state) => {
+        const matches = state.matches || {};
+        const selectedLeft = state.selectedLeft !== undefined ? state.selectedLeft : null;
+        return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div><h4 class="font-medium mb-3">Левая колонка</h4><div class="space-y-2">
+                ${q.left.map((item, i) => {
+                    const isMatched = Object.values(matches).includes(i);
+                    const isSelected = selectedLeft === i;
+                    return `<div onclick="App.handleMatchSelect('${q.id}', 'left', ${i})" class="p-3 border rounded-lg cursor-pointer select-none ${isMatched?'bg-green-50 border-green-200 opacity-50':''} ${isSelected?'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-200':''} ${!isMatched&&!isSelected?'border-gray-200 hover:border-indigo-300':''}">${item}</div>`;
+                }).join('')}
+            </div></div>
+            <div><h4 class="font-medium mb-3">Правая колонка</h4><div class="space-y-2">
+                ${q.right.map((item, i) => {
+                    const matched = Object.keys(matches).find(k => matches[k] == i);
+                    return `<div onclick="App.handleMatchSelect('${q.id}', 'right', ${i})" class="p-3 border rounded-lg cursor-pointer select-none ${matched?'bg-green-50 border-green-200 opacity-50':'border-gray-200 hover:border-indigo-300'}">${item}</div>`;
+                }).join('')}
+            </div></div>
+        </div>${selectedLeft!==null?'<p class="mt-4 text-sm text-indigo-600 font-medium">Выберите элемент в правой колонке</p>':''}`;
+    },
+
+    open: (q, state) => `
+        <div class="space-y-4">
+            <p class="text-gray-700 text-lg">${q.text}</p>
+            <textarea rows="5" class="w-full px-4 py-3 border rounded-lg focus:ring-indigo-500" placeholder="Ваш ответ..." oninput="App.handleAnswer('${q.id}', this.value)">${state.answer||''}</textarea>
+        </div>`
+};
+
+/**
+ * APP CONTROLLER
+ */
+const App = {
+    state: { view: 'home', draftTest: null, session: null },
+
+    init() {
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        this.navigate('home');
+    },
+
+    navigate(view, params = {}) {
+        this.state.view = view;
+        const root = document.getElementById('app-root');
+        root.innerHTML = '';
+        window.scrollTo(0, 0);
+
+        if (view === 'home') this.renderHome(root);
+        else if (view === 'create') this.renderEditor(root);
+        else if (view === 'edit') this.renderEditor(root, params.id);
+        else if (view === 'take') this.startSession(params.id);
+        else if (view === 'history') this.renderHistory(root);
+    },
+
+    renderHome(container) {
+        const tests = DataLayer.getTests();
+        const stats = this.getStats();
+        
+        container.innerHTML = `
+            <div class="mb-8"><h2 class="text-2xl font-bold mb-2">TestUS</h2><p class="text-gray-600">Система управления тестированием</p></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-indigo-100 rounded-full text-indigo-600 mr-4">📝</div><div><p class="text-sm text-gray-500">Тестов</p><p class="text-2xl font-bold">${tests.length}</p></div></div>`)}
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-green-100 rounded-full text-green-600 mr-4">✅</div><div><p class="text-sm text-gray-500">Попыток</p><p class="text-2xl font-bold">${stats.total}</p></div></div>`)}
+                ${Components.card(`<div class="flex items-center"><div class="p-3 bg-yellow-100 rounded-full text-yellow-600 mr-4">📊</div><div><p class="text-sm text-gray-500">Средний балл</p><p class="text-2xl font-bold">${stats.avg}%</p></div></div>`)}
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold">Ваши тесты</h3>
+                <div class="space-x-2">
+                    ${Components.button('Демо-тест', 'App.addDemo()', 'secondary')}
+                    ${Components.button('Создать', 'App.navigate(\'create\')', 'primary')}
+                </div>
+            </div>
+
+            ${tests.length === 0 ? 
+                `<div class="text-center py-12 bg-white rounded-xl border border-dashed"><p class="text-gray-500">Нет тестов. Создайте первый или загрузите демо.</p></div>` :
+                `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${tests.map(t => {
+                        const res = DataLayer.getResultsByTest(t.id);
+                        const last = res.length ? res[0] : null;
+                        return Components.card(`
+                            <div class="p-6">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">${t.sections.length} секций</span>
+                                    <div class="flex gap-2">
+                                        <button onclick="App.navigate('edit', {id:'${t.id}'})" class="text-gray-400 hover:text-indigo-600">✏️</button>
+                                        <button onclick="App.deleteTest('${t.id}')" class="text-gray-400 hover:text-red-600">🗑️</button>
+                                    </div>
+                                </div>
+                                <h3 class="font-bold text-lg mb-2 truncate">${t.title}</h3>
+                                <p class="text-sm text-gray-500 mb-4 line-clamp-2">${t.description||'Нет описания'}</p>
+                                <div class="pt-4 border-t flex justify-between items-center">
+                                    <span class="text-xs text-gray-500">${last ? `Результат: ${Math.round(last.score)}%` : 'Не пройден'}</span>
+                                    ${Components.button('Пройти', `App.navigate('take',{id:'${t.id}'})`, 'primary', 'text-xs px-3 py-1.5')}
+                                </div>
+                            </div>
+                        `, 'cursor-pointer');
+                    }).join('')}
+                </div>`
+            }
+        `;
+    },
+
+    renderEditor(container, editId = null) {
+        let test = { title:'', description:'', timeLimit:0, passPercent:50, sections:[{id:Utils.generateId(), title:'Секция 1', questions:[]}] };
+        
+        if (editId) {
+            const saved = DataLayer.getTestById(editId);
+            if (saved) {
+                test = JSON.parse(JSON.stringify(saved));
+                this.state.draftTest = test;
+            } else { alert('Тест не найден'); this.navigate('home'); return; }
+        } else {
+            this.state.draftTest = test;
+        }
+
+        container.innerHTML = `
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">${editId?'Редактирование':'Создание'} теста</h2>
+                    ${Components.button('Назад', 'App.navigate(\'home\')', 'secondary')}
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6 mb-6">
+                    ${Components.input('Название', 'text', 'edt_title', test.title)}
+                    ${Components.textarea('Описание', 'edt_desc', test.description)}
+                    <div class="grid grid-cols-2 gap-4">
+                        ${Components.input('Время (мин)', 'number', 'edt_time', test.timeLimit||'')}
+                        ${Components.input('Проходной %', 'number', 'edt_pass', test.passPercent)}
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    ${test.sections.map((sec, sIdx) => `
+                        <div class="bg-white rounded-xl shadow border overflow-hidden" id="sec_${sec.id}">
+                            <div class="bg-gray-50 px-6 py-3 border-b flex justify-between items-center">
+                                <input type="text" value="${sec.title}" onchange="App.updateSecTitle('${sec.id}', this.value)" class="bg-transparent font-bold focus:outline-none w-full">
+                                ${test.sections.length>1 ? `<button onclick="App.removeSection('${sec.id}')" class="text-red-500 hover:text-red-700">✕</button>` : ''}
+                            </div>
+                            <div class="p-6">
+                                ${sec.questions.length===0 ? '<p class="text-gray-500 text-sm italic">Нет вопросов</p>' : 
+                                  `<div class="space-y-3 mb-6">${sec.questions.map((q, qi) => `
+                                      <div class="flex justify-between items-center p-3 bg-gray-50 rounded border">
+                                          <div><span class="font-bold text-indigo-600 mr-2">${qi+1}.</span> ${q.text} <span class="text-xs bg-white px-2 py-0.5 rounded border ml-2">${q.type}</span></div>
+                                          <div class="flex gap-2">
+                                              <button onclick="App.editQuestion('${sec.id}','${q.id}')" class="text-gray-500 hover:text-indigo-600">✏️</button>
+                                              <button onclick="App.deleteQuestion('${sec.id}','${q.id}')" class="text-gray-500 hover:text-red-600">🗑️</button>
+                                          </div>
+                                      </div>
+                                  `).join('')}</div>`
+                                }
+                                <div class="border-t pt-4">
+                                    <h4 class="font-bold text-sm mb-3">Добавить вопрос</h4>
+                                    <div class="grid grid-cols-12 gap-2 items-end">
+                                        <div class="col-span-4">${Components.select('', 'q_type_'+sec.id, [{value:'single',label:'Один'}, {value:'multiple',label:'Много'}, {value:'fill',label:'Пропуск'}, {value:'sequence',label:'Порядок'}, {value:'match',label:'Пары'}, {value:'open',label:'Открытый'}], 'single')}</div>
+                                        <div class="col-span-6">${Components.input('', 'text', 'q_text_'+sec.id, '', 'Текст вопроса')}</div>
+                                        <div class="col-span-2">${Components.button('+', 'App.addQuestion(\''+sec.id+'\')', 'primary', 'w-full')}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="mt-8 flex justify-center pb-20">
+                    ${Components.button('+ Секция', 'App.addSection()', 'secondary', 'mb-4')}
+                </div>
+                
+                <div class="fixed bottom-6 right-6">
+                    ${Components.button('Сохранить тест', 'App.saveDraft()', 'success', 'shadow-lg px-6 py-3 text-base')}
+                </div>
+            </div>
+        `;
+    },
+
+    renderHistory(container) {
+        const results = DataLayer.getResults();
+        const tests = DataLayer.getTests();
+        const tMap = Object.fromEntries(tests.map(t=>[t.id, t.title]));
+
+        container.innerHTML = `
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold">История</h2>
+                ${Components.button('Экспорт CSV', 'App.exportCSV()', 'secondary')}
+            </div>
+            ${results.length===0 ? '<p class="text-gray-500">Пусто</p>' : `
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50"><tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Дата</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Тест</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Балл</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Время</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                    </tr></thead>
+                    <tbody class="divide-y divide-gray-200">
+                        ${results.map(r => `
+                            <tr>
+                                <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDate(r.date)}</td>
+                                <td class="px-6 py-4 text-sm font-bold">${tMap[r.testId]||'Удален'}</td>
+                                <td class="px-6 py-4 text-sm">${Math.round(r.score)}%</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">${Utils.formatDuration(r.duration)}</td>
+                                <td class="px-6 py-4 text-sm">${Components.badge(r.passed?'Сдан':'Не сдан', r.passed?'green':'red')}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`}
+        `;
+    },
+
+    // --- SESSION LOGIC ---
+
+    startSession(testId) {
+        const test = DataLayer.getTestById(testId);
+        if (!test) return;
+
+        let flat = [];
+        test.sections.forEach(s => s.questions.forEach(q => flat.push({...q, secTitle: s.title})));
+
+        this.state.session = {
+            testId: test.id, questions: flat, idx: 0, answers: {}, start: Date.now(), qTimes: {}
+        };
+        this.state.session.qTimes[flat[0].id] = Date.now();
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    renderTake(container) {
+        const sess = this.state.session;
+        if (!sess || sess.idx >= sess.questions.length) { this.finishTest(); return; }
+
+        const q = sess.questions[sess.idx];
+        const ans = sess.answers[q.id] || {};
+        if (q.type==='multiple' && !ans.answers) ans.answers = [];
+        if (q.type==='match' && !ans.matches) ans.matches = {};
+        if (q.type==='sequence' && !ans.order) ans.order = q.options.map((_,i)=>i);
+        
+        sess.answers[q.id] = ans;
+
+        const elapsed = Math.floor((Date.now() - sess.start)/1000);
+        const html = QuestionRenderers[q.type](q, ans);
+
+        container.innerHTML = `
+            <div class="max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-6 bg-white p-4 rounded shadow-sm">
+                    <div><span class="text-xs text-indigo-600 font-bold uppercase">Секция: ${q.secTitle}</span><h2 class="text-lg font-bold">Вопрос ${sess.idx+1}/${sess.questions.length}</h2></div>
+                    <div class="text-right"><div class="text-2xl font-mono font-bold">${new Date(elapsed*1000).toISOString().substr(14,5)}</div><div class="text-xs text-gray-500">Время</div></div>
+                </div>
+                <div class="bg-white rounded-xl shadow p-6 mb-6"><h3 class="text-xl font-medium mb-6">${q.text}</h3><div id="q-area">${html}</div></div>
+                <div class="flex justify-between items-center">
+                    ${Components.button('Назад', 'App.prevQ()', 'secondary', sess.idx===0?'opacity-50':'')}
+                    <span class="text-sm text-gray-500">Вес: ${q.weight||1}</span>
+                    ${Components.button(sess.idx===sess.questions.length-1?'Финиш':'Далее', 'App.nextQ()', 'primary')}
+                </div>
+                <div class="mt-8 h-2 bg-gray-200 rounded-full"><div class="h-full bg-indigo-600 transition-all" style="width:${((sess.idx+1)/sess.questions.length)*100}%"></div></div>
+            </div>
+        `;
+    },
+
+    handleAnswer(qid, val) {
+        const s = this.state.session; if(!s) return;
+        if(!s.answers[qid]) s.answers[qid]={};
+        s.answers[qid].answer = val;
+    },
+
+    handleMultipleAnswer(qid, idx, checked) {
+        const s = this.state.session; if(!s) return;
+        if(!s.answers[qid]) s.answers[qid]={answers:[]};
+        let arr = s.answers[qid].answers;
+        if(checked) { if(!arr.includes(idx)) arr.push(idx); }
+        else { arr = arr.filter(i=>i!==idx); }
+        s.answers[qid].answers = arr;
+    },
+
+    moveSequence(qid, pos, dir) {
+        const s = this.state.session;
+        let order = s.answers[qid]?.order || s.questions.find(x=>x.id===qid).options.map((_,i)=>i);
+        const np = pos+dir;
+        if(np<0 || np>=order.length) return;
+        [order[pos], order[np]] = [order[np], order[pos]];
+        s.answers[qid] = {order};
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    handleMatchSelect(qid, side, idx) {
+        const s = this.state.session;
+        let st = s.answers[qid] || {matches:{}, selectedLeft:null};
+        if(side==='left') st.selectedLeft = idx;
+        else if(side==='right' && st.selectedLeft!==null) {
+            st.matches[st.selectedLeft] = idx;
+            st.selectedLeft = null;
+        }
+        s.answers[qid] = st;
+        this.renderTake(document.getElementById('app-root'));
+    },
+
+    prevQ() {
+        const s = this.state.session;
+        if(s.idx>0) {
+            const cur = s.questions[s.idx];
+            s.answers[cur.id].duration = Date.now() - (s.qTimes[cur.id]||Date.now());
+            s.idx--;
+            const nxt = s.questions[s.idx];
+            s.qTimes[nxt.id] = Date.now();
+            this.renderTake(document.getElementById('app-root'));
+        }
+    },
+
+    nextQ() {
+        const s = this.state.session;
+        if(s.idx < s.questions.length-1) {
+            const cur = s.questions[s.idx];
+            if(!s.answers[cur.id]) s.answers[cur.id]={};
+            s.answers[cur.id].duration = Date.now() - (s.qTimes[cur.id]||Date.now());
+            s.idx++;
+            const nxt = s.questions[s.idx];
+            s.qTimes[nxt.id] = Date.now();
+            if(!s.answers[nxt.id]) {
+                if(nxt.type==='multiple') s.answers[nxt.id]={answers:[]};
+                else if(nxt.type==='match') s.answers[nxt.id]={matches:{},selectedLeft:null};
+                else if(nxt.type==='sequence') s.answers[nxt.id]={order:nxt.options.map((_,i)=>i)};
+            }
+            this.renderTake(document.getElementById('app-root'));
+        } else this.finishTest();
+    },
+
+    finishTest() {
+        const s = this.state.session;
+        const t = DataLayer.getTestById(s.testId);
+        const last = s.questions[s.questions.length-1];
+        s.answers[last.id].duration = Date.now() - (s.qTimes[last.id]||Date.now());
+
+        let totalW=0, earnedW=0;
+        s.questions.forEach(q => {
+            const u = s.answers[q.id];
+            const w = q.weight||1;
+            totalW += w;
+            let ok = false;
+            if(q.type==='single') ok = u.answer == q.correct;
+            else if(q.type==='multiple') {
+                const us = new Set(u.answers||[]), cs = new Set(q.correct||[]);
+                ok = us.size===cs.size && [...us].every(v=>cs.has(v));
+            }
+            else if(q.type==='fill') ok = (u.answer||'').toLowerCase().trim() === (q.correct||'').toLowerCase().trim();
+            else if(q.type==='sequence') {
+                const uo = u.order||[], co = q.correct||[];
+                ok = uo.length===co.length && uo.every((v,i)=>v===co[i]);
+            }
+            else if(q.type==='match') {
+                const um = u.matches||{}, cm = q.matches||{};
+                const uk = Object.keys(um).sort(), ck = Object.keys(cm).sort();
+                ok = JSON.stringify(uk)===JSON.stringify(ck) && uk.every(k=>um[k]==cm[k]);
+            }
+            else if(q.type==='open') ok = false; // Auto-check disabled for open
+
+            if(ok) earnedW += w;
+        });
+
+        const score = totalW>0 ? (earnedW/totalW)*100 : 0;
+        const passed = score >= (t.passPercent||0);
+        const dur = Math.floor((Date.now()-s.start)/1000);
+
+        DataLayer.saveResult({ id:Utils.generateId(), testId:t.id, date:new Date().toISOString(), score, passed, duration:dur, details:s.answers });
+
+        document.getElementById('app-root').innerHTML = `
+            <div class="max-w-md mx-auto text-center py-12">
+                <div class="mb-6 inline-flex items-center justify-center w-24 h-24 rounded-full ${passed?'bg-green-100 text-green-600':'bg-red-100 text-red-600'} text-4xl">${passed?'🎉':'😞'}</div>
+                <h2 class="text-3xl font-bold mb-2">${passed?'Тест сдан!':'Не сдан'}</h2>
+                <p class="text-gray-600 mb-8">Ваш результат: <span class="font-bold text-gray-900">${Math.round(score)}%</span></p>
+                <div class="bg-white rounded shadow p-6 mb-8 text-left">
+                    <div class="flex justify-between mb-2"><span>Баллы:</span><span class="font-bold">${earnedW}/${totalW}</span></div>
+                    <div class="flex justify-between"><span>Время:</span><span class="font-bold">${Utils.formatDuration(dur)}</span></div>
+                </div>
+                <div class="flex gap-4 justify-center">${Components.button('Домой','App.navigate(\'home\')','primary')}${Components.button('История','App.navigate(\'history\')','secondary')}</div>
+            </div>
+        `;
+        this.state.session = null;
+    },
+
+    // --- EDITOR ACTIONS ---
+
+    addSection() {
+        this.syncDraftFromDOM();
+        this.state.draftTest.sections.push({id:Utils.generateId(), title:'Новая секция', questions:[]});
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    removeSection(id) {
+        this.syncDraftFromDOM();
+        this.state.draftTest.sections = this.state.draftTest.sections.filter(s=>s.id!==id);
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    updateSecTitle(id, val) {
+        const s = this.state.draftTest.sections.find(x=>x.id===id);
+        if(s) s.title = val;
+    },
+
+    addQuestion(secId) {
+        this.syncDraftFromDOM();
+        const type = document.getElementById('q_type_'+secId).value;
+        const text = document.getElementById('q_text_'+secId).value;
+        if(!text.trim()) { alert('Введите текст'); return; }
+
+        const q = { id:Utils.generateId(), type, text, weight:1, options:[], correct:null, left:[], right:[], matches:{} };
+        if(['single','multiple','sequence'].includes(type)) { q.options=['Вариант 1','Вариант 2']; q.correct=0; }
+        else if(type==='fill') q.correct='ответ';
+        else if(type==='match') { q.left=['А','Б']; q.right=['1','2']; q.matches={'0':0,'1':1}; }
+
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        sec.questions.push(q);
+        document.getElementById('q_text_'+secId).value = '';
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    editQuestion(secId, qId) {
+        this.syncDraftFromDOM();
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        const q = sec.questions.find(x=>x.id===qId);
+        
+        const txt = prompt('Текст:', q.text); if(txt) q.text=txt;
+        const w = prompt('Вес:', q.weight); if(w) q.weight=parseInt(w);
+
+        if(['single','multiple','sequence'].includes(q.type)) {
+            const o = prompt('Варианты (через запятую):', q.options.join(', '));
+            if(o) q.options = o.split(',').map(s=>s.trim());
+            const c = prompt('Индекс правильного:', q.correct);
+            if(c!==null) q.correct = parseInt(c);
+        } else if(q.type==='fill') {
+            const c = prompt('Ответ:', q.correct); if(c!==null) q.correct=c;
+        } else if(q.type==='match') {
+            alert('Для изменения пар удалите вопрос и создайте новый.');
+        }
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    deleteQuestion(secId, qId) {
+        if(!confirm('Удалить?')) return;
+        this.syncDraftFromDOM();
+        const sec = this.state.draftTest.sections.find(s=>s.id===secId);
+        sec.questions = sec.questions.filter(x=>x.id!==qId);
+        this.renderEditor(document.getElementById('app-root'), this.state.draftTest.id);
+    },
+
+    syncDraftFromDOM() {
+        if(!document.getElementById('edt_title')) return;
+        const t = this.state.draftTest;
+        t.title = document.getElementById('edt_title').value;
+        t.description = document.getElementById('edt_desc').value;
+        t.timeLimit = parseInt(document.getElementById('edt_time').value)||0;
+        t.passPercent = parseInt(document.getElementById('edt_pass').value)||50;
+        
+        // Sync section titles
+        t.sections.forEach(sec => {
+            const el = document.querySelector(`#sec_${sec.id} input[type="text"]`);
+            if(el) sec.title = el.value;
+        });
+    },
+
+    saveDraft() {
+        this.syncDraftFromDOM();
+        const t = this.state.draftTest;
+        if(!t.title) { alert('Название обязательно'); return; }
+        DataLayer.saveTest(t);
+        alert('Сохранено!');
+        this.state.draftTest = null;
+        this.navigate('home');
+    },
+
+    deleteTest(id) {
+        if(confirm('Удалить тест и историю?')) { DataLayer.deleteTest(id); this.navigate('home'); }
+    },
+
+    addDemo() {
+        const demo = {
+            id: Utils.generateId(), title: 'Демо: Все типы', description: 'Пример всех типов вопросов', timeLimit: 5, passPercent: 50,
+            sections: [
+                { id: Utils.generateId(), title: 'База', questions: [
+                    { id: Utils.generateId(), type:'single', text:'Столица Франции?', weight:1, options:['Лондон','Париж','Берлин'], correct:1 },
+                    { id: Utils.generateId(), type:'multiple', text:'Четные числа:', weight:2, options:['1','2','3','4'], correct:[1,3] },
+                    { id: Utils.generateId(), type:'fill', text:'2 + 2 = ___', weight:1, correct:'4' }
+                ]},
+                { id: Utils.generateId(), title: 'Сложные', questions: [
+                    { id: Utils.generateId(), type:'sequence', text:'Времена года:', weight:2, options:['Лето','Зима','Весна','Осень'], correct:[2,0,3,1] },
+                    { id: Utils.generateId(), type:'match', text:'Цвета:', weight:2, left:['Красный','Синий'], right:['Blue','Red'], matches:{'0':1,'1':0} },
+                    { id: Utils.generateId(), type:'open', text:'Что такое JS?', weight:3, correct:'' }
+                ]}
+            ]
+        };
+        DataLayer.saveTest(demo);
+        alert('Демо добавлено!');
+        this.navigate('home');
+    },
+
+    getStats() {
+        const res = DataLayer.getResults();
+        if(!res.length) return {total:0, avg:0};
+        return { total: res.length, avg: Math.round(res.reduce((a,b)=>a+b.score,0)/res.length) };
+    },
+
+    exportCSV() {
+        const res = DataLayer.getResults();
+        const ts = DataLayer.getTests();
+        const map = Object.fromEntries(ts.map(t=>[t.id,t.title]));
+        let csv = "Date,Test,Score,Duration\n";
+        res.forEach(r => csv += `${r.date},"${map[r.testId]||'?'}",${r.score},${r.duration}\n`);
+        const b = new Blob([csv],{type:'text/csv'});
+        const a = document.createElement('a'); a.href=URL.createObjectURL(b); a.download='export.csv'; a.click();
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
+
