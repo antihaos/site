@@ -1,8 +1,8 @@
 const CACHE_NAME = 'bi-analytics-v1';
 const urlsToCache = [
-  '/bipwa',
+  '/bipwa/',
   '/bipwa/index.html',
-  'https://cdn.tailwindcss.com',
+//   'https://cdn.tailwindcss.com',
   'https://unpkg.com/dexie@latest/dist/dexie.js',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
