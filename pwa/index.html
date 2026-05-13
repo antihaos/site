@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound Synthesizer PWA</title>
+    <meta name="description" content="Powerful and customizable sound synthesizer with various effects and parameter saving capabilities">
+    <meta name="theme-color" content="#317EFB">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Manifest for PWA -->
+    <link rel="manifest" href="/pwa/manifest.json">
+    <link rel="apple-touch-icon" href="/pwa/icons/icon-192x192.png">
+    
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/pwa/service-worker.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">Sound Synthesizer</h1>
+            <p class="text-xl text-gray-300">Powerful and customizable sound generator with effects</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Controls Panel -->
+            <div class="lg:col-span-2 bg-gray-800 rounded-lg p-6 shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Synthesizer Controls</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Oscillator Controls -->
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-3">Oscillator</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Wave Type</label>
+                                <select id="waveType" class="w-full bg-gray-600 border-gray-500 rounded px-3 py-2">
+                                    <option value="sine">Sine</option>
+                                    <option value="square">Square</option>
+                                    <option value="sawtooth">Sawtooth</option>
+                                    <option value="triangle">Triangle</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Frequency (Hz): <span id="frequencyValue">440</span></label>
+                                <input type="range" id="frequency" min="20" max="2000" value="440" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Detune (cents): <span id="detuneValue">0</span></label>
+                                <input type="range" id="detune" min="-100" max="100" value="0" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Envelope Controls -->
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-3">Envelope</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Attack (s): <span id="attackValue">0.1</span></label>
+                                <input type="range" id="attack" min="0.01" max="2" value="0.1" step="0.01" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Decay (s): <span id="decayValue">0.2</span></label>
+                                <input type="range" id="decay" min="0.01" max="2" value="0.2" step="0.01" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Sustain: <span id="sustainValue">0.5</span></label>
+                                <input type="range" id="sustain" min="0" max="1" value="0.5" step="0.01" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Release (s): <span id="releaseValue">0.5</span></label>
+                                <input type="range" id="release" min="0.01" max="3" value="0.5" step="0.01" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Effects Controls -->
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-3">Effects</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="reverbEnabled" class="mr-2">
+                                    <span>Reverb</span>
+                                </label>
+                                <label class="block text-sm font-medium mt-2 mb-1">Reverb Time (s): <span id="reverbTimeValue">1.5</span></label>
+                                <input type="range" id="reverbTime" min="0.1" max="5" value="1.5" step="0.1" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="delayEnabled" class="mr-2">
+                                    <span>Delay</span>
+                                </label>
+                                <label class="block text-sm font-medium mt-2 mb-1">Delay Time (ms): <span id="delayTimeValue">300</span></label>
+                                <input type="range" id="delayTime" min="50" max="1000" value="300" step="50" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Delay Feedback: <span id="delayFeedbackValue">0.4</span></label>
+                                <input type="range" id="delayFeedback" min="0" max="0.9" value="0.4" step="0.05" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Controls -->
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <h3 class="text-lg font-medium mb-3">Filter</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="filterEnabled" class="mr-2">
+                                    <span>Enable Filter</span>
+                                </label>
+                                <label class="block text-sm font-medium mt-2 mb-1">Filter Type</label>
+                                <select id="filterType" class="w-full bg-gray-600 border-gray-500 rounded px-3 py-2">
+                                    <option value="lowpass">Lowpass</option>
+                                    <option value="highpass">Highpass</option>
+                                    <option value="bandpass">Bandpass</option>
+                                    <option value="notch">Notch</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Cutoff Frequency (Hz): <span id="filterFreqValue">1000</span></label>
+                                <input type="range" id="filterFreq" min="20" max="20000" value="1000" step="1" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Resonance: <span id="filterResoValue">1</span></label>
+                                <input type="range" id="filterReso" min="1" max="20" value="1" step="0.1" 
+                                    class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex space-x-4">
+                    <button id="playBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-medium transition-colors">
+                        Play
+                    </button>
+                    <button id="stopBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors">
+                        Stop
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Presets and Storage Panel -->
+            <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Presets & Storage</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Preset Name</label>
+                        <input type="text" id="presetName" placeholder="My Synth Preset" 
+                            class="w-full bg-gray-700 border-gray-600 rounded px-3 py-2">
+                    </div>
+                    
+                    <button id="savePreset" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded font-medium transition-colors">
+                        Save Current Settings
+                    </button>
+                    
+                    <div id="presetsList" class="bg-gray-700 rounded p-3 max-h-60 overflow-y-auto">
+                        <p class="text-gray-400 text-sm">No saved presets yet</p>
+                    </div>
+                    
+                    <div class="flex space-x-2 mt-4">
+                        <button id="exportData" class="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded font-medium transition-colors text-sm">
+                            Export
+                        </button>
+                        <button id="importData" class="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded font-medium transition-colors text-sm">
+                            Import
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h3 class="text-lg font-medium mb-2">Keyboard</h3>
+                        <div class="bg-gray-700 rounded p-3 text-sm text-gray-300">
+                            Use your computer keyboard to play notes:
+                            <div class="grid grid-cols-3 gap-1 mt-2">
+                                <div>C: A</div><div>D: S</div><div>E: D</div>
+                                <div>F: F</div><div>G: G</div><div>A: H</div>
+                                <div>B: J</div><div>C: K</div><div>D: L</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div class="mt-8 text-center text-gray-400 text-sm">
+            <p>Sound Synthesizer PWA - Record and play your creations with professional-grade effects</p>
+        </div>
+    </div>
+
+    <script>
+        // Audio Context and Components
+        let audioContext;
+        let masterGain;
+        let oscillator;
+        let envelopeGain;
+        let reverbNode;
+        let delayNode;
+        let filterNode;
+        let isPlaying = false;
+        
+        // Initialize Audio Context on first user interaction
+        function initAudio() {
+            if (audioContext) return;
+            
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create master gain for overall volume control
+            masterGain = audioContext.createGain();
+            masterGain.gain.value = 0.7;
+            masterGain.connect(audioContext.destination);
+            
+            // Create reverb (convolver)
+            reverbNode = audioContext.createConvolver();
+            createReverbImpulse();
+            
+            // Create delay
+            delayNode = audioContext.createDelay(5.0);
+            delayNode.delayTime.value = parseFloat(document.getElementById('delayTime').value);
+            
+            // Create feedback loop for delay
+            const delayFeedback = audioContext.createGain();
+            delayFeedback.gain.value = parseFloat(document.getElementById('delayFeedback').value);
+            
+            delayNode.connect(delayFeedback);
+            delayFeedback.connect(delayNode);
+            delayNode.connect(masterGain);
+            
+            // Create filter
+            filterNode = audioContext.createBiquadFilter();
+            filterNode.type = document.getElementById('filterType').value;
+            filterNode.frequency.value = parseFloat(document.getElementById('filterFreq').value);
+            filterNode.Q.value = parseFloat(document.getElementById('filterReso').value);
+            
+            // Connect filter to reverb, then to master
+            filterNode.connect(reverbNode);
+            reverbNode.connect(masterGain);
+            
+            // Create envelope gain
+            envelopeGain = audioContext.createGain();
+            envelopeGain.gain.value = 0;
+            
+            // Connect envelope to filter
+            envelopeGain.connect(filterNode);
+            
+            updateOscillator();
+        }
+        
+        // Create reverb impulse response
+        function createReverbImpulse() {
+            const duration = parseFloat(document.getElementById('reverbTime').value);
+            const sampleRate = audioContext.sampleRate;
+            const length = sampleRate * duration;
+            
+            const impulse = audioContext.createBuffer(2, length, sampleRate);
+            const left = impulse.getChannelData(0);
+            const right = impulse.getChannelData(1);
+            
+            for (let i = 0; i < length; i++) {
+                // Exponential decay
+                const decay = Math.pow(1 - i / length, 2);
+                left[i] = (Math.random() * 2 - 1) * decay;
+                right[i] = (Math.random() * 2 - 1) * decay;
+            }
+            
+            reverbNode.buffer = impulse;
+        }
+        
+        // Update oscillator with current settings
+        function updateOscillator() {
+            if (!audioContext || !isPlaying) return;
+            
+            // Stop current oscillator if it exists
+            if (oscillator) {
+                oscillator.stop();
+            }
+            
+            // Create new oscillator with current settings
+            oscillator = audioContext.createOscillator();
+            oscillator.type = document.getElementById('waveType').value;
+            oscillator.frequency.value = parseFloat(document.getElementById('frequency').value);
+            oscillator.detune.value = parseFloat(document.getElementById('detune').value);
+            
+            // Connect oscillator to envelope
+            oscillator.connect(envelopeGain);
+            
+            // Start the oscillator
+            oscillator.start();
+            
+            // Apply envelope
+            const now = audioContext.currentTime;
+            const attack = parseFloat(document.getElementById('attack').value);
+            const decay = parseFloat(document.getElementById('decay').value);
+            const sustain = parseFloat(document.getElementById('sustain').value);
+            
+            envelopeGain.gain.cancelScheduledValues(now);
+            envelopeGain.gain.setValueAtTime(0, now);
+            envelopeGain.gain.linearRampToValueAtTime(1, now + attack);
+            envelopeGain.gain.linearRampToValueAtTime(sustain, now + attack + decay);
+        }
+        
+        // Play sound
+        function playSound() {
+            initAudio();
+            
+            if (!isPlaying) {
+                isPlaying = true;
+                updateOscillator();
+                document.getElementById('playBtn').textContent = 'Playing...';
+            }
+        }
+        
+        // Stop sound
+        function stopSound() {
+            if (isPlaying && audioContext) {
+                const now = audioContext.currentTime;
+                const release = parseFloat(document.getElementById('release').value);
+                
+                // Release phase of the envelope
+                envelopeGain.gain.cancelScheduledValues(now);
+                envelopeGain.gain.setValueAtTime(envelopeGain.gain.value, now);
+                envelopeGain.gain.linearRampToValueAtTime(0, now + release);
+                
+                // Stop oscillator after release time
+                setTimeout(() => {
+                    if (oscillator) {
+                        oscillator.stop();
+                        oscillator = null;
+                    }
+                    isPlaying = false;
+                    document.getElementById('playBtn').textContent = 'Play';
+                }, release * 1000);
+            }
+        }
+        
+        // Update UI value displays
+        function updateValueDisplays() {
+            document.getElementById('frequencyValue').textContent = document.getElementById('frequency').value;
+            document.getElementById('detuneValue').textContent = document.getElementById('detune').value;
+            
+            document.getElementById('attackValue').textContent = document.getElementById('attack').value;
+            document.getElementById('decayValue').textContent = document.getElementById('decay').value;
+            document.getElementById('sustainValue').textContent = document.getElementById('sustain').value;
+            document.getElementById('releaseValue').textContent = document.getElementById('release').value;
+            
+            document.getElementById('reverbTimeValue').textContent = document.getElementById('reverbTime').value;
+            document.getElementById('delayTimeValue').textContent = document.getElementById('delayTime').value;
+            document.getElementById('delayFeedbackValue').textContent = document.getElementById('delayFeedback').value;
+            
+            document.getElementById('filterFreqValue').textContent = document.getElementById('filterFreq').value;
+            document.getElementById('filterResoValue').textContent = document.getElementById('filterReso').value;
+        }
+        
+        // Update audio parameters when controls change
+        function updateAudioParameters() {
+            if (!audioContext) return;
+            
+            // Update reverb if enabled
+            if (document.getElementById('reverbEnabled').checked) {
+                createReverbImpulse();
+            }
+            
+            // Update delay parameters
+            if (delayNode) {
+                delayNode.delayTime.value = parseFloat(document.getElementById('delayTime').value);
+            }
+            
+            // Update delay feedback
+            const delayFeedbackNode = delayNode && delayNode.inputs && delayNode.inputs[0] ? 
+                delayNode.inputs[0] : null;
+            if (delayFeedbackNode) {
+                delayFeedbackNode.gain.value = parseFloat(document.getElementById('delayFeedback').value);
+            }
+            
+            // Update filter parameters
+            if (filterNode) {
+                filterNode.type = document.getElementById('filterType').value;
+                filterNode.frequency.value = parseFloat(document.getElementById('filterFreq').value);
+                filterNode.Q.value = parseFloat(document.getElementById('filterReso').value);
+            }
+            
+            // Update oscillator if playing
+            if (isPlaying) {
+                updateOscillator();
+            }
+        }
+        
+        // Computer keyboard note mapping
+        const keyboardMap = {
+            'a': 261.63,  // C4
+            'w': 277.18,  // C#4
+            's': 293.66,  // D4
+            'e': 311.13,  // D#4
+            'd': 329.63,  // E4
+            'f': 349.23,  // F4
+            't': 369.99,  // F#4
+            'g': 392.00,  // G4
+            'y': 415.30,  // G#4
+            'h': 440.00,  // A4
+            'u': 466.16,  // A#4
+            'j': 493.88,  // B4
+            'k': 523.25,  // C5
+            'o': 554.37,  // C#5
+            'l': 587.33,  // D5
+            'p': 622.25   // D#5
+        };
+        
+        const activeNotes = {};
+        
+        function playNote(freq) {
+            initAudio();
+            
+            if (!activeNotes[freq]) {
+                const osc = audioContext.createOscillator();
+                osc.type = document.getElementById('waveType').value;
+                osc.frequency.value = freq;
+                
+                const noteGain = audioContext.createGain();
+                noteGain.gain.value = 0;
+                
+                // Connect to the same signal chain
+                osc.connect(noteGain);
+                noteGain.connect(filterNode);
+                
+                // Apply envelope
+                const now = audioContext.currentTime;
+                const attack = parseFloat(document.getElementById('attack').value);
+                const decay = parseFloat(document.getElementById('decay').value);
+                const sustain = parseFloat(document.getElementById('sustain').value);
+                
+                noteGain.gain.cancelScheduledValues(now);
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(0.7, now + attack);
+                noteGain.gain.linearRampToValueAtTime(0.7 * sustain, now + attack + decay);
+                
+                osc.start();
+                
+                activeNotes[freq] = {
+                    oscillator: osc,
+                    gain: noteGain
+                };
+            }
+        }
+        
+        function releaseNote(freq) {
+            if (activeNotes[freq]) {
+                const now = audioContext.currentTime;
+                const release = parseFloat(document.getElementById('release').value);
+                
+                activeNotes[freq].gain.gain.cancelScheduledValues(now);
+                activeNotes[freq].gain.gain.setValueAtTime(activeNotes[freq].gain.gain.value, now);
+                activeNotes[freq].gain.gain.linearRampToValueAtTime(0, now + release);
+                
+                setTimeout(() => {
+                    activeNotes[freq].oscillator.stop();
+                    delete activeNotes[freq];
+                }, release * 1000);
+            }
+        }
+        
+        // Event Listeners
+        document.getElementById('playBtn').addEventListener('click', playSound);
+        document.getElementById('stopBtn').addEventListener('click', stopSound);
+        
+        // Update value displays on input change
+        document.getElementById('frequency').addEventListener('input', updateValueDisplays);
+        document.getElementById('detune').addEventListener('input', updateValueDisplays);
+        document.getElementById('attack').addEventListener('input', updateValueDisplays);
+        document.getElementById('decay').addEventListener('input', updateValueDisplays);
+        document.getElementById('sustain').addEventListener('input', updateValueDisplays);
+        document.getElementById('release').addEventListener('input', updateValueDisplays);
+        document.getElementById('reverbTime').addEventListener('input', updateValueDisplays);
+        document.getElementById('delayTime').addEventListener('input', updateValueDisplays);
+        document.getElementById('delayFeedback').addEventListener('input', updateValueDisplays);
+        document.getElementById('filterFreq').addEventListener('input', updateValueDisplays);
+        document.getElementById('filterReso').addEventListener('input', updateValueDisplays);
+        
+        // Update audio parameters on change
+        const allControls = document.querySelectorAll('input, select');
+        allControls.forEach(control => {
+            if (control.id !== 'presetName') {
+                control.addEventListener('input', updateAudioParameters);
+            }
+        });
+        
+        // Keyboard controls
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (keyboardMap[key] && !e.repeat) {
+                playNote(keyboardMap[key]);
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (keyboardMap[key]) {
+                releaseNote(keyboardMap[key]);
+            }
+        });
+        
+        // Initialize value displays
+        updateValueDisplays();
+        
+        // IndexedDB for storing presets
+        let db;
+        const DB_NAME = 'SynthPresetsDB';
+        const STORE_NAME = 'presets';
+        
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                
+                request.onerror = () => reject(request.error);
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = () => {
+                    const database = request.result;
+                    if (!database.objectStoreNames.contains(STORE_NAME)) {
+                        database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+            });
+        }
+        
+        async function savePreset() {
+            try {
+                await openDB();
+                
+                const presetName = document.getElementById('presetName').value.trim() || `Preset ${Date.now()}`;
+                
+                // Collect all current settings
+                const preset = {
+                    name: presetName,
+                    waveType: document.getElementById('waveType').value,
+                    frequency: parseFloat(document.getElementById('frequency').value),
+                    detune: parseFloat(document.getElementById('detune').value),
+                    attack: parseFloat(document.getElementById('attack').value),
+                    decay: parseFloat(document.getElementById('decay').value),
+                    sustain: parseFloat(document.getElementById('sustain').value),
+                    release: parseFloat(document.getElementById('release').value),
+                    reverbEnabled: document.getElementById('reverbEnabled').checked,
+                    reverbTime: parseFloat(document.getElementById('reverbTime').value),
+                    delayEnabled: document.getElementById('delayEnabled').checked,
+                    delayTime: parseFloat(document.getElementById('delayTime').value),
+                    delayFeedback: parseFloat(document.getElementById('delayFeedback').value),
+                    filterEnabled: document.getElementById('filterEnabled').checked,
+                    filterType: document.getElementById('filterType').value,
+                    filterFreq: parseFloat(document.getElementById('filterFreq').value),
+                    filterReso: parseFloat(document.getElementById('filterReso').value)
+                };
+                
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                const request = store.add(preset);
+                
+                request.onsuccess = () => {
+                    console.log('Preset saved successfully');
+                    loadPresets(); // Refresh the list
+                    document.getElementById('presetName').value = '';
+                };
+                
+                request.onerror = () => {
+                    console.error('Error saving preset:', request.error);
+                };
+            } catch (error) {
+                console.error('Error opening database:', error);
+            }
+        }
+        
+        async function loadPresets() {
+            try {
+                await openDB();
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                const presetsList = document.getElementById('presetsList');
+                
+                request.onsuccess = () => {
+                    const presets = request.result;
+                    
+                    if (presets.length === 0) {
+                        presetsList.innerHTML = '<p class="text-gray-400 text-sm">No saved presets yet</p>';
+                        return;
+                    }
+                    
+                    // Sort by newest first
+                    presets.sort((a, b) => b.id - a.id);
+                    
+                    presetsList.innerHTML = '';
+                    
+                    presets.forEach(preset => {
+                        const presetEl = document.createElement('div');
+                        presetEl.className = 'bg-gray-600 rounded p-3 mb-2 last:mb-0';
+                        
+                        const date = new Date(preset.id).toLocaleDateString();
+                        
+                        presetEl.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-medium">${preset.name}</h4>
+                                    <p class="text-xs text-gray-400">${date}</p>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <button onclick="loadPreset(${preset.id})" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-xs">
+                                        Load
+                                    </button>
+                                    <button onclick="deletePreset(${preset.id})" class="px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs">
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        presetsList.appendChild(presetEl);
+                    });
+                };
+                
+                request.onerror = () => {
+                    console.error('Error loading presets:', request.error);
+                };
+            } catch (error) {
+                console.error('Error opening database:', error);
+            }
+        }
+        
+        async function loadPreset(id) {
+            try {
+                await openDB();
+                
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(id);
+                
+                request.onsuccess = () => {
+                    const preset = request.result;
+                    
+                    if (preset) {
+                        // Update all controls with preset values
+                        document.getElementById('waveType').value = preset.waveType;
+                        document.getElementById('frequency').value = preset.frequency;
+                        document.getElementById('detune').value = preset.detune;
+                        document.getElementById('attack').value = preset.attack;
+                        document.getElementById('decay').value = preset.decay;
+                        document.getElementById('sustain').value = preset.sustain;
+                        document.getElementById('release').value = preset.release;
+                        
+                        document.getElementById('reverbEnabled').checked = preset.reverbEnabled;
+                        document.getElementById('reverbTime').value = preset.reverbTime;
+                        
+                        document.getElementById('delayEnabled').checked = preset.delayEnabled;
+                        document.getElementById('delayTime').value = preset.delayTime;
+                        document.getElementById('delayFeedback').value = preset.delayFeedback;
+                        
+                        document.getElementById('filterEnabled').checked = preset.filterEnabled;
+                        document.getElementById('filterType').value = preset.filterType;
+                        document.getElementById('filterFreq').value = preset.filterFreq;
+                        document.getElementById('filterReso').value = preset.filterReso;
+                        
+                        // Update value displays
+                        updateValueDisplays();
+                        
+                        // Update audio parameters
+                        updateAudioParameters();
+                        
+                        // Update preset name field
+                        document.getElementById('presetName').value = preset.name;
+                        
+                        console.log('Preset loaded successfully');
+                    }
+                };
+                
+                request.onerror = () => {
+                    console.error('Error loading preset:', request.error);
+                };
+            } catch (error) {
+                console.error('Error opening database:', error);
+            }
+        }
+        
+        async function deletePreset(id) {
+            if (!confirm('Are you sure you want to delete this preset?')) {
+                return;
+            }
+            
+            try {
+                await openDB();
+                
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.delete(id);
+                
+                request.onsuccess = () => {
+                    console.log('Preset deleted successfully');
+                    loadPresets(); // Refresh the list
+                };
+                
+                request.onerror = () => {
+                    console.error('Error deleting preset:', request.error);
+                };
+            } catch (error) {
+                console.error('Error opening database:', error);
+            }
+        }
+        
+        function exportData() {
+            openDB().then(() => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+                
+                request.onsuccess = () => {
+                    const presets = request.result;
+                    const dataStr = JSON.stringify(presets, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'synth-presets-export.json';
+                    link.click();
+                    
+                    setTimeout(() => {
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                };
+            }).catch(error => {
+                console.error('Error exporting data:', error);
+            });
+        }
+        
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const presets = JSON.parse(event.target.result);
+                        
+                        if (!Array.isArray(presets)) {
+                            alert('Invalid file format. Please select a valid JSON export file.');
+                            return;
+                        }
+                        
+                        if (!confirm(`Import ${presets.length} presets? This will add them to your existing presets.`)) {
+                            return;
+                        }
+                        
+                        openDB().then(() => {
+                            const transaction = db.transaction([STORE_NAME], 'readwrite');
+                            const store = transaction.objectStore(STORE_NAME);
+                            
+                            let successCount = 0;
+                            let errorCount = 0;
+                            
+                            presets.forEach(preset => {
+                                // Ensure required fields exist
+                                if (!preset.name || !preset.waveType) {
+                                    errorCount++;
+                                    return;
+                                }
+                                
+                                // Set default values for missing properties
+                                const completePreset = {
+                                    name: preset.name,
+                                    waveType: preset.waveType,
+                                    frequency: preset.frequency || 440,
+                                    detune: preset.detune || 0,
+                                    attack: preset.attack || 0.1,
+                                    decay: preset.decay || 0.2,
+                                    sustain: preset.sustain || 0.5,
+                                    release: preset.release || 0.5,
+                                    reverbEnabled: preset.reverbEnabled !== undefined ? preset.reverbEnabled : false,
+                                    reverbTime: preset.reverbTime || 1.5,
+                                    delayEnabled: preset.delayEnabled !== undefined ? preset.delayEnabled : false,
+                                    delayTime: preset.delayTime || 300,
+                                    delayFeedback: preset.delayFeedback || 0.4,
+                                    filterEnabled: preset.filterEnabled !== undefined ? preset.filterEnabled : false,
+                                    filterType: preset.filterType || 'lowpass',
+                                    filterFreq: preset.filterFreq || 1000,
+                                    filterReso: preset.filterReso || 1
+                                };
+                                
+                                const request = store.add(completePreset);
+                                
+                                request.onsuccess = () => {
+                                    successCount++;
+                                };
+                                
+                                request.onerror = () => {
+                                    errorCount++;
+                                };
+                            });
+                            
+                            transaction.oncomplete = () => {
+                                alert(`Import completed: ${successCount} presets imported, ${errorCount} errors.`);
+                                loadPresets(); // Refresh the list
+                            };
+                            
+                            transaction.onerror = () => {
+                                alert('Error importing presets.');
+                            };
+                        }).catch(error => {
+                            console.error('Error opening database:', error);
+                            alert('Error opening database. Please try again.');
+                        });
+                    } catch (err) {
+                        console.error('Error parsing JSON:', err);
+                        alert('Error parsing the imported file. Please ensure it\'s a valid JSON file.');
+                    }
+                };
+                
+                reader.onerror = () => {
+                    alert('Error reading the file. Please try again.');
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Set up event listeners for preset management
+        document.getElementById('savePreset').addEventListener('click', savePreset);
+        document.getElementById('exportData').addEventListener('click', exportData);
+        document.getElementById('importData').addEventListener('click', importData);
+        
+        // Make functions available globally for button onclicks
+        window.loadPreset = loadPreset;
+        window.deletePreset = deletePreset;
+        
+        // Load presets when page is ready
+        window.addEventListener('load', loadPresets);
+    </script>
+</body>
+</html>

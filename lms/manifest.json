@@ -1,0 +1,16 @@
+{
+  "name": "Liquid Glass LMS Editor",
+  "short_name": "LMS Editor",
+  "description": "PWA приложение для создания интерактивных курсов с редактором лендингов",
+  "start_url": "./lms.html",
+  "display": "standalone",
+  "background_color": "#0ea5e9",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

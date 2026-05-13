@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>BI Analytics PWA - Анализ табличных данных</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Dexie.js -->
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+
+    <!-- Chart.js для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- PapaParse для парсинга CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Стили для скролла */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Анимации */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Стили для таблицы */
+        .data-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .data-table td, .data-table th {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Шапка -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            BI Analytics PWA
+                        </h1>
+                        <p class="text-xs text-gray-500">Анализ табличных данных</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button onclick="checkOfflineStatus()" class="text-gray-500 hover:text-gray-700 transition">
+                        <i class="fas fa-wifi"></i>
+                    </button>
+                    <button onclick="exportData()" id="exportBtn" disabled class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-download mr-2"></i>Экспорт CSV
+                    </button>
+                    <button onclick="clearAllData()" id="clearBtn" disabled class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-trash mr-2"></i>Очистить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        <!-- Статус и управление -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Загрузка CSV -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-upload text-blue-500 mr-2"></i>
+                    Загрузка данных
+                </h2>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer"
+                     onclick="document.getElementById('csvFile').click()">
+                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-600">Нажмите или перетащите CSV файл</p>
+                    <p class="text-xs text-gray-400 mt-2">Поддерживаются .csv файлы с разделителями , или ;</p>
+                </div>
+                <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="loadCSV(this.files[0])">
+            </div>
+
+            <!-- Информация о данных -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-database text-purple-500 mr-2"></i>
+                    Информация о данных
+                </h2>
+                <div id="dataInfo">
+                    <p class="text-gray-500 text-sm">Нет загруженных данных</p>
+                </div>
+            </div>
+
+            <!-- Быстрая статистика -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-simple text-green-500 mr-2"></i>
+                    Быстрая статистика
+                </h2>
+                <div id="quickStats">
+                    <p class="text-gray-500 text-sm">Нет данных для анализа</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Визуализация -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+            <h2 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-indigo-500 mr-2"></i>
+                Визуализация данных
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Выберите колонку для X оси</label>
+                    <select id="xColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updateChart()">
+                        <option value="">Выберите колонку</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Выберите колонку для Y оси</label>
+                    <select id="yColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updateChart()">
+                        <option value="">Выберите колонку</option>
+                    </select>
+                </div>
+            </div>
+            <canvas id="dataChart" class="mt-6" style="max-height: 400px;"></canvas>
+        </div>
+
+        <!-- Таблица данных -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                <h2 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-table text-orange-500 mr-2"></i>
+                    Таблица данных
+                </h2>
+                <div class="flex space-x-2">
+                    <button onclick="previousPage()" id="prevBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="pageInfo" class="px-3 py-1 text-gray-600">Страница 1</span>
+                    <button onclick="nextPage()" id="nextBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto custom-scroll" style="max-height: 500px;">
+                <div id="dataTable"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Инициализация базы данных
+        const db = new Dexie('BIDatabase');
+        db.version(1).stores({
+            datasets: '++id, name, timestamp, rowCount',
+            tableData: '++id, datasetId, rowData'
+        });
+
+        let currentDatasetId = null;
+        let currentData = [];
+        let currentColumns = [];
+        let currentPage = 1;
+        const rowsPerPage = 20;
+        let chart = null;
+
+        // Состояние сети
+        window.addEventListener('load', () => {
+            registerSW();
+            loadLastDataset();
+            checkOfflineStatus();
+        });
+
+        window.addEventListener('online', () => {
+            showNotification('Соединение восстановлено!', 'success');
+            checkOfflineStatus();
+        });
+
+        window.addEventListener('offline', () => {
+            showNotification('Нет соединения с интернетом. Данные доступны офлайн.', 'warning');
+            checkOfflineStatus();
+        });
+
+        // Регистрация Service Worker
+        async function registerSW() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker зарегистрирован');
+                } catch (error) {
+                    console.error('Ошибка регистрации SW:', error);
+                }
+            }
+        }
+
+        // Проверка офлайн статуса
+        function checkOfflineStatus() {
+            const statusIcon = document.querySelector('.fa-wifi');
+            if (!navigator.onLine) {
+                statusIcon.classList.remove('text-gray-500');
+                statusIcon.classList.add('text-red-500');
+                showNotification('Вы работаете офлайн', 'info');
+            } else {
+                statusIcon.classList.remove('text-red-500');
+                statusIcon.classList.add('text-gray-500');
+            }
+        }
+
+        // Загрузка CSV файла
+        async function loadCSV(file) {
+            if (!file) return;
+
+            showNotification('Загрузка файла...', 'info');
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async function(results) {
+                    if (results.data && results.data.length > 0) {
+                        currentColumns = Object.keys(results.data[0]);
+                        currentData = results.data;
+
+                        // Сохраняем в базу данных
+                        await saveDatasetToDB(file.name, currentData);
+
+                        // Обновляем интерфейс
+                        updateUI();
+                        showNotification(`Загружено ${currentData.length} записей`, 'success');
+                    } else {
+                        showNotification('Файл пуст или имеет неверный формат', 'error');
+                    }
+                },
+                error: function(error) {
+                    showNotification('Ошибка парсинга CSV: ' + error.message, 'error');
+                }
+            });
+        }
+
+        // Сохранение набора данных в IndexedDB
+        async function saveDatasetToDB(name, data) {
+            try {
+                // Удаляем старый датасет если есть
+                if (currentDatasetId) {
+                    await db.tableData.where('datasetId').equals(currentDatasetId).delete();
+                    await db.datasets.delete(currentDatasetId);
+                }
+
+                // Сохраняем метаданные
+                const datasetId = await db.datasets.add({
+                    name: name,
+                    timestamp: new Date().toISOString(),
+                    rowCount: data.length,
+                    columns: currentColumns
+                });
+
+                currentDatasetId = datasetId;
+
+                // Сохраняем данные по частям для производительности
+                const batchSize = 100;
+                for (let i = 0; i < data.length; i += batchSize) {
+                    const batch = data.slice(i, i + batchSize);
+                    await db.tableData.bulkAdd(
+                        batch.map(row => ({
+                            datasetId: datasetId,
+                            rowData: row,
+                            rowIndex: i + batch.indexOf(row)
+                        }))
+                    );
+                }
+
+                await db.datasets.update(datasetId, { lastAccessed: new Date().toISOString() });
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showNotification('Ошибка сохранения данных', 'error');
+            }
+        }
+
+        // Загрузка последнего датасета
+        async function loadLastDataset() {
+            try {
+                const lastDataset = await db.datasets.orderBy('timestamp').reverse().first();
+                if (lastDataset) {
+                    currentDatasetId = lastDataset.id;
+                    currentColumns = lastDataset.columns;
+                    await loadDataFromDB();
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+
+        // Загрузка данных из БД
+        async function loadDataFromDB() {
+            if (!currentDatasetId) return;
+
+            try {
+                const records = await db.tableData
+                    .where('datasetId')
+                    .equals(currentDatasetId)
+                    .sortBy('rowIndex');
+
+                currentData = records.map(r => r.rowData);
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+            }
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            if (!currentData.length) return;
+
+            // Обновляем информацию о данных
+            const dataInfo = document.getElementById('dataInfo');
+            dataInfo.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Строк:</span>
+                        <span class="font-semibold">${currentData.length.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Колонок:</span>
+                        <span class="font-semibold">${currentColumns.length}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Колонки:</span>
+                        <span class="font-semibold text-sm">${currentColumns.join(', ')}</span>
+                    </div>
+                </div>
+            `;
+
+            // Обновляем быструю статистику
+            updateQuickStats();
+
+            // Обновляем селекторы для графика
+            updateChartSelectors();
+
+            // Обновляем таблицу
+            currentPage = 1;
+            updateTable();
+
+            // Активируем кнопки
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('clearBtn').disabled = false;
+        }
+
+        // Обновление быстрой статистики
+        function updateQuickStats() {
+            const statsDiv = document.getElementById('quickStats');
+
+            // Находим числовые колонки
+            const numericColumns = currentColumns.filter(col => {
+                return currentData.some(row => !isNaN(parseFloat(row[col])) && isFinite(row[col]));
+            });
+
+            if (numericColumns.length > 0) {
+                const firstNumericCol = numericColumns[0];
+                const values = currentData.map(row => parseFloat(row[firstNumericCol])).filter(v => !isNaN(v));
+                const sum = values.reduce((a, b) => a + b, 0);
+                const avg = sum / values.length;
+                const max = Math.max(...values);
+                const min = Math.min(...values);
+
+                statsDiv.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Колонка "${firstNumericCol}":</span>
+                            <span class="font-semibold"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Среднее:</span>
+                            <span class="font-semibold">${avg.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Максимум:</span>
+                            <span class="font-semibold">${max.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Минимум:</span>
+                            <span class="font-semibold">${min.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                statsDiv.innerHTML = '<p class="text-gray-500 text-sm">Нет числовых колонок для статистики</p>';
+            }
+        }
+
+        // Обновление селекторов для графика
+        function updateChartSelectors() {
+            const xSelect = document.getElementById('xColumn');
+            const ySelect = document.getElementById('yColumn');
+
+            xSelect.innerHTML = '<option value="">Выберите колонку</option>';
+            ySelect.innerHTML = '<option value="">Выберите колонку</option>';
+
+            currentColumns.forEach(col => {
+                xSelect.innerHTML += `<option value="${col}">${col}</option>`;
+                ySelect.innerHTML += `<option value="${col}">${col}</option>`;
+            });
+        }
+
+        // Обновление графика
+        async function updateChart() {
+            const xCol = document.getElementById('xColumn').value;
+            const yCol = document.getElementById('yColumn').value;
+
+            if (!xCol || !yCol) return;
+
+            // Агрегируем данные для графика
+            const aggregated = {};
+            currentData.forEach(row => {
+                const xValue = row[xCol];
+                const yValue = parseFloat(row[yCol]);
+                if (!isNaN(yValue)) {
+                    if (!aggregated[xValue]) {
+                        aggregated[xValue] = 0;
+                    }
+                    aggregated[xValue] += yValue;
+                }
+            });
+
+            const labels = Object.keys(aggregated).slice(0, 20);
+            const values = labels.map(label => aggregated[label]);
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${yCol} по ${xCol}`,
+                        data: values,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Обновление таблицы
+        function updateTable() {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = currentData.slice(start, end);
+
+            const totalPages = Math.ceil(currentData.length / rowsPerPage);
+            document.getElementById('pageInfo').innerHTML = `Страница ${currentPage} из ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages;
+
+            // Создаем HTML таблицы
+            let html = '<table class="data-table">';
+            html += '<thead><tr>';
+            currentColumns.forEach(col => {
+                html += `<th class="bg-gray-50 font-semibold text-gray-700">${escapeHtml(col)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            pageData.forEach(row => {
+                html += '<tr>';
+                currentColumns.forEach(col => {
+                    let value = row[col];
+                    if (value === undefined || value === null) value = '';
+                    html += `<td class="text-gray-600">${escapeHtml(String(value).substring(0, 100))}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            if (currentData.length === 0) {
+                html = '<p class="text-center text-gray-500 py-8">Нет данных</p>';
+            }
+
+            document.getElementById('dataTable').innerHTML = html;
+        }
+
+        // Пагинация
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updateTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(currentData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateTable();
+            }
+        }
+
+        // Экспорт данных
+        async function exportData() {
+            if (!currentData.length) return;
+
+            // Конвертируем в CSV
+            const headers = currentColumns.join(',');
+            const rows = currentData.map(row => {
+                return currentColumns.map(col => {
+                    let value = row[col];
+                    if (value && (value.includes(',') || value.includes('"'))) {
+                        value = `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                }).join(',');
+            });
+
+            const csv = [headers, ...rows].join('\n');
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `export_${new Date().toISOString()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification('Экспорт завершен', 'success');
+        }
+
+        // Очистка всех данных
+        async function clearAllData() {
+            if (confirm('Вы уверены, что хотите удалить все данные?')) {
+                try {
+                    if (currentDatasetId) {
+                        await db.tableData.where('datasetId').equals(currentDatasetId).delete();
+                        await db.datasets.delete(currentDatasetId);
+                    }
+
+                    currentDatasetId = null;
+                    currentData = [];
+                    currentColumns = [];
+                    currentPage = 1;
+
+                    updateUI();
+                    document.getElementById('dataInfo').innerHTML = '<p class="text-gray-500 text-sm">Нет загруженных данных</p>';
+                    document.getElementById('quickStats').innerHTML = '<p class="text-gray-500 text-sm">Нет данных для анализа</p>';
+                    document.getElementById('dataTable').innerHTML = '<p class="text-center text-gray-500 py-8">Нет данных</p>';
+                    document.getElementById('exportBtn').disabled = true;
+                    document.getElementById('clearBtn').disabled = true;
+
+                    if (chart) {
+                        chart.destroy();
+                        chart = null;
+                    }
+
+                    showNotification('Все данные удалены', 'success');
+                } catch (error) {
+                    console.error('Ошибка очистки:', error);
+                    showNotification('Ошибка при очистке данных', 'error');
+                }
+            }
+        }
+
+        // Вспомогательные функции
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function showNotification(message, type = 'info') {
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg fade-in ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
+            } text-white`;
+            notification.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

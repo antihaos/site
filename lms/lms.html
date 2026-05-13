@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Liquid Glass Editor - Создание интерактивных курсов</title>
+    <meta name="description" content="PWA приложение для создания интерактивных курсов с редактором лендингов, оффлайн режимом и экспортом в SCORM">
+    <meta name="theme-color" content="#0ea5e9">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip for SCORM export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    backdropBlur: {
+                        xs: '2px',
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'glass-inset': 'inset 0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                    },
+                    colors: {
+                        'glass-white': 'rgba(255, 255, 255, 0.1)',
+                        'glass-border': 'rgba(255, 255, 255, 0.18)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Liquid Glass эффекты */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffd89b 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .drag-over {
+            border: 2px dashed #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        .block-placeholder {
+            min-height: 60px;
+            border: 2px dashed #9ca3af;
+            border-radius: 0.5rem;
+            background-color: rgba(156, 163, 175, 0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-gray-800 p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="glass rounded-2xl p-6 mb-6 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-full glass flex items-center justify-center">
+                    <span class="text-2xl">📚</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white">Liquid Glass LMS Editor</h1>
+                    <p class="text-gray-200">Создавайте интерактивные курсы с перетаскиванием блоков</p>
+                </div>
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <button id="saveBtn" class="px-4 py-2 glass rounded-lg text-white hover:bg-white/20 transition">
+                    💾 Сохранить проект
+                </button>
+                <button id="exportScormBtn" class="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition">
+                    📦 Экспорт SCORM
+                </button>
+                <button id="exportHtmlBtn" class="px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700 transition">
+                    🌐 Сохранить HTML
+                </button>
+                <div class="relative">
+                    <button id="offlineStatus" class="px-4 py-2 glass rounded-lg text-white">
+                        🌐 Онлайн
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left sidebar - Components Library -->
+            <aside class="lg:w-1/4 glass rounded-2xl p-5">
+                <h2 class="text-xl font-bold text-white mb-4">📦 Библиотека блоков</h2>
+                <p class="text-gray-300 mb-4">Перетащите блок на холст</p>
+                <div class="space-y-3">
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="header">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/30 flex items-center justify-center mr-3">H</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Заголовок</h3>
+                                <p class="text-sm text-gray-300">Большой заголовок с подзаголовком</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="text">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-green-500/30 flex items-center justify-center mr-3">T</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Текстовый блок</h3>
+                                <p class="text-sm text-gray-300">Абзац текста с форматированием</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="image">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/30 flex items-center justify-center mr-3">I</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Изображение</h3>
+                                <p class="text-sm text-gray-300">Изображение с подписью</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="video">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center mr-3">V</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Видео</h3>
+                                <p class="text-sm text-gray-300">Встроенное видео или ссылка</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="quiz">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-yellow-500/30 flex items-center justify-center mr-3">Q</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Тест</h3>
+                                <p class="text-sm text-gray-300">Вопрос с вариантами ответов</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="component glass-dark p-4 rounded-xl cursor-move" draggable="true" data-type="container">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-indigo-500/30 flex items-center justify-center mr-3">C</div>
+                            <div>
+                                <h3 class="font-semibold text-white">Контейнер</h3>
+                                <p class="text-sm text-gray-300">Вмещает другие блоки (вложенность)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h3 class="font-bold text-white mb-2">📝 Инструкция</h3>
+                    <ul class="text-sm text-gray-300 space-y-1">
+                        <li>1. Перетащите блок на холст</li>
+                        <li>2. Нажмите на блок для редактирования</li>
+                        <li>3. Перетащите блок внутрь контейнера для вложенности</li>
+                        <li>4. Используйте кнопки экспорта для сохранения</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Canvas -->
+            <main class="lg:w-2/4">
+                <div class="glass rounded-2xl p-5 h-full">
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="text-xl font-bold text-white">🎨 Холст курса</h2>
+                        <div class="flex space-x-2">
+                            <button id="addPageBtn" class="px-3 py-1 glass rounded-lg text-white text-sm">➕ Добавить страницу</button>
+                            <button id="clearBtn" class="px-3 py-1 glass rounded-lg text-white text-sm">🗑️ Очистить</button>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex overflow-x-auto space-x-2 pb-2" id="pageTabsContainer">
+                            <button class="page-tab px-4 py-2 glass rounded-lg text-white font-medium bg-white/20" data-index="0">Страница 1</button>
+                            <button class="page-tab px-4 py-2 glass rounded-lg text-white font-medium" data-index="1">Страница 2</button>
+                            <button class="page-tab px-4 py-2 glass rounded-lg text-white font-medium" id="addPageTabBtn">+</button>
+                        </div>
+                    </div>
+                    <div id="canvas" class="min-h-[500px] glass-dark rounded-xl p-6 block-placeholder">
+                        <p class="text-gray-400 text-center py-10">Перетащите сюда блоки из библиотеки</p>
+                        <!-- Blocks will be inserted here -->
+                    </div>
+                    <div class="mt-6 text-sm text-gray-300">
+                        <p>💡 <strong>Подсказка:</strong> Вы можете перетаскивать блоки внутри холста для изменения порядка. Чтобы вложить блок, перетащите его на контейнер.</p>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right sidebar - Properties -->
+            <aside class="lg:w-1/4 glass rounded-2xl p-5">
+                <h2 class="text-xl font-bold text-white mb-4">⚙️ Свойства блока</h2>
+                <div id="propertyPanel" class="text-gray-300">
+                    <p class="mb-4">Выберите блок для редактирования свойств</p>
+                    <div class="space-y-4 hidden" id="propertyForm">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Тип блока</label>
+                            <input type="text" id="blockType" class="w-full glass-dark rounded-lg p-2" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Заголовок</label>
+                            <input type="text" id="blockTitle" class="w-full glass-dark rounded-lg p-2" placeholder="Введите заголовок">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Содержимое</label>
+                            <textarea id="blockContent" class="w-full glass-dark rounded-lg p-2 h-32" placeholder="Введите текст..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Цвет фона</label>
+                            <input type="color" id="blockBgColor" class="w-full h-10 rounded-lg">
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="updateBlockBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">Обновить</button>
+                            <button id="deleteBlockBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg">Удалить</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8">
+                    <h3 class="font-bold text-white mb-3">📊 Статистика проекта</h3>
+                    <div class="glass-dark rounded-xl p-4">
+                        <div class="flex justify-between mb-2">
+                            <span>Блоков на холсте:</span>
+                            <span id="blockCount" class="font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Страниц:</span>
+                            <span id="pageCount" class="font-bold">1</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span>Вложенных блоков:</span>
+                            <span id="nestedCount" class="font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Размер проекта:</span>
+                            <span id="projectSize" class="font-bold">~0 KB</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h3 class="font-bold text-white mb-2">🛠️ Настройки экспорта</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="includeScormMeta" class="mr-2" checked>
+                            <label for="includeScormMeta" class="text-sm">Включить метаданные SCORM</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="includeResources" class="mr-2" checked>
+                            <label for="includeResources" class="text-sm">Включить ресурсы (CSS, JS)</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="zipCompression" class="mr-2" checked>
+                            <label for="zipCompression" class="text-sm">Сжатие ZIP для SCORM</label>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 glass rounded-2xl p-5 text-center text-gray-300">
+            <p>Liquid Glass LMS Editor — PWA приложение для создания интерактивных курсов. Работает оффлайн. Использует технологию перетаскивания блоков и вложенных компонентов.</p>
+            <p class="mt-2 text-sm">© 2026 Все права защищены. Версия 1.0</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // PWA Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('ServiceWorker registered:', reg);
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed:', err);
+                });
+            });
+        }
+
+        // Offline detection
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        function updateOnlineStatus() {
+            const statusEl = document.getElementById('offlineStatus');
+            if (navigator.onLine) {
+                statusEl.innerHTML = '🌐 Онлайн';
+                statusEl.classList.remove('bg-red-600');
+                statusEl.classList.add('glass');
+            } else {
+                statusEl.innerHTML = '📴 Оффлайн';
+                statusEl.classList.remove('glass');
+                statusEl.classList.add('bg-red-600');
+            }
+        }
+        updateOnlineStatus();
+
+        // Drag and drop functionality
+        let draggedBlock = null;
+        let currentBlock = null;
+        let dragSource = null; // 'library' or 'canvas'
+
+        // Library components
+        document.querySelectorAll('.component').forEach(comp => {
+            comp.addEventListener('dragstart', e => {
+                draggedBlock = e.target;
+                dragSource = 'library';
+                e.dataTransfer.setData('text/plain', e.target.dataset.type);
+                e.dataTransfer.setData('source', 'library');
+                e.target.classList.add('opacity-50');
+            });
+            comp.addEventListener('dragend', e => {
+                e.target.classList.remove('opacity-50');
+                draggedBlock = null;
+                dragSource = null;
+            });
+        });
+
+        const canvas = document.getElementById('canvas');
+        canvas.addEventListener('dragover', e => {
+            e.preventDefault();
+            canvas.classList.add('drag-over');
+        });
+        canvas.addEventListener('dragleave', () => {
+            canvas.classList.remove('drag-over');
+        });
+        canvas.addEventListener('drop', e => {
+            e.preventDefault();
+            canvas.classList.remove('drag-over');
+            if (dragSource === 'library' && draggedBlock) {
+                const type = draggedBlock.dataset.type;
+                addBlockToCanvas(type);
+                updateStats();
+            }
+        });
+
+        function addBlockToCanvas(type) {
+            const blockId = 'block_' + Date.now();
+            const block = document.createElement('div');
+            block.className = 'block glass rounded-xl p-4 mb-4 cursor-move relative';
+            block.draggable = true;
+            block.dataset.id = blockId;
+            block.dataset.type = type;
+            block.dataset.title = getBlockName(type);
+            const isContainer = type === 'container';
+            block.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center mr-2 text-xs">${type.charAt(0).toUpperCase()}</div>
+                        <span class="font-medium text-white">${getBlockName(type)}</span>
+                    </div>
+                    <button class="edit-block text-gray-400 hover:text-white">✏️</button>
+                </div>
+                <div class="mt-2 text-gray-300 text-sm" data-content>${getDefaultContent(type)}</div>
+                ${isContainer ? `<div class="block-placeholder mt-2 min-h-4 nested-dropzone" data-nested-id="${blockId}"></div>` : ''}
+            `;
+            canvas.appendChild(block);
+            attachBlockEvents(block);
+        }
+
+        function getBlockName(type) {
+            const names = {
+                header: 'Заголовок',
+                text: 'Текстовый блок',
+                image: 'Изображение',
+                video: 'Видео',
+                quiz: 'Тест',
+                container: 'Контейнер'
+            };
+            return names[type] || type;
+        }
+
+        function getDefaultContent(type) {
+            const contents = {
+                header: '<h3 class="text-xl font-bold">Заголовок курса</h3><p>Подзаголовок с описанием</p>',
+                text: 'Это пример текстового блока. Вы можете редактировать его содержимое через панель свойств.',
+                image: '🖼️ Изображение будет загружено здесь',
+                video: '🎬 Видео контент',
+                quiz: '❓ Вопрос с вариантами ответов',
+                container: 'Перетащите другие блоки сюда для вложенности'
+            };
+            return contents[type] || 'Содержимое блока';
+        }
+
+        function attachBlockEvents(block) {
+            block.addEventListener('click', (e) => {
+                if (e.target.classList.contains('edit-block')) {
+                    e.stopPropagation();
+                    selectBlock(block);
+                } else {
+                    selectBlock(block);
+                }
+            });
+            block.addEventListener('dragstart', (e) => {
+                currentBlock = block;
+                dragSource = 'canvas';
+                e.dataTransfer.setData('text/plain', block.dataset.id);
+                e.dataTransfer.setData('source', 'canvas');
+                block.classList.add('opacity-50');
+            });
+            block.addEventListener('dragend', () => {
+                block.classList.remove('opacity-50');
+                currentBlock = null;
+                dragSource = null;
+            });
+            // Nested dropzone only for containers
+            const dropzone = block.querySelector('.nested-dropzone');
+            if (dropzone) {
+                dropzone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('drag-over');
+                });
+                dropzone.addEventListener('dragleave', () => {
+                    dropzone.classList.remove('drag-over');
+                });
+                dropzone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('drag-over');
+                    if (currentBlock && currentBlock !== block && dragSource === 'canvas') {
+                        dropzone.appendChild(currentBlock);
+                        updateStats();
+                    }
+                });
+            }
+            // Allow dropping on canvas for reordering
+            block.addEventListener('dragover', (e) => {
+                if (dragSource === 'canvas' && currentBlock && currentBlock !== block) {
+                    e.preventDefault();
+                    block.classList.add('drag-over');
+                }
+            });
+            block.addEventListener('dragleave', () => {
+                block.classList.remove('drag-over');
+            });
+            block.addEventListener('drop', (e) => {
+                e.preventDefault();
+                block.classList.remove('drag-over');
+                if (dragSource === 'canvas' && currentBlock && currentBlock !== block) {
+                    // Insert before or after based on position?
+                    const rect = block.getBoundingClientRect();
+                    const dropY = e.clientY;
+                    const blockMid = rect.top + rect.height / 2;
+                    if (dropY < blockMid) {
+                        block.parentNode.insertBefore(currentBlock, block);
+                    } else {
+                        block.parentNode.insertBefore(currentBlock, block.nextSibling);
+                    }
+                    updateStats();
+                }
+            });
+        }
+
+        function selectBlock(block) {
+            document.querySelectorAll('.block').forEach(b => b.classList.remove('ring-2', 'ring-blue-500'));
+            block.classList.add('ring-2', 'ring-blue-500');
+            currentBlock = block;
+            // Update property panel
+            document.getElementById('propertyForm').classList.remove('hidden');
+            document.getElementById('blockType').value = getBlockName(block.dataset.type);
+            document.getElementById('blockTitle').value = block.dataset.title || block.querySelector('span').textContent;
+            document.getElementById('blockContent').value = block.querySelector('[data-content]').innerHTML;
+            // Extract background color
+            const bgColor = block.style.backgroundColor;
+            if (bgColor && bgColor !== '') {
+                // Convert rgba to hex if possible
+                const match = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (match) {
+                    const r = parseInt(match[1]);
+                    const g = parseInt(match[2]);
+                    const b = parseInt(match[3]);
+                    const hex = '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+                    document.getElementById('blockBgColor').value = hex;
+                } else {
+                    document.getElementById('blockBgColor').value = '#ffffff';
+                }
+            } else {
+                document.getElementById('blockBgColor').value = '#ffffff';
+            }
+        }
+
+        // Update block button
+        document.getElementById('updateBlockBtn').addEventListener('click', () => {
+            if (currentBlock) {
+                const title = document.getElementById('blockTitle').value;
+                const content = document.getElementById('blockContent').value;
+                const bgColor = document.getElementById('blockBgColor').value;
+                currentBlock.querySelector('span').textContent = title;
+                currentBlock.querySelector('[data-content]').innerHTML = content;
+                currentBlock.style.backgroundColor = bgColor + '40';
+                updateStats();
+            }
+        });
+
+        // Delete block button
+        document.getElementById('deleteBlockBtn').addEventListener('click', () => {
+            if (currentBlock && confirm('Удалить этот блок?')) {
+                currentBlock.remove();
+                document.getElementById('propertyForm').classList.add('hidden');
+                updateStats();
+            }
+        });
+
+        // Save project
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const project = {
+                blocks: Array.from(document.querySelectorAll('.block')).map(b => ({
+                    type: b.dataset.type,
+                    id: b.dataset.id,
+                    title: b.dataset.title || b.querySelector('span').textContent,
+                    content: b.querySelector('[data-content]').innerHTML,
+                    bgColor: b.style.backgroundColor
+                })),
+                pages: document.querySelectorAll('.page-tab').length,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('lmsProject', JSON.stringify(project));
+            alert('Проект сохранён локально!');
+        });
+
+        // Load saved project
+        function loadProject() {
+            const saved = localStorage.getItem('lmsProject');
+            if (saved) {
+                try {
+                    const project = JSON.parse(saved);
+                    // Clear canvas
+                    canvas.innerHTML = '<p class="text-gray-400 text-center py-10">Перетащите сюда блоки из библиотеки</p>';
+                    // Recreate blocks
+                    project.blocks.forEach(blockData => {
+                        const block = document.createElement('div');
+                        block.className = 'block glass rounded-xl p-4 mb-4 cursor-move relative';
+                        block.draggable = true;
+                        block.dataset.id = blockData.id;
+                        block.dataset.type = blockData.type;
+                        block.dataset.title = blockData.title;
+                        const isContainer = blockData.type === 'container';
+                        block.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center mr-2 text-xs">${blockData.type.charAt(0).toUpperCase()}</div>
+                                    <span class="font-medium text-white">${blockData.title}</span>
+                                </div>
+                                <button class="edit-block text-gray-400 hover:text-white">✏️</button>
+                            </div>
+                            <div class="mt-2 text-gray-300 text-sm" data-content>${blockData.content}</div>
+                            ${isContainer ? `<div class="block-placeholder mt-2 min-h-4 nested-dropzone" data-nested-id="${blockData.id}"></div>` : ''}
+                        `;
+                        if (blockData.bgColor) {
+                            block.style.backgroundColor = blockData.bgColor;
+                        }
+                        canvas.appendChild(block);
+                        attachBlockEvents(block);
+                    });
+                    updateStats();
+                    console.log('Проект загружен');
+                } catch (e) {
+                    console.error('Ошибка загрузки проекта:', e);
+                }
+            }
+        }
+
+        // Export SCORM
+        document.getElementById('exportScormBtn').addEventListener('click', () => {
+            // Generate simple SCORM manifest
+            const manifest = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="LMS_COURSE_${Date.now()}" version="1.0"
+    xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
+    xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_v1p3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <organizations default="org1">
+        <organization identifier="org1">
+            <title>Курс из Liquid Glass LMS Editor</title>
+            <item identifier="item1" identifierref="resource1">
+                <title>Страница 1</title>
+            </item>
+        </organization>
+    </organizations>
+    <resources>
+        <resource identifier="resource1" type="webcontent" adlcp:scormType="sco" href="index.html">
+            <file href="index.html"/>
+        </resource>
+    </resources>
+</manifest>`;
+            
+            const htmlContent = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>SCORM курс</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .block { margin: 15px 0; padding: 15px; border-radius: 8px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>SCORM-совместимый курс</h1>
+    <div>${canvas.innerHTML}</div>
+    <script>
+        // SCORM API stubs
+        var API = {};
+        try {
+            API = window.parent.API || window.API;
+        } catch(e) {}
+        console.log('SCORM курс загружен');
+    </script>
+</body>
+</html>`;
+            
+            // Create ZIP using JSZip library (if available) - fallback to download manifest and html separately
+            if (typeof JSZip !== 'undefined') {
+                const zip = new JSZip();
+                zip.file("imsmanifest.xml", manifest);
+                zip.file("index.html", htmlContent);
+                zip.generateAsync({type:"blob"}).then(function(content) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(content);
+                    a.download = `scorm_course_${Date.now()}.zip`;
+                    a.click();
+                    alert('SCORM-пакет создан и скачан как ZIP архив.');
+                });
+            } else {
+                // Fallback: offer to download manifest and html separately
+                const blob = new Blob([manifest], {type: 'application/xml'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'imsmanifest.xml';
+                a.click();
+                alert('SCORM манифест скачан. Для полного пакета подключите библиотеку JSZip.');
+            }
+        });
+
+        // Export HTML
+        document.getElementById('exportHtmlBtn').addEventListener('click', () => {
+            const htmlContent = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экспортированный курс LMS</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #ffd89b 100%); }
+        .block { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .glass { background: rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1 style="color: white;">Экспортированный курс</h1>
+        <div>${canvas.innerHTML}</div>
+        <p style="color: #ccc; text-align: center;">Создано с помощью Liquid Glass LMS Editor</p>
+    </div>
+</body>
+</html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `course_export_${Date.now()}.html`;
+            a.click();
+            alert('HTML-файл сохранён');
+        });
+
+        // UI Button handlers
+        document.getElementById('addPageBtn').addEventListener('click', () => {
+            const pageCount = document.querySelectorAll('.page-tab').length;
+            const newTab = document.createElement('button');
+            newTab.className = 'page-tab px-4 py-2 glass rounded-lg text-white font-medium';
+            newTab.textContent = `Страница ${pageCount + 1}`;
+            newTab.dataset.index = pageCount;
+            const container = document.getElementById('pageTabsContainer');
+            container.insertBefore(newTab, document.getElementById('addPageTabBtn'));
+            updatePageCount();
+        });
+
+        document.getElementById('addPageTabBtn').addEventListener('click', () => {
+            const pageCount = document.querySelectorAll('.page-tab').length;
+            const newTab = document.createElement('button');
+            newTab.className = 'page-tab px-4 py-2 glass rounded-lg text-white font-medium';
+            newTab.textContent = `Страница ${pageCount + 1}`;
+            newTab.dataset.index = pageCount;
+            const container = document.getElementById('pageTabsContainer');
+            container.insertBefore(newTab, document.getElementById('addPageTabBtn'));
+            updatePageCount();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (confirm('Очистить весь холст? Все блоки будут удалены.')) {
+                canvas.innerHTML = '<p class="text-gray-400 text-center py-10">Перетащите сюда блоки из библиотеки</p>';
+                updateStats();
+                document.getElementById('propertyForm').classList.add('hidden');
+            }
+        });
+
+        // Page tab switching (basic)
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('page-tab') && e.target.id !== 'addPageTabBtn') {
+                document.querySelectorAll('.page-tab').forEach(tab => {
+                    tab.classList.remove('bg-white/20');
+                });
+                e.target.classList.add('bg-white/20');
+                // In a real app, you would switch canvas content per page
+                alert('Переключение на страницу ' + (parseInt(e.target.dataset.index) + 1) + '. В реальном приложении здесь загружались бы блоки этой страницы.');
+            }
+        });
+
+        function updatePageCount() {
+            const pageCount = document.querySelectorAll('.page-tab').length;
+            document.getElementById('pageCount').textContent = pageCount;
+        }
+
+        // Stats update
+        function updateStats() {
+            const blockCount = document.querySelectorAll('.block').length;
+            const nestedCount = document.querySelectorAll('.block .block').length;
+            document.getElementById('blockCount').textContent = blockCount;
+            document.getElementById('nestedCount').textContent = nestedCount;
+            document.getElementById('projectSize').textContent = `~${blockCount * 2} KB`;
+            updatePageCount();
+        }
+
+        // Initialize
+        updateStats();
+        loadProject();
+    </script>
+</body>
+</html>
