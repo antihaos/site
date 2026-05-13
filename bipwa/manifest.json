@@ -2,7 +2,7 @@
   "name": "BI Analytics PWA",
   "short_name": "BI Analytics",
   "description": "Мощный BI-инструмент для анализа табличных данных офлайн",
-  "start_url": "/",
+  "start_url": "/bipwa",
   "display": "standalone",
   "theme_color": "#3b82f6",
   "background_color": "#ffffff",
