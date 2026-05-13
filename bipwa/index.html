@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>BI Analytics PWA - Анализ табличных данных</title>
+    <title>BI Analytics PWA - Сложные дашборды</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -14,21 +14,27 @@
     <!-- Dexie.js -->
     <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
 
-    <!-- Chart.js для графиков -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- PapaParse для парсинга CSV -->
+    <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GridStack.js для дашбордов -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/gridstack@10.1.2/dist/gridstack-all.js"></script>
+
+    <!-- Moment.js для работы с датами -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 
     <style>
         * {
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Стили для скролла */
         .custom-scroll::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -48,7 +54,6 @@
             background: #94a3b8;
         }
 
-        /* Анимации */
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
@@ -58,28 +63,62 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Стили для таблицы */
-        .data-table {
-            border-collapse: collapse;
-            width: 100%;
+        /* Стили для гридстака */
+        .grid-stack {
+            background: transparent;
         }
 
-        .data-table th {
-            position: sticky;
-            top: 0;
+        .grid-stack-item-content {
             background: white;
-            z-index: 10;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
-        .data-table td, .data-table th {
+        .dashboard-widget {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .widget-header {
             padding: 0.75rem;
-            text-align: left;
+            background: #f9fafb;
             border-bottom: 1px solid #e5e7eb;
+            cursor: move;
+            user-select: none;
         }
 
-        .data-table tbody tr:hover {
-            background-color: #f9fafb;
+        .widget-content {
+            flex: 1;
+            padding: 1rem;
+            overflow: auto;
+        }
+
+        /* Анимации для модальных окон */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-content {
+            transition: transform 0.3s ease;
+            transform: scale(0.95);
+        }
+
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        /* Стили для вкладок */
+        .tab-active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        /* Стили для дашборда */
+        .dashboard-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
     </style>
 </head>
@@ -96,7 +135,7 @@
                         <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             BI Analytics PWA
                         </h1>
-                        <p class="text-xs text-gray-500">Анализ табличных данных</p>
+                        <p class="text-xs text-gray-500">Сложные дашборды и аналитика</p>
                     </div>
                 </div>
 
@@ -104,11 +143,11 @@
                     <button onclick="checkOfflineStatus()" class="text-gray-500 hover:text-gray-700 transition">
                         <i class="fas fa-wifi"></i>
                     </button>
+                    <button onclick="openDashboardManager()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">
+                        <i class="fas fa-th-large mr-2"></i>Дашборды
+                    </button>
                     <button onclick="exportData()" id="exportBtn" disabled class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-download mr-2"></i>Экспорт CSV
-                    </button>
-                    <button onclick="clearAllData()" id="clearBtn" disabled class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fas fa-trash mr-2"></i>Очистить
                     </button>
                 </div>
             </div>
@@ -116,98 +155,293 @@
     </header>
 
     <main class="container mx-auto px-4 py-6">
-        <!-- Статус и управление -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- Загрузка CSV -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-upload text-blue-500 mr-2"></i>
-                    Загрузка данных
-                </h2>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer"
-                     onclick="document.getElementById('csvFile').click()">
-                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
-                    <p class="text-gray-600">Нажмите или перетащите CSV файл</p>
-                    <p class="text-xs text-gray-400 mt-2">Поддерживаются .csv файлы с разделителями , или ;</p>
+        <!-- Вкладки -->
+        <div class="mb-6 border-b border-gray-200">
+            <div class="flex space-x-8">
+                <button onclick="switchTab('data')" id="tabData" class="tab-button py-2 px-1 font-medium transition-all hover:text-blue-600">
+                    <i class="fas fa-database mr-2"></i>Данные
+                </button>
+                <button onclick="switchTab('dashboard')" id="tabDashboard" class="tab-button py-2 px-1 font-medium transition-all hover:text-blue-600">
+                    <i class="fas fa-chart-pie mr-2"></i>Дашборд
+                </button>
+                <button onclick="switchTab('analytics')" id="tabAnalytics" class="tab-button py-2 px-1 font-medium transition-all hover:text-blue-600">
+                    <i class="fas fa-chart-line mr-2"></i>Расширенная аналитика
+                </button>
+            </div>
+        </div>
+
+        <!-- Вкладка Данные -->
+        <div id="dataTab" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <!-- Загрузка CSV -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-upload text-blue-500 mr-2"></i>
+                        Загрузка данных
+                    </h2>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer"
+                         onclick="document.getElementById('csvFile').click()">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600">Нажмите или перетащите CSV файл</p>
+                        <p class="text-xs text-gray-400 mt-2">Поддерживаются .csv файлы с разделителями , или ;</p>
+                    </div>
+                    <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="loadCSV(this.files[0])">
                 </div>
-                <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="loadCSV(this.files[0])">
+
+                <!-- Информация о данных -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+                        Информация о данных
+                    </h2>
+                    <div id="dataInfo">
+                        <p class="text-gray-500 text-sm">Нет загруженных данных</p>
+                    </div>
+                </div>
+
+                <!-- Быстрая статистика -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-simple text-green-500 mr-2"></i>
+                        Быстрая статистика
+                    </h2>
+                    <div id="quickStats">
+                        <p class="text-gray-500 text-sm">Нет данных для анализа</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Информация о данных -->
+            <!-- Таблица данных -->
             <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-database text-purple-500 mr-2"></i>
-                    Информация о данных
-                </h2>
-                <div id="dataInfo">
-                    <p class="text-gray-500 text-sm">Нет загруженных данных</p>
+                <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                    <h2 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-table text-orange-500 mr-2"></i>
+                        Таблица данных
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button onclick="previousPage()" id="prevBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="pageInfo" class="px-3 py-1 text-gray-600">Страница 1</span>
+                        <button onclick="nextPage()" id="nextBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Быстрая статистика -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-                <h2 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-chart-simple text-green-500 mr-2"></i>
-                    Быстрая статистика
-                </h2>
-                <div id="quickStats">
-                    <p class="text-gray-500 text-sm">Нет данных для анализа</p>
+                <div class="overflow-x-auto custom-scroll" style="max-height: 500px;">
+                    <div id="dataTable"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Визуализация -->
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
-            <h2 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-chart-bar text-indigo-500 mr-2"></i>
-                Визуализация данных
-            </h2>
+        <!-- Вкладка Дашборд -->
+        <div id="dashboardTab" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold flex items-center">
+                            <i class="fas fa-th-large text-purple-500 mr-2"></i>
+                            Текущий дашборд: <span id="currentDashboardName" class="ml-2 text-blue-600">Без названия</span>
+                        </h2>
+                        <p class="text-sm text-gray-500 mt-1">Перетаскивайте виджеты для настройки расположения</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="addWidget()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            <i class="fas fa-plus mr-2"></i>Добавить виджет
+                        </button>
+                        <button onclick="saveCurrentDashboard()" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                            <i class="fas fa-save mr-2"></i>Сохранить дашборд
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid контейнер для дашборда -->
+            <div class="grid-stack" id="dashboardGrid"></div>
+        </div>
+
+        <!-- Вкладка Расширенная аналитика -->
+        <div id="analyticsTab" class="tab-content hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Выберите колонку для X оси</label>
-                    <select id="xColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updateChart()">
-                        <option value="">Выберите колонку</option>
-                    </select>
+                <!-- Корреляционный анализ -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
+                        Корреляционный анализ
+                    </h2>
+                    <div id="correlationMatrix" class="overflow-x-auto">
+                        <p class="text-gray-500 text-sm">Загрузите данные для анализа</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Выберите колонку для Y оси</label>
-                    <select id="yColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" onchange="updateChart()">
-                        <option value="">Выберите колонку</option>
-                    </select>
-                </div>
-            </div>
-            <canvas id="dataChart" class="mt-6" style="max-height: 400px;"></canvas>
-        </div>
 
-        <!-- Таблица данных -->
-        <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h2 class="text-lg font-semibold flex items-center">
-                    <i class="fas fa-table text-orange-500 mr-2"></i>
-                    Таблица данных
-                </h2>
-                <div class="flex space-x-2">
-                    <button onclick="previousPage()" id="prevBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span id="pageInfo" class="px-3 py-1 text-gray-600">Страница 1</span>
-                    <button onclick="nextPage()" id="nextBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+                <!-- Распределение данных -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                        Распределение данных
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Выберите колонку</label>
+                        <select id="distColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateDistribution()">
+                            <option value="">Выберите колонку</option>
+                        </select>
+                    </div>
+                    <canvas id="distributionChart" style="max-height: 300px;"></canvas>
                 </div>
-            </div>
-            <div class="overflow-x-auto custom-scroll" style="max-height: 500px;">
-                <div id="dataTable"></div>
+
+                <!-- Агрегации -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-calculator text-purple-500 mr-2"></i>
+                        Группировка и агрегация
+                    </h2>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Группировать по</label>
+                            <select id="groupByColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateAggregation()">
+                                <option value="">Выберите колонку</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Агрегация</label>
+                            <select id="aggregateColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateAggregation()">
+                                <option value="">Выберите колонку</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="aggregationResults" class="overflow-x-auto">
+                        <p class="text-gray-500 text-sm">Выберите параметры для агрегации</p>
+                    </div>
+                </div>
+
+                <!-- Прогнозирование (тренд) -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-chart-line text-red-500 mr-2"></i>
+                        Тренды и прогнозирование
+                    </h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Временная колонка</label>
+                        <select id="timeColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateTrend()">
+                            <option value="">Выберите колонку</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Числовая колонка</label>
+                        <select id="valueColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="updateTrend()">
+                            <option value="">Выберите колонку</option>
+                        </select>
+                    </div>
+                    <canvas id="trendChart" style="max-height: 300px;"></canvas>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- Модальное окно для создания/редактирования дашборда -->
+    <div id="dashboardModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold" id="modalTitle">Управление дашбордами</h3>
+            </div>
+            <div class="p-6">
+                <div class="mb-6">
+                    <button onclick="createNewDashboard()" class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-plus mr-2"></i>Создать новый дашборд
+                    </button>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Сохраненные дашборды</h4>
+                    <div id="dashboardList" class="space-y-2"></div>
+                </div>
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Шаблоны дашбордов</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="loadTemplate('sales')" class="p-4 bg-gradient-to-br from-green-400 to-blue-500 text-white rounded-lg hover:shadow-lg transition">
+                            <i class="fas fa-chart-line text-2xl mb-2"></i>
+                            <p class="font-semibold">Анализ продаж</p>
+                            <p class="text-xs">KPI, тренды, категории</p>
+                        </button>
+                        <button onclick="loadTemplate('marketing')" class="p-4 bg-gradient-to-br from-pink-400 to-red-500 text-white rounded-lg hover:shadow-lg transition">
+                            <i class="fas fa-chart-pie text-2xl mb-2"></i>
+                            <p class="font-semibold">Маркетинг</p>
+                            <p class="text-xs">Конверсии, каналы, ROI</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end">
+                <button onclick="closeDashboardModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления виджета -->
+    <div id="widgetModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold">Добавить виджет</h3>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Тип виджета</label>
+                    <select id="widgetType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="bar">Гистограмма</option>
+                        <option value="line">Линейный график</option>
+                        <option value="pie">Круговая диаграмма</option>
+                        <option value="kpi">KPI карточка</option>
+                        <option value="table">Таблица данных</option>
+                        <option value="scatter">Точечная диаграмма</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Заголовок</label>
+                    <input type="text" id="widgetTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Введите заголовок">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">X ось / Категория</label>
+                    <select id="widgetXColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Выберите колонку</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Y ось / Значение</label>
+                    <select id="widgetYColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Выберите колонку</option>
+                    </select>
+                </div>
+                <div class="mb-4" id="kpiOptions" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Тип KPI</label>
+                    <select id="kpiType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="sum">Сумма</option>
+                        <option value="avg">Среднее</option>
+                        <option value="count">Количество</option>
+                        <option value="min">Минимум</option>
+                        <option value="max">Максимум</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeWidgetModal()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    Отмена
+                </button>
+                <button onclick="createWidget()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                    Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Инициализация базы данных
         const db = new Dexie('BIDatabase');
-        db.version(1).stores({
-            datasets: '++id, name, timestamp, rowCount',
-            tableData: '++id, datasetId, rowData'
+        db.version(2).stores({
+            datasets: '++id, name, timestamp, rowCount, columns',
+            tableData: '++id, datasetId, rowData, rowIndex',
+            dashboards: '++id, name, config, createdAt, updatedAt',
+            widgets: '++id, dashboardId, type, title, config, position'
         });
 
         let currentDatasetId = null;
@@ -216,12 +450,22 @@
         let currentPage = 1;
         const rowsPerPage = 20;
         let chart = null;
+        let distributionChart = null;
+        let trendChart = null;
+        let grid = null;
+        let currentDashboardId = null;
+        let currentDashboards = [];
 
-        // Состояние сети
-        window.addEventListener('load', () => {
-            registerSW();
-            loadLastDataset();
+        // Инициализация при загрузке
+        window.addEventListener('load', async () => {
+            await registerSW();
+            await loadLastDataset();
+            await loadDashboards();
+            initGridStack();
             checkOfflineStatus();
+
+            // Заполняем селекторы для аналитики
+            setTimeout(() => updateAnalyticsSelectors(), 500);
         });
 
         window.addEventListener('online', () => {
@@ -252,11 +496,660 @@
             if (!navigator.onLine) {
                 statusIcon.classList.remove('text-gray-500');
                 statusIcon.classList.add('text-red-500');
-                showNotification('Вы работаете офлайн', 'info');
             } else {
                 statusIcon.classList.remove('text-red-500');
                 statusIcon.classList.add('text-gray-500');
             }
+        }
+
+        // Переключение вкладок
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+                el.classList.add('text-gray-500');
+            });
+
+            if (tab === 'data') {
+                document.getElementById('dataTab').classList.remove('hidden');
+                document.getElementById('tabData').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                document.getElementById('tabData').classList.remove('text-gray-500');
+                updateTable();
+            } else if (tab === 'dashboard') {
+                document.getElementById('dashboardTab').classList.remove('hidden');
+                document.getElementById('tabDashboard').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                document.getElementById('tabDashboard').classList.remove('text-gray-500');
+                if (grid) grid.resizeAllItems();
+            } else if (tab === 'analytics') {
+                document.getElementById('analyticsTab').classList.remove('hidden');
+                document.getElementById('tabAnalytics').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                document.getElementById('tabAnalytics').classList.remove('text-gray-500');
+                updateAnalytics();
+            }
+        }
+
+        // Инициализация GridStack
+        function initGridStack() {
+            if (grid) {
+                grid.destroy(false);
+            }
+
+            const gridElement = document.getElementById('dashboardGrid');
+            gridElement.innerHTML = '';
+
+            grid = GridStack.init({
+                column: 12,
+                cellHeight: 'auto',
+                verticalMargin: 10,
+                animate: true,
+                resizable: {
+                    handles: 'e, se, s, sw, w'
+                },
+                draggable: {
+                    handle: '.widget-header'
+                }
+            }, gridElement);
+
+            grid.on('change', () => {
+                if (currentDashboardId) {
+                    saveDashboardLayout();
+                }
+            });
+        }
+
+        // Загрузка дашбордов
+        async function loadDashboards() {
+            try {
+                currentDashboards = await db.dashboards.toArray();
+            } catch (error) {
+                console.error('Ошибка загрузки дашбордов:', error);
+                currentDashboards = [];
+            }
+        }
+
+        // Создание нового дашборда
+        async function createNewDashboard() {
+            const name = prompt('Введите название дашборда:', 'Мой дашборд');
+            if (!name) return;
+
+            try {
+                const id = await db.dashboards.add({
+                    name: name,
+                    config: { widgets: [] },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+
+                currentDashboardId = id;
+                document.getElementById('currentDashboardName').innerText = name;
+                await loadDashboard(id);
+                closeDashboardModal();
+                showNotification('Дашборд создан', 'success');
+            } catch (error) {
+                console.error('Ошибка создания:', error);
+                showNotification('Ошибка создания дашборда', 'error');
+            }
+        }
+
+        // Загрузка дашборда
+        async function loadDashboard(id) {
+            try {
+                const dashboard = await db.dashboards.get(id);
+                if (dashboard) {
+                    currentDashboardId = id;
+                    document.getElementById('currentDashboardName').innerText = dashboard.name;
+
+                    // Очищаем грид
+                    grid.removeAllWidgets();
+
+                    // Загружаем виджеты
+                    const widgets = await db.widgets.where('dashboardId').equals(id).toArray();
+                    for (const widget of widgets) {
+                        addWidgetToGrid(widget);
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки дашборда:', error);
+            }
+        }
+
+        // Сохранение текущего дашборда
+        async function saveCurrentDashboard() {
+            if (!currentDashboardId) {
+                await createNewDashboard();
+                return;
+            }
+
+            try {
+                await db.dashboards.update(currentDashboardId, {
+                    updatedAt: new Date().toISOString()
+                });
+                showNotification('Дашборд сохранен', 'success');
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showNotification('Ошибка сохранения дашборда', 'error');
+            }
+        }
+
+        // Сохранение расположения виджетов
+        async function saveDashboardLayout() {
+            if (!currentDashboardId) return;
+
+            const items = grid.getGridItems();
+            for (const item of items) {
+                const widgetId = parseInt(item.getAttribute('data-widget-id'));
+                const el = grid.getCellFromPixel(item);
+                if (widgetId && el) {
+                    await db.widgets.update(widgetId, {
+                        position: { x: el.x, y: el.y, width: el.w, height: el.h }
+                    });
+                }
+            }
+        }
+
+        // Открыть модальное окно дашбордов
+        function openDashboardManager() {
+            updateDashboardList();
+            document.getElementById('dashboardModal').classList.remove('hidden');
+            document.getElementById('dashboardModal').classList.add('flex');
+        }
+
+        // Закрыть модальное окно дашбордов
+        function closeDashboardModal() {
+            document.getElementById('dashboardModal').classList.add('hidden');
+            document.getElementById('dashboardModal').classList.remove('flex');
+        }
+
+        // Обновить список дашбордов
+        async function updateDashboardList() {
+            await loadDashboards();
+            const container = document.getElementById('dashboardList');
+
+            if (currentDashboards.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Нет сохраненных дашбордов</p>';
+                return;
+            }
+
+            container.innerHTML = currentDashboards.map(db => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <p class="font-semibold">${escapeHtml(db.name)}</p>
+                        <p class="text-xs text-gray-500">Обновлен: ${moment(db.updatedAt).format('DD.MM.YYYY HH:mm')}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="loadDashboard(${db.id})" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button onclick="deleteDashboard(${db.id})" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Удаление дашборда
+        async function deleteDashboard(id) {
+            if (!confirm('Удалить дашборд?')) return;
+
+            try {
+                await db.widgets.where('dashboardId').equals(id).delete();
+                await db.dashboards.delete(id);
+                await loadDashboards();
+                updateDashboardList();
+                showNotification('Дашборд удален', 'success');
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showNotification('Ошибка удаления', 'error');
+            }
+        }
+
+        // Загрузка шаблона
+        async function loadTemplate(type) {
+            if (!currentData.length) {
+                showNotification('Сначала загрузите данные', 'warning');
+                closeDashboardModal();
+                return;
+            }
+
+            const template = getTemplateConfig(type);
+            const name = prompt('Введите название дашборда:', template.name);
+            if (!name) return;
+
+            try {
+                const dashboardId = await db.dashboards.add({
+                    name: name,
+                    config: template,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+
+                for (const widget of template.widgets) {
+                    await db.widgets.add({
+                        dashboardId: dashboardId,
+                        type: widget.type,
+                        title: widget.title,
+                        config: widget.config,
+                        position: widget.position
+                    });
+                }
+
+                currentDashboardId = dashboardId;
+                document.getElementById('currentDashboardName').innerText = name;
+                await loadDashboard(dashboardId);
+                closeDashboardModal();
+                switchTab('dashboard');
+                showNotification('Шаблон загружен', 'success');
+            } catch (error) {
+                console.error('Ошибка загрузки шаблона:', error);
+                showNotification('Ошибка загрузки шаблона', 'error');
+            }
+        }
+
+        // Получить конфигурацию шаблона
+        function getTemplateConfig(type) {
+            const numericColumns = currentColumns.filter(col =>
+                currentData.some(row => !isNaN(parseFloat(row[col])) && isFinite(row[col]))
+            );
+
+            const mainColumn = numericColumns[0] || currentColumns[0];
+            const categoryColumn = currentColumns.find(col =>
+                currentData.some(row => typeof row[col] === 'string')
+            ) || currentColumns[0];
+
+            if (type === 'sales') {
+                return {
+                    name: 'Анализ продаж',
+                    widgets: [
+                        {
+                            type: 'kpi',
+                            title: 'Общая выручка',
+                            config: { column: mainColumn, aggregation: 'sum' },
+                            position: { x: 0, y: 0, width: 3, height: 2 }
+                        },
+                        {
+                            type: 'kpi',
+                            title: 'Средний чек',
+                            config: { column: mainColumn, aggregation: 'avg' },
+                            position: { x: 3, y: 0, width: 3, height: 2 }
+                        },
+                        {
+                            type: 'kpi',
+                            title: 'Количество продаж',
+                            config: { column: mainColumn, aggregation: 'count' },
+                            position: { x: 6, y: 0, width: 3, height: 2 }
+                        },
+                        {
+                            type: 'line',
+                            title: 'Тренд продаж',
+                            config: { xColumn: categoryColumn, yColumn: mainColumn },
+                            position: { x: 0, y: 2, width: 6, height: 4 }
+                        },
+                        {
+                            type: 'bar',
+                            title: 'Продажи по категориям',
+                            config: { xColumn: categoryColumn, yColumn: mainColumn },
+                            position: { x: 6, y: 2, width: 6, height: 4 }
+                        }
+                    ]
+                };
+            } else {
+                return {
+                    name: 'Маркетинг аналитика',
+                    widgets: [
+                        {
+                            type: 'kpi',
+                            title: 'Конверсия',
+                            config: { column: mainColumn, aggregation: 'avg' },
+                            position: { x: 0, y: 0, width: 4, height: 2 }
+                        },
+                        {
+                            type: 'pie',
+                            title: 'Распределение по каналам',
+                            config: { xColumn: categoryColumn, yColumn: mainColumn },
+                            position: { x: 4, y: 0, width: 4, height: 4 }
+                        },
+                        {
+                            type: 'bar',
+                            title: 'ROI по кампаниям',
+                            config: { xColumn: categoryColumn, yColumn: mainColumn },
+                            position: { x: 8, y: 0, width: 4, height: 4 }
+                        }
+                    ]
+                };
+            }
+        }
+
+        // Открыть модальное окно виджета
+        function addWidget() {
+            if (!currentData.length) {
+                showNotification('Сначала загрузите данные', 'warning');
+                return;
+            }
+
+            const xSelect = document.getElementById('widgetXColumn');
+            const ySelect = document.getElementById('widgetYColumn');
+
+            xSelect.innerHTML = '<option value="">Выберите колонку</option>';
+            ySelect.innerHTML = '<option value="">Выберите колонку</option>';
+
+            currentColumns.forEach(col => {
+                xSelect.innerHTML += `<option value="${col}">${col}</option>`;
+                ySelect.innerHTML += `<option value="${col}">${col}</option>`;
+            });
+
+            document.getElementById('widgetModal').classList.remove('hidden');
+            document.getElementById('widgetModal').classList.add('flex');
+
+            // Показываем/скрываем опции KPI
+            document.getElementById('widgetType').onchange = function() {
+                const kpiOptions = document.getElementById('kpiOptions');
+                kpiOptions.style.display = this.value === 'kpi' ? 'block' : 'none';
+            };
+        }
+
+        // Закрыть модальное окно виджета
+        function closeWidgetModal() {
+            document.getElementById('widgetModal').classList.add('hidden');
+            document.getElementById('widgetModal').classList.remove('flex');
+        }
+
+        // Создание виджета
+        async function createWidget() {
+            const type = document.getElementById('widgetType').value;
+            const title = document.getElementById('widgetTitle').value || 'Виджет';
+            const xColumn = document.getElementById('widgetXColumn').value;
+            const yColumn = document.getElementById('widgetYColumn').value;
+            const kpiType = document.getElementById('kpiType')?.value || 'sum';
+
+            if (!currentDashboardId) {
+                await createNewDashboard();
+            }
+
+            const widget = {
+                dashboardId: currentDashboardId,
+                type: type,
+                title: title,
+                config: { xColumn, yColumn, kpiType, aggregation: kpiType },
+                position: { x: 0, y: 0, width: 4, height: 3 }
+            };
+
+            try {
+                const id = await db.widgets.add(widget);
+                widget.id = id;
+                addWidgetToGrid(widget);
+                closeWidgetModal();
+                showNotification('Виджет добавлен', 'success');
+            } catch (error) {
+                console.error('Ошибка добавления виджета:', error);
+                showNotification('Ошибка добавления виджета', 'error');
+            }
+        }
+
+        // Добавление виджета в грид
+        function addWidgetToGrid(widget) {
+            const content = createWidgetContent(widget);
+
+            grid.addWidget({
+                x: widget.position.x,
+                y: widget.position.y,
+                w: widget.position.width,
+                h: widget.position.height,
+                content: content,
+                id: `widget-${widget.id}`
+            });
+
+            const gridItem = document.querySelector(`[gs-id="widget-${widget.id}"]`);
+            if (gridItem) {
+                gridItem.setAttribute('data-widget-id', widget.id);
+                renderWidgetContent(gridItem, widget);
+            }
+        }
+
+        // Создание контента виджета
+        function createWidgetContent(widget) {
+            return `
+                <div class="dashboard-widget">
+                    <div class="widget-header">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-800">${escapeHtml(widget.title)}</h3>
+                            <div class="flex space-x-2">
+                                <button onclick="editWidget(${widget.id})" class="text-gray-400 hover:text-blue-500">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                                <button onclick="deleteWidget(${widget.id})" class="text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget-content" id="widget-content-${widget.id}">
+                        <div class="flex items-center justify-center h-full">
+                            <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Рендер виджета
+        async function renderWidgetContent(container, widget) {
+            const contentContainer = container.querySelector(`#widget-content-${widget.id}`);
+            if (!contentContainer) return;
+
+            const data = currentData;
+            if (!data.length) {
+                contentContainer.innerHTML = '<div class="text-center text-gray-400">Нет данных</div>';
+                return;
+            }
+
+            const config = widget.config;
+
+            switch(widget.type) {
+                case 'kpi':
+                    const value = calculateAggregation(data, config.yColumn || config.column, config.aggregation);
+                    contentContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full">
+                            <div class="text-3xl font-bold text-blue-600">${formatNumber(value)}</div>
+                            <div class="text-sm text-gray-500 mt-2">${getAggregationLabel(config.aggregation)}</div>
+                        </div>
+                    `;
+                    break;
+
+                case 'bar':
+                case 'line':
+                    const chartData = prepareChartData(data, config.xColumn, config.yColumn);
+                    const canvasId = `chart-${widget.id}-${Date.now()}`;
+                    contentContainer.innerHTML = `<canvas id="${canvasId}" style="max-height: 100%; width: 100%;"></canvas>`;
+
+                    setTimeout(() => {
+                        const ctx = document.getElementById(canvasId);
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: widget.type,
+                                data: {
+                                    labels: chartData.labels,
+                                    datasets: [{
+                                        label: config.yColumn,
+                                        data: chartData.values,
+                                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                        borderColor: 'rgba(59, 130, 246, 1)',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    plugins: {
+                                        legend: { position: 'bottom' }
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                    break;
+
+                case 'pie':
+                    const pieData = prepareChartData(data, config.xColumn, config.yColumn);
+                    const pieCanvasId = `pie-${widget.id}-${Date.now()}`;
+                    contentContainer.innerHTML = `<canvas id="${pieCanvasId}" style="max-height: 100%; width: 100%;"></canvas>`;
+
+                    setTimeout(() => {
+                        const ctx = document.getElementById(pieCanvasId);
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'pie',
+                                data: {
+                                    labels: pieData.labels.slice(0, 10),
+                                    datasets: [{
+                                        data: pieData.values.slice(0, 10),
+                                        backgroundColor: [
+                                            'rgba(59, 130, 246, 0.8)',
+                                            'rgba(16, 185, 129, 0.8)',
+                                            'rgba(245, 158, 11, 0.8)',
+                                            'rgba(239, 68, 68, 0.8)',
+                                            'rgba(139, 92, 246, 0.8)'
+                                        ]
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    plugins: {
+                                        legend: { position: 'bottom' }
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                    break;
+
+                case 'table':
+                    const tableData = data.slice(0, 20);
+                    let html = '<div class="overflow-x-auto"><table class="min-w-full text-sm">';
+                    if (tableData.length > 0) {
+                        const cols = Object.keys(tableData[0]).slice(0, 5);
+                        html += '<thead><tr>';
+                        cols.forEach(col => html += `<th class="text-left p-2 bg-gray-50">${col}</th>`);
+                        html += '</tr></thead><tbody>';
+                        tableData.forEach(row => {
+                            html += '<tr>';
+                            cols.forEach(col => html += `<td class="p-2 border-t">${escapeHtml(String(row[col] || '').substring(0, 50))}</td>`);
+                            html += '</tr>';
+                        });
+                        html += '</tbody>';
+                    }
+                    html += '</table></div>';
+                    contentContainer.innerHTML = html;
+                    break;
+
+                case 'scatter':
+                    const scatterData = prepareScatterData(data, config.xColumn, config.yColumn);
+                    const scatterCanvasId = `scatter-${widget.id}-${Date.now()}`;
+                    contentContainer.innerHTML = `<canvas id="${scatterCanvasId}" style="max-height: 100%; width: 100%;"></canvas>`;
+
+                    setTimeout(() => {
+                        const ctx = document.getElementById(scatterCanvasId);
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'scatter',
+                                data: {
+                                    datasets: [{
+                                        label: `${config.xColumn} vs ${config.yColumn}`,
+                                        data: scatterData,
+                                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                        borderColor: 'rgba(59, 130, 246, 1)',
+                                        pointRadius: 5
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: true,
+                                    scales: {
+                                        x: { title: { display: true, text: config.xColumn } },
+                                        y: { title: { display: true, text: config.yColumn } }
+                                    }
+                                }
+                            });
+                        }
+                    }, 100);
+                    break;
+            }
+        }
+
+        // Редактирование виджета
+        async function editWidget(id) {
+            const widget = await db.widgets.get(id);
+            if (!widget) return;
+
+            // TODO: открыть модальное окно с редактированием
+            showNotification('Редактирование виджета в разработке', 'info');
+        }
+
+        // Удаление виджета
+        async function deleteWidget(id) {
+            if (!confirm('Удалить виджет?')) return;
+
+            try {
+                await db.widgets.delete(id);
+                const gridItem = document.querySelector(`[data-widget-id="${id}"]`);
+                if (gridItem) {
+                    grid.removeWidget(gridItem);
+                }
+                showNotification('Виджет удален', 'success');
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showNotification('Ошибка удаления виджета', 'error');
+            }
+        }
+
+        // Вспомогательные функции для аналитики
+        function prepareChartData(data, xCol, yCol) {
+            const aggregated = {};
+            data.forEach(row => {
+                const xValue = row[xCol];
+                const yValue = parseFloat(row[yCol]);
+                if (!isNaN(yValue)) {
+                    if (!aggregated[xValue]) aggregated[xValue] = 0;
+                    aggregated[xValue] += yValue;
+                }
+            });
+
+            const labels = Object.keys(aggregated).slice(0, 20);
+            const values = labels.map(label => aggregated[label]);
+            return { labels, values };
+        }
+
+        function prepareScatterData(data, xCol, yCol) {
+            return data.map(row => ({
+                x: parseFloat(row[xCol]),
+                y: parseFloat(row[yCol])
+            })).filter(point => !isNaN(point.x) && !isNaN(point.y));
+        }
+
+        function calculateAggregation(data, column, type) {
+            const values = data.map(row => parseFloat(row[column])).filter(v => !isNaN(v));
+            if (values.length === 0) return 0;
+
+            switch(type) {
+                case 'sum': return values.reduce((a,b) => a + b, 0);
+                case 'avg': return values.reduce((a,b) => a + b, 0) / values.length;
+                case 'count': return values.length;
+                case 'min': return Math.min(...values);
+                case 'max': return Math.max(...values);
+                default: return 0;
+            }
+        }
+
+        function getAggregationLabel(type) {
+            const labels = { sum: 'Сумма', avg: 'Среднее', count: 'Количество', min: 'Минимум', max: 'Максимум' };
+            return labels[type] || type;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toFixed(2);
         }
 
         // Загрузка CSV файла
@@ -273,11 +1166,9 @@
                         currentColumns = Object.keys(results.data[0]);
                         currentData = results.data;
 
-                        // Сохраняем в базу данных
                         await saveDatasetToDB(file.name, currentData);
-
-                        // Обновляем интерфейс
                         updateUI();
+                        updateAnalyticsSelectors();
                         showNotification(`Загружено ${currentData.length} записей`, 'success');
                     } else {
                         showNotification('Файл пуст или имеет неверный формат', 'error');
@@ -292,13 +1183,11 @@
         // Сохранение набора данных в IndexedDB
         async function saveDatasetToDB(name, data) {
             try {
-                // Удаляем старый датасет если есть
                 if (currentDatasetId) {
                     await db.tableData.where('datasetId').equals(currentDatasetId).delete();
                     await db.datasets.delete(currentDatasetId);
                 }
 
-                // Сохраняем метаданные
                 const datasetId = await db.datasets.add({
                     name: name,
                     timestamp: new Date().toISOString(),
@@ -308,7 +1197,6 @@
 
                 currentDatasetId = datasetId;
 
-                // Сохраняем данные по частям для производительности
                 const batchSize = 100;
                 for (let i = 0; i < data.length; i += batchSize) {
                     const batch = data.slice(i, i + batchSize);
@@ -363,7 +1251,6 @@
         function updateUI() {
             if (!currentData.length) return;
 
-            // Обновляем информацию о данных
             const dataInfo = document.getElementById('dataInfo');
             dataInfo.innerHTML = `
                 <div class="space-y-2">
@@ -382,26 +1269,14 @@
                 </div>
             `;
 
-            // Обновляем быструю статистику
             updateQuickStats();
-
-            // Обновляем селекторы для графика
-            updateChartSelectors();
-
-            // Обновляем таблицу
-            currentPage = 1;
             updateTable();
-
-            // Активируем кнопки
             document.getElementById('exportBtn').disabled = false;
-            document.getElementById('clearBtn').disabled = false;
         }
 
         // Обновление быстрой статистики
         function updateQuickStats() {
             const statsDiv = document.getElementById('quickStats');
-
-            // Находим числовые колонки
             const numericColumns = currentColumns.filter(col => {
                 return currentData.some(row => !isNaN(parseFloat(row[col])) && isFinite(row[col]));
             });
@@ -417,7 +1292,7 @@
                 statsDiv.innerHTML = `
                     <div class="space-y-2">
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Колонка "${firstNumericCol}":</span>
+                            <span class="text-gray-600">${firstNumericCol}:</span>
                             <span class="font-semibold"></span>
                         </div>
                         <div class="flex justify-between">
@@ -439,79 +1314,6 @@
             }
         }
 
-        // Обновление селекторов для графика
-        function updateChartSelectors() {
-            const xSelect = document.getElementById('xColumn');
-            const ySelect = document.getElementById('yColumn');
-
-            xSelect.innerHTML = '<option value="">Выберите колонку</option>';
-            ySelect.innerHTML = '<option value="">Выберите колонку</option>';
-
-            currentColumns.forEach(col => {
-                xSelect.innerHTML += `<option value="${col}">${col}</option>`;
-                ySelect.innerHTML += `<option value="${col}">${col}</option>`;
-            });
-        }
-
-        // Обновление графика
-        async function updateChart() {
-            const xCol = document.getElementById('xColumn').value;
-            const yCol = document.getElementById('yColumn').value;
-
-            if (!xCol || !yCol) return;
-
-            // Агрегируем данные для графика
-            const aggregated = {};
-            currentData.forEach(row => {
-                const xValue = row[xCol];
-                const yValue = parseFloat(row[yCol]);
-                if (!isNaN(yValue)) {
-                    if (!aggregated[xValue]) {
-                        aggregated[xValue] = 0;
-                    }
-                    aggregated[xValue] += yValue;
-                }
-            });
-
-            const labels = Object.keys(aggregated).slice(0, 20);
-            const values = labels.map(label => aggregated[label]);
-
-            if (chart) {
-                chart.destroy();
-            }
-
-            const ctx = document.getElementById('dataChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: `${yCol} по ${xCol}`,
-                        data: values,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
         // Обновление таблицы
         function updateTable() {
             const start = (currentPage - 1) * rowsPerPage;
@@ -523,7 +1325,6 @@
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
-            // Создаем HTML таблицы
             let html = '<table class="data-table">';
             html += '<thead><tr>';
             currentColumns.forEach(col => {
@@ -550,6 +1351,246 @@
             document.getElementById('dataTable').innerHTML = html;
         }
 
+        // Обновление селекторов для аналитики
+        function updateAnalyticsSelectors() {
+            if (!currentColumns.length) return;
+
+            const selectors = ['distColumn', 'groupByColumn', 'aggregateColumn', 'timeColumn', 'valueColumn'];
+            selectors.forEach(selectorId => {
+                const select = document.getElementById(selectorId);
+                if (select) {
+                    select.innerHTML = '<option value="">Выберите колонку</option>';
+                    currentColumns.forEach(col => {
+                        select.innerHTML += `<option value="${col}">${col}</option>`;
+                    });
+                }
+            });
+        }
+
+        // Обновление аналитики
+        function updateAnalytics() {
+            updateCorrelationMatrix();
+            updateDistribution();
+            updateAggregation();
+            updateTrend();
+        }
+
+        // Корреляционная матрица
+        function updateCorrelationMatrix() {
+            const container = document.getElementById('correlationMatrix');
+            const numericColumns = currentColumns.filter(col =>
+                currentData.some(row => !isNaN(parseFloat(row[col])) && isFinite(row[col]))
+            );
+
+            if (numericColumns.length < 2) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Недостаточно числовых колонок для корреляционного анализа</p>';
+                return;
+            }
+
+            const correlations = [];
+            for (let i = 0; i < numericColumns.length; i++) {
+                for (let j = i + 1; j < numericColumns.length; j++) {
+                    const corr = calculateCorrelation(currentData, numericColumns[i], numericColumns[j]);
+                    correlations.push({
+                        col1: numericColumns[i],
+                        col2: numericColumns[j],
+                        value: corr
+                    });
+                }
+            }
+
+            let html = '<div class="space-y-2">';
+            correlations.forEach(corr => {
+                const strength = Math.abs(corr.value) > 0.7 ? 'Сильная' : Math.abs(corr.value) > 0.3 ? 'Средняя' : 'Слабая';
+                const direction = corr.value > 0 ? 'положительная' : 'отрицательная';
+                html += `
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span class="text-sm">${corr.col1} ↔ ${corr.col2}</span>
+                        <span class="font-semibold ${corr.value > 0 ? 'text-green-600' : 'text-red-600'}">
+                            ${corr.value.toFixed(3)} (${strength}, ${direction})
+                        </span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // Расчет корреляции
+        function calculateCorrelation(data, col1, col2) {
+            const values = data.map(row => ({
+                x: parseFloat(row[col1]),
+                y: parseFloat(row[col2])
+            })).filter(v => !isNaN(v.x) && !isNaN(v.y));
+
+            const n = values.length;
+            const sumX = values.reduce((a,b) => a + b.x, 0);
+            const sumY = values.reduce((a,b) => a + b.y, 0);
+            const sumXY = values.reduce((a,b) => a + b.x * b.y, 0);
+            const sumX2 = values.reduce((a,b) => a + b.x * b.x, 0);
+            const sumY2 = values.reduce((a,b) => a + b.y * b.y, 0);
+
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+
+        // Обновление распределения
+        function updateDistribution() {
+            const column = document.getElementById('distColumn').value;
+            if (!column || !currentData.length) return;
+
+            const values = currentData.map(row => parseFloat(row[column])).filter(v => !isNaN(v));
+            if (values.length === 0) return;
+
+            // Создаем гистограмму
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const binCount = 20;
+            const binSize = (max - min) / binCount;
+            const bins = Array(binCount).fill(0);
+
+            values.forEach(v => {
+                const binIndex = Math.min(Math.floor((v - min) / binSize), binCount - 1);
+                bins[binIndex]++;
+            });
+
+            const labels = bins.map((_, i) => (min + i * binSize).toFixed(2));
+
+            if (distributionChart) distributionChart.destroy();
+
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            distributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Распределение ${column}`,
+                        data: bins,
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Частота: ${context.parsed.y}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Обновление агрегации
+        function updateAggregation() {
+            const groupBy = document.getElementById('groupByColumn').value;
+            const aggregate = document.getElementById('aggregateColumn').value;
+
+            if (!groupBy || !aggregate || !currentData.length) {
+                return;
+            }
+
+            const grouped = {};
+            currentData.forEach(row => {
+                const key = row[groupBy];
+                const value = parseFloat(row[aggregate]);
+                if (!isNaN(value)) {
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(value);
+                }
+            });
+
+            const results = Object.entries(grouped).map(([key, values]) => ({
+                group: key,
+                sum: values.reduce((a,b) => a + b, 0),
+                avg: values.reduce((a,b) => a + b, 0) / values.length,
+                count: values.length,
+                min: Math.min(...values),
+                max: Math.max(...values)
+            })).slice(0, 20);
+
+            let html = '<table class="min-w-full text-sm">';
+            html += '<thead><tr><th class="text-left p-2">Группа</th><th class="text-right p-2">Сумма</th><th class="text-right p-2">Среднее</th><th class="text-right p-2">Кол-во</th><th class="text-right p-2">Мин</th><th class="text-right p-2">Макс</th></tr></thead><tbody>';
+
+            results.forEach(r => {
+                html += `
+                    <tr>
+                        <td class="p-2 border-t">${escapeHtml(r.group)}</td>
+                        <td class="p-2 border-t text-right">${r.sum.toFixed(2)}</td>
+                        <td class="p-2 border-t text-right">${r.avg.toFixed(2)}</td>
+                        <td class="p-2 border-t text-right">${r.count}</td>
+                        <td class="p-2 border-t text-right">${r.min.toFixed(2)}</td>
+                        <td class="p-2 border-t text-right">${r.max.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('aggregationResults').innerHTML = html;
+        }
+
+        // Обновление тренда
+        function updateTrend() {
+            const timeCol = document.getElementById('timeColumn').value;
+            const valueCol = document.getElementById('valueColumn').value;
+
+            if (!timeCol || !valueCol || !currentData.length) return;
+
+            // Сортируем по времени
+            const sorted = [...currentData].sort((a,b) => {
+                const dateA = moment(a[timeCol]);
+                const dateB = moment(b[timeCol]);
+                return dateA.isValid() && dateB.isValid() ? dateA - dateB : 0;
+            });
+
+            const labels = sorted.slice(0, 30).map(row => {
+                const date = moment(row[timeCol]);
+                return date.isValid() ? date.format('DD.MM') : String(row[timeCol]).substring(0, 10);
+            });
+
+            const values = sorted.slice(0, 30).map(row => parseFloat(row[valueCol])).filter(v => !isNaN(v));
+
+            if (trendChart) trendChart.destroy();
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.slice(0, values.length),
+                    datasets: [{
+                        label: valueCol,
+                        data: values,
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${valueCol}: ${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Пагинация
         function previousPage() {
             if (currentPage > 1) {
@@ -570,7 +1611,6 @@
         async function exportData() {
             if (!currentData.length) return;
 
-            // Конвертируем в CSV
             const headers = currentColumns.join(',');
             const rows = currentData.map(row => {
                 return currentColumns.map(col => {
@@ -596,40 +1636,6 @@
             showNotification('Экспорт завершен', 'success');
         }
 
-        // Очистка всех данных
-        async function clearAllData() {
-            if (confirm('Вы уверены, что хотите удалить все данные?')) {
-                try {
-                    if (currentDatasetId) {
-                        await db.tableData.where('datasetId').equals(currentDatasetId).delete();
-                        await db.datasets.delete(currentDatasetId);
-                    }
-
-                    currentDatasetId = null;
-                    currentData = [];
-                    currentColumns = [];
-                    currentPage = 1;
-
-                    updateUI();
-                    document.getElementById('dataInfo').innerHTML = '<p class="text-gray-500 text-sm">Нет загруженных данных</p>';
-                    document.getElementById('quickStats').innerHTML = '<p class="text-gray-500 text-sm">Нет данных для анализа</p>';
-                    document.getElementById('dataTable').innerHTML = '<p class="text-center text-gray-500 py-8">Нет данных</p>';
-                    document.getElementById('exportBtn').disabled = true;
-                    document.getElementById('clearBtn').disabled = true;
-
-                    if (chart) {
-                        chart.destroy();
-                        chart = null;
-                    }
-
-                    showNotification('Все данные удалены', 'success');
-                } catch (error) {
-                    console.error('Ошибка очистки:', error);
-                    showNotification('Ошибка при очистке данных', 'error');
-                }
-            }
-        }
-
         // Вспомогательные функции
         function escapeHtml(str) {
             if (!str) return '';
@@ -642,7 +1648,6 @@
         }
 
         function showNotification(message, type = 'info') {
-            // Создаем уведомление
             const notification = document.createElement('div');
             notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg shadow-lg fade-in ${
                 type === 'success' ? 'bg-green-500' :
