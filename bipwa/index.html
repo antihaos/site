@@ -809,7 +809,7 @@
             }
 
             try {
-                const registration = await navigator.serviceWorker.register('/bipwa/sw.js', { scope: '/bipwa' });
+                const registration = await navigator.serviceWorker.register('/bipwa/sw.js', { scope: '/bipwa/' });
                 swRegistration = registration;
                 console.log('Service Worker зарегистрирован:', registration);
 
