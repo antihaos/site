@@ -78,7 +78,7 @@ const strategies = {
     } catch (error) {
       console.error('[SW] Ошибка загрузки статики:', error);
       if (request.mode === 'navigate') {
-        return caches.match('/index.html');
+        return caches.match('/bipwa/index.html');
       }
       return new Response('Страница недоступна офлайн', {
         status: 503,
