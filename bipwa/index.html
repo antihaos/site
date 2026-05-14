@@ -7,6 +7,9 @@
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,9 +19,6 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-    <!-- Chart.js Data Labels -->
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
     <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -74,6 +74,7 @@
 
         .grid-stack {
             background: transparent;
+            min-height: 600px;
         }
 
         .grid-stack-item-content {
@@ -121,11 +122,6 @@
 
         .modal.active .modal-content {
             transform: scale(1);
-        }
-
-        .tab-active {
-            border-bottom: 2px solid #3b82f6;
-            color: #3b82f6;
         }
 
         .loading-spinner {
@@ -200,10 +196,75 @@
             top: 0;
             background: white;
             z-index: 10;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .tab-button {
+            transition: all 0.2s;
+        }
+
+        .offline-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 14px;
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .online-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            font-size: 14px;
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Темная тема */
+        .dark {
+            background-color: #1f2937;
+        }
+
+        .dark .bg-white {
+            background-color: #374151;
+        }
+
+        .dark .text-gray-600,
+        .dark .text-gray-700,
+        .dark .text-gray-500 {
+            color: #d1d5db;
+        }
+
+        .dark .border-gray-200 {
+            border-color: #4b5563;
+        }
+
+        .dark .bg-gray-50 {
+            background-color: #1f2937;
+        }
+
+        .dark .bg-gray-100 {
+            background-color: #374151;
         }
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Индикатор статуса -->
+    <div id="statusBadge" style="display: none;"></div>
+
     <!-- Шапка -->
     <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
         <div class="container mx-auto px-4 py-4">
@@ -230,13 +291,13 @@
                     <button onclick="checkOfflineStatus()" class="text-gray-500 hover:text-gray-700 transition" title="Статус">
                         <i class="fas fa-wifi"></i>
                     </button>
-                    <button onclick="exportDashboard()" id="exportDashboardBtn" disabled class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition disabled:opacity-50">
-                        <i class="fas fa-camera mr-2"></i>Скриншот
+                    <button onclick="updateSW()" class="text-gray-500 hover:text-gray-700 transition" title="Обновить">
+                        <i class="fas fa-sync-alt"></i>
                     </button>
                     <button onclick="openDashboardManager()" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">
                         <i class="fas fa-th-large mr-2"></i>Дашборды
                     </button>
-                    <button onclick="exportData()" id="exportBtn" disabled class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50">
+                    <button onclick="exportData()" id="exportBtn" disabled class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-download mr-2"></i>Экспорт
                     </button>
                 </div>
@@ -268,7 +329,6 @@
 
         <!-- Вкладка Данные -->
         <div id="dataTab" class="tab-content">
-            <!-- Статистические карточки -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white stat-card">
                     <div class="flex items-center justify-between">
@@ -373,7 +433,7 @@
                         <button onclick="nextPage()" id="nextBtn" disabled class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition disabled:opacity-50">
                             <i class="fas fa-chevron-right"></i>
                         </button>
-                        <select id="rowsPerPage" onchange="changeRowsPerPage()" class="px-2 py-1 border border-gray-300 rounded-lg">
+                        <select id="rowsPerPageSelect" onchange="changeRowsPerPage()" class="px-2 py-1 border border-gray-300 rounded-lg">
                             <option value="10">10</option>
                             <option value="20" selected>20</option>
                             <option value="50">50</option>
@@ -426,7 +486,7 @@
                 </div>
             </div>
 
-            <div class="grid-stack" id="dashboardGrid"></div>
+            <div class="grid-stack" id="dashboardGrid" style="min-height: 600px;"></div>
         </div>
 
         <!-- Вкладка Аналитика -->
@@ -453,7 +513,7 @@
                             <option value="">Выберите колонку</option>
                         </select>
                     </div>
-                    <canvas id="distributionChart" style="max-height: 300px;"></canvas>
+                    <canvas id="distributionChart" style="max-height: 300px; width: 100%;"></canvas>
                 </div>
 
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
@@ -485,7 +545,7 @@
                             <option value="max">Максимум</option>
                         </select>
                     </div>
-                    <div id="aggregationResults" class="overflow-x-auto">
+                    <div id="aggregationResults" class="overflow-x-auto max-h-96">
                         <p class="text-gray-500 text-sm">Выберите параметры для агрегации</p>
                     </div>
                 </div>
@@ -507,7 +567,7 @@
                             <option value="">Выберите колонку</option>
                         </select>
                     </div>
-                    <canvas id="trendChart" style="max-height: 300px;"></canvas>
+                    <canvas id="trendChart" style="max-height: 300px; width: 100%;"></canvas>
                 </div>
             </div>
         </div>
@@ -529,16 +589,21 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Оператор</label>
-                            <select id="filterOperator" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <select id="filterOperator" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="toggleFilterValue2()">
                                 <option value="equals">Равно</option>
                                 <option value="contains">Содержит</option>
                                 <option value="greater">Больше</option>
                                 <option value="less">Меньше</option>
+                                <option value="between">Между</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Значение</label>
                             <input type="text" id="filterValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Введите значение">
+                        </div>
+                        <div id="filterValue2Div" style="display: none;">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Значение 2</label>
+                            <input type="text" id="filterValue2" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Введите второе значение">
                         </div>
                         <button onclick="addFilter()" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                             <i class="fas fa-plus mr-2"></i>Добавить фильтр
@@ -551,7 +616,7 @@
                         <i class="fas fa-list text-purple-500 mr-2"></i>
                         Активные фильтры
                     </h2>
-                    <div id="activeFilters" class="min-h-32">
+                    <div id="activeFiltersList" class="min-h-32">
                         <p class="text-gray-500 text-sm">Нет активных фильтров</p>
                     </div>
                     <div class="mt-4 flex space-x-2">
@@ -570,7 +635,7 @@
                     <i class="fas fa-eye text-indigo-500 mr-2"></i>
                     Предпросмотр отфильтрованных данных
                 </h2>
-                <div id="filteredPreview" class="overflow-x-auto">
+                <div id="filteredPreview" class="overflow-x-auto max-h-96">
                     <p class="text-gray-500 text-sm">Примените фильтры для предпросмотра</p>
                 </div>
                 <div class="mt-4 text-sm text-gray-600" id="filterStats"></div>
@@ -595,11 +660,26 @@
                             </label>
                         </div>
                         <div>
+                            <label class="flex items-center justify-between">
+                                <span class="text-gray-700">Офлайн режим</span>
+                                <span id="offlineStatusBadge" class="px-2 py-1 text-xs rounded bg-green-100 text-green-700">Доступен</span>
+                            </label>
+                        </div>
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Разделитель тысяч</label>
                             <select id="thousandSeparator" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="changeThousandSeparator()">
                                 <option value=",">Запятая (1,234)</option>
                                 <option value=" ">Пробел (1 234)</option>
                                 <option value=".">Точка (1.234)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Количество строк на странице</label>
+                            <select id="defaultRowsPerPage" class="w-full px-3 py-2 border border-gray-300 rounded-lg" onchange="changeDefaultRowsPerPage()">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
                             </select>
                         </div>
                     </div>
@@ -614,12 +694,20 @@
                         <button onclick="backupData()" class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
                             <i class="fas fa-database mr-2"></i>Создать резервную копию
                         </button>
+                        <button onclick="restoreData()" class="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            <i class="fas fa-upload mr-2"></i>Восстановить из копии
+                        </button>
                         <button onclick="clearAllData()" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                             <i class="fas fa-trash-alt mr-2"></i>Очистить все данные
                         </button>
-                        <div class="text-sm text-gray-500">
+                        <button onclick="updateSW()" class="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600">
+                            <i class="fas fa-sync-alt mr-2"></i>Проверить обновления
+                        </button>
+                        <div class="text-sm text-gray-500 pt-4 border-t border-gray-200">
                             <p>Дашбордов: <span id="dashboardCount">0</span></p>
                             <p>Виджетов: <span id="widgetCount">0</span></p>
+                            <p>Версия SW: <span id="swVersion">-</span></p>
+                            <p>Размер БД: <span id="dbSize">0 KB</span></p>
                         </div>
                     </div>
                 </div>
@@ -627,7 +715,7 @@
         </div>
     </main>
 
-    <!-- Модальные окна -->
+    <!-- Модальное окно для дашбордов -->
     <div id="dashboardModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b border-gray-200">
@@ -648,6 +736,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно для виджетов -->
     <div id="widgetModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div class="modal-content bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4">
             <div class="p-6 border-b border-gray-200">
@@ -656,36 +745,39 @@
             <div class="p-6">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Тип виджета</label>
-                    <select id="widgetType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <select id="widgetTypeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="bar">Гистограмма</option>
                         <option value="line">Линейный график</option>
                         <option value="pie">Круговая диаграмма</option>
                         <option value="kpi">KPI карточка</option>
                         <option value="table">Таблица данных</option>
+                        <option value="scatter">Точечная диаграмма</option>
                     </select>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Заголовок</label>
-                    <input type="text" id="widgetTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Введите заголовок">
+                    <input type="text" id="widgetTitleInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Введите заголовок" value="Новый виджет">
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">X ось / Категория</label>
-                    <select id="widgetXColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <select id="widgetXColumnSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="">Выберите колонку</option>
                     </select>
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Y ось / Значение</label>
-                    <select id="widgetYColumn" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <select id="widgetYColumnSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="">Выберите колонку</option>
                     </select>
                 </div>
-                <div class="mb-4" id="kpiOptions" style="display: none;">
+                <div class="mb-4" id="kpiOptionsDiv" style="display: none;">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Тип KPI</label>
-                    <select id="kpiType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    <select id="kpiTypeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
                         <option value="sum">Сумма</option>
                         <option value="avg">Среднее</option>
                         <option value="count">Количество</option>
+                        <option value="min">Минимум</option>
+                        <option value="max">Максимум</option>
                     </select>
                 </div>
             </div>
@@ -701,7 +793,102 @@
     </div>
 
     <script>
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        // ========== SERVICE WORKER РЕГИСТРАЦИЯ ==========
+        let swRegistration = null;
+        let newWorkerWaiting = false;
+
+        async function registerSW() {
+            if (!('serviceWorker' in navigator)) {
+                console.log('Service Worker не поддерживается');
+                const badge = document.getElementById('offlineStatusBadge');
+                if (badge) {
+                    badge.innerHTML = 'Не поддерживается';
+                    badge.className = 'px-2 py-1 text-xs rounded bg-red-100 text-red-700';
+                }
+                return;
+            }
+
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                swRegistration = registration;
+                console.log('Service Worker зарегистрирован:', registration);
+
+                const swVersionSpan = document.getElementById('swVersion');
+                if (swVersionSpan) {
+                    swVersionSpan.innerHTML = 'v' + new Date().toLocaleTimeString();
+                }
+
+                const badge = document.getElementById('offlineStatusBadge');
+                if (badge) {
+                    badge.innerHTML = 'Активен';
+                    badge.className = 'px-2 py-1 text-xs rounded bg-green-100 text-green-700';
+                }
+
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            newWorkerWaiting = true;
+                            showNotification('Доступно обновление! Нажмите "Обновить" для установки.', 'info');
+                        }
+                    });
+                });
+
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 60 * 1000);
+
+            } catch (error) {
+                console.error('Ошибка регистрации SW:', error);
+                const badge = document.getElementById('offlineStatusBadge');
+                if (badge) {
+                    badge.innerHTML = 'Ошибка';
+                    badge.className = 'px-2 py-1 text-xs rounded bg-red-100 text-red-700';
+                }
+            }
+        }
+
+        async function updateSW() {
+            if (!swRegistration) {
+                showNotification('Service Worker не зарегистрирован', 'error');
+                return;
+            }
+
+            try {
+                await swRegistration.update();
+                showNotification('Проверка обновлений выполнена', 'success');
+
+                if (newWorkerWaiting) {
+                    newWorkerWaiting = false;
+                    showNotification('Обновление установлено! Перезагрузите страницу.', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Ошибка обновления:', error);
+                showNotification('Ошибка при проверке обновлений', 'error');
+            }
+        }
+
+        function updateNetworkStatus() {
+            const statusDiv = document.getElementById('statusBadge');
+            if (!navigator.onLine) {
+                if (statusDiv) {
+                    statusDiv.innerHTML = '<div class="offline-badge"><i class="fas fa-wifi mr-2"></i>Офлайн режим</div>';
+                    statusDiv.style.display = 'block';
+                }
+                showNotification('Работа в офлайн-режиме. Данные доступны из кэша.', 'warning');
+                setTimeout(() => {
+                    const badge = document.querySelector('.offline-badge');
+                    if (badge) badge.style.opacity = '0.5';
+                }, 3000);
+            } else {
+                if (statusDiv) statusDiv.style.display = 'none';
+            }
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ ==========
         const db = new Dexie('BIDatabase');
         db.version(3).stores({
             datasets: '++id, name, timestamp, rowCount, columns',
@@ -725,19 +912,61 @@
 
         // ========== ЗАГРУЗКА ДАННЫХ ==========
         window.addEventListener('load', async () => {
+            await registerSW();
+            updateNetworkStatus();
             await loadLastDataset();
             await loadDashboards();
             initGridStack();
             updateAnalyticsSelectors();
             updateFilterSelectors();
+            updateDBInfo();
 
-            document.getElementById('widgetType').addEventListener('change', function() {
-                document.getElementById('kpiOptions').style.display = this.value === 'kpi' ? 'block' : 'none';
+            const savedRowsPerPage = localStorage.getItem('rowsPerPage');
+            if (savedRowsPerPage) {
+                rowsPerPage = parseInt(savedRowsPerPage);
+                const select = document.getElementById('rowsPerPageSelect');
+                if (select) select.value = savedRowsPerPage;
+                const defaultSelect = document.getElementById('defaultRowsPerPage');
+                if (defaultSelect) defaultSelect.value = savedRowsPerPage;
+            }
+
+            const savedSeparator = localStorage.getItem('thousandSeparator');
+            if (savedSeparator) {
+                const select = document.getElementById('thousandSeparator');
+                if (select) select.value = savedSeparator;
+            }
+
+            const widgetTypeSelect = document.getElementById('widgetTypeSelect');
+            if (widgetTypeSelect) {
+                widgetTypeSelect.addEventListener('change', function() {
+                    const kpiOptions = document.getElementById('kpiOptionsDiv');
+                    if (kpiOptions) {
+                        kpiOptions.style.display = this.value === 'kpi' ? 'block' : 'none';
+                    }
+                });
+            }
+
+            window.addEventListener('online', () => {
+                updateNetworkStatus();
+                showNotification('Соединение восстановлено!', 'success');
+            });
+            window.addEventListener('offline', () => {
+                updateNetworkStatus();
+                showNotification('Нет соединения. Работа в офлайн-режиме.', 'warning');
             });
         });
 
+        function toggleFilterValue2() {
+            const operator = document.getElementById('filterOperator').value;
+            const div = document.getElementById('filterValue2Div');
+            if (div) {
+                div.style.display = operator === 'between' ? 'block' : 'none';
+            }
+        }
+
         async function loadFile(file) {
             if (!file) return;
+            showNotification('Загрузка файла...', 'info');
 
             if (file.name.endsWith('.csv')) {
                 Papa.parse(file, {
@@ -746,7 +975,12 @@
                     complete: async (results) => {
                         if (results.data && results.data.length) {
                             await processLoadedData(results.data, file.name);
+                        } else {
+                            showNotification('Файл пуст', 'error');
                         }
+                    },
+                    error: (error) => {
+                        showNotification('Ошибка парсинга CSV: ' + error.message, 'error');
                     }
                 });
             } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
@@ -763,6 +997,11 @@
         }
 
         async function processLoadedData(data, name) {
+            if (!data || data.length === 0) {
+                showNotification('Нет данных в файле', 'error');
+                return;
+            }
+
             currentColumns = Object.keys(data[0]);
             currentData = data;
             filteredData = [...data];
@@ -792,6 +1031,7 @@
             updateUI();
             updateAnalyticsSelectors();
             updateFilterSelectors();
+            updateDBInfo();
             showNotification(`Загружено ${data.length} записей`, 'success');
         }
 
@@ -803,64 +1043,111 @@
                 { date: '2024-01-04', product: 'Товар В', sales: 32000, profit: 9600, region: 'Казань' },
                 { date: '2024-01-05', product: 'Товар Б', sales: 25000, profit: 7500, region: 'СПб' },
                 { date: '2024-01-06', product: 'Товар А', sales: 20000, profit: 6000, region: 'Москва' },
-                { date: '2024-01-07', product: 'Товар В', sales: 28000, profit: 8400, region: 'Казань' }
+                { date: '2024-01-07', product: 'Товар В', sales: 28000, profit: 8400, region: 'Казань' },
+                { date: '2024-01-08', product: 'Товар Б', sales: 30000, profit: 9000, region: 'Москва' },
+                { date: '2024-01-09', product: 'Товар А', sales: 17000, profit: 5100, region: 'СПб' },
+                { date: '2024-01-10', product: 'Товар В', sales: 35000, profit: 10500, region: 'Москва' }
             ];
             processLoadedData(sampleData, 'sample_data.csv');
         }
 
         async function loadLastDataset() {
-            const lastDataset = await db.datasets.orderBy('timestamp').reverse().first();
-            if (lastDataset) {
-                currentDatasetId = lastDataset.id;
-                currentColumns = lastDataset.columns;
-                const records = await db.tableData.where('datasetId').equals(lastDataset.id).sortBy('rowIndex');
-                currentData = records.map(r => r.rowData);
-                filteredData = [...currentData];
-                updateUI();
+            try {
+                const lastDataset = await db.datasets.orderBy('timestamp').reverse().first();
+                if (lastDataset) {
+                    currentDatasetId = lastDataset.id;
+                    currentColumns = lastDataset.columns;
+                    const records = await db.tableData.where('datasetId').equals(lastDataset.id).sortBy('rowIndex');
+                    currentData = records.map(r => r.rowData);
+                    filteredData = [...currentData];
+                    updateUI();
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
             }
         }
 
         function updateUI() {
+            if (!currentData.length) {
+                document.getElementById('totalRecords').textContent = '0';
+                document.getElementById('totalColumns').textContent = '0';
+                document.getElementById('numericColumns').textContent = '0';
+                document.getElementById('dataSize').textContent = '0 MB';
+                document.getElementById('dataInfo').innerHTML = '<p class="text-gray-500 text-sm">Нет загруженных данных</p>';
+                document.getElementById('quickStats').innerHTML = '<p class="text-gray-500 text-sm">Нет данных для анализа</p>';
+                document.getElementById('exportBtn').disabled = true;
+                return;
+            }
+
             document.getElementById('totalRecords').textContent = currentData.length.toLocaleString();
             document.getElementById('totalColumns').textContent = currentColumns.length;
-            document.getElementById('dataSize').textContent = (JSON.stringify(currentData).length / (1024*1024)).toFixed(2) + ' MB';
 
             const numericCols = currentColumns.filter(col => currentData.some(row => !isNaN(parseFloat(row[col]))));
             document.getElementById('numericColumns').textContent = numericCols.length;
+            document.getElementById('dataSize').textContent = (JSON.stringify(currentData).length / (1024*1024)).toFixed(2) + ' MB';
 
             document.getElementById('dataInfo').innerHTML = `
                 <div class="space-y-2">
+                    <div class="flex justify-between"><span class="text-gray-600">Имя:</span><span class="font-semibold text-sm">dataset_${currentDatasetId}</span></div>
                     <div class="flex justify-between"><span class="text-gray-600">Строк:</span><span class="font-semibold">${currentData.length.toLocaleString()}</span></div>
                     <div class="flex justify-between"><span class="text-gray-600">Колонок:</span><span class="font-semibold">${currentColumns.length}</span></div>
-                    <div class="flex flex-wrap gap-1 mt-2">${currentColumns.map(c => `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${escapeHtml(c)}</span>`).join('')}</div>
+                    <div class="flex flex-wrap gap-1 mt-2">${currentColumns.slice(0, 10).map(c => `<span class="text-xs bg-gray-100 px-2 py-1 rounded">${escapeHtml(c)}</span>`).join('')}${currentColumns.length > 10 ? '<span class="text-xs text-gray-400">...</span>' : ''}</div>
                 </div>
             `;
 
             updateQuickStats();
             updateTable();
             document.getElementById('exportBtn').disabled = false;
-            document.getElementById('exportDashboardBtn').disabled = false;
         }
 
         function updateQuickStats() {
             const numericCols = currentColumns.filter(col => currentData.some(row => !isNaN(parseFloat(row[col]))));
-            if (numericCols.length) {
+            if (numericCols.length && currentData.length) {
                 const col = numericCols[0];
                 const values = currentData.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
-                const sum = values.reduce((a,b) => a+b, 0);
-                const avg = sum / values.length;
-                document.getElementById('quickStats').innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex justify-between"><span class="text-gray-600">${col}:</span><span class="font-semibold"></span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Среднее:</span><span class="font-semibold">${avg.toFixed(2)}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Максимум:</span><span class="font-semibold">${Math.max(...values).toFixed(2)}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Минимум:</span><span class="font-semibold">${Math.min(...values).toFixed(2)}</span></div>
-                    </div>
-                `;
+                if (values.length) {
+                    const sum = values.reduce((a,b) => a+b, 0);
+                    const avg = sum / values.length;
+                    const max = Math.max(...values);
+                    const min = Math.min(...values);
+                    const median = calculateMedian(values);
+                    const separator = localStorage.getItem('thousandSeparator') || ',';
+                    document.getElementById('quickStats').innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-600">${escapeHtml(col)}:</span><span class="font-semibold"></span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Сумма:</span><span class="font-semibold">${formatNumber(sum, separator)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Среднее:</span><span class="font-semibold">${formatNumber(avg, separator)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Медиана:</span><span class="font-semibold">${formatNumber(median, separator)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Максимум:</span><span class="font-semibold">${formatNumber(max, separator)}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">Минимум:</span><span class="font-semibold">${formatNumber(min, separator)}</span></div>
+                        </div>
+                    `;
+                    return;
+                }
             }
+            document.getElementById('quickStats').innerHTML = '<p class="text-gray-500 text-sm">Нет числовых колонок</p>';
+        }
+
+        function calculateMedian(values) {
+            const sorted = [...values].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+        }
+
+        function formatNumber(num, separator) {
+            if (isNaN(num)) return '0';
+            const parts = num.toFixed(2).split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, separator === ',' ? ',' : separator === ' ' ? ' ' : '.');
+            return parts.join('.');
         }
 
         function updateTable() {
+            if (!filteredData.length) {
+                document.getElementById('dataTable').innerHTML = '<p class="text-center text-gray-500 py-8">Нет данных</p>';
+                document.getElementById('pageInfo').innerHTML = 'Страница 0 из 0';
+                return;
+            }
+
             const start = (currentPage-1)*rowsPerPage;
             const pageData = filteredData.slice(start, start+rowsPerPage);
             const totalPages = Math.ceil(filteredData.length/rowsPerPage);
@@ -869,47 +1156,121 @@
             document.getElementById('prevBtn').disabled = currentPage === 1;
             document.getElementById('nextBtn').disabled = currentPage === totalPages;
 
-            let html = '<table class="data-table min-w-full"><thead><tr class="bg-gray-50">';
-            currentColumns.forEach(col => html += `<th class="px-4 py-2 text-left text-sm font-semibold">${escapeHtml(col)}</th>`);
+            let html = '<table class="data-table min-w-full"><thead><tr class="bg-gray-50 border-b">';
+            html += '<th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">#</th>';
+            currentColumns.slice(0, 10).forEach(col => {
+                html += `<th class="px-4 py-2 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-100" onclick="sortByColumn('${escapeHtml(col)}')">${escapeHtml(col)} <i class="fas fa-sort text-gray-400 ml-1"></i></th>`;
+            });
+            if (currentColumns.length > 10) html += '<th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">...</th>';
             html += '</tr></thead><tbody>';
 
-            pageData.forEach(row => {
+            pageData.forEach((row, idx) => {
                 html += '<tr class="border-b hover:bg-gray-50">';
-                currentColumns.forEach(col => html += `<td class="px-4 py-2 text-sm">${escapeHtml(String(row[col] || '-').substring(0, 100))}</td>`);
+                html += `<td class="px-4 py-2 text-sm text-gray-500">${start + idx + 1}</td>`;
+                currentColumns.slice(0, 10).forEach(col => {
+                    let val = row[col];
+                    if (val === undefined || val === null) val = '-';
+                    if (typeof val === 'number') {
+                        const separator = localStorage.getItem('thousandSeparator') || ',';
+                        val = formatNumber(val, separator);
+                    }
+                    html += `<td class="px-4 py-2 text-sm text-gray-600">${escapeHtml(String(val).substring(0, 100))}</td>`;
+                });
+                if (currentColumns.length > 10) html += '<td class="px-4 py-2 text-sm text-gray-400">...</td>';
                 html += '</tr>';
             });
+
             html += '</tbody></table>';
-            document.getElementById('dataTable').innerHTML = html || '<p class="text-center py-8">Нет данных</p>';
+            document.getElementById('dataTable').innerHTML = html;
+        }
+
+        function sortByColumn(column) {
+            filteredData.sort((a, b) => {
+                const valA = a[column];
+                const valB = b[column];
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return valA - valB;
+                }
+                return String(valA).localeCompare(String(valB));
+            });
+            currentPage = 1;
+            updateTable();
+            showNotification(`Сортировка по колонке ${column}`, 'info');
         }
 
         function previousPage() { if (currentPage > 1) { currentPage--; updateTable(); } }
-        function nextPage() { if (currentPage < Math.ceil(filteredData.length/rowsPerPage)) { currentPage++; updateTable(); } }
-        function changeRowsPerPage() { rowsPerPage = parseInt(document.getElementById('rowsPerPage').value); currentPage = 1; updateTable(); }
-        function searchInTable() { const term = prompt('Поиск:'); if(term) filteredData = currentData.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(term.toLowerCase()))); currentPage=1; updateTable(); }
+        function nextPage() { const total = Math.ceil(filteredData.length/rowsPerPage); if (currentPage < total) { currentPage++; updateTable(); } }
+
+        function changeRowsPerPage() {
+            rowsPerPage = parseInt(document.getElementById('rowsPerPageSelect').value);
+            currentPage = 1;
+            updateTable();
+            localStorage.setItem('rowsPerPage', rowsPerPage);
+        }
+
+        function changeDefaultRowsPerPage() {
+            const val = parseInt(document.getElementById('defaultRowsPerPage').value);
+            rowsPerPage = val;
+            const select = document.getElementById('rowsPerPageSelect');
+            if (select) select.value = val;
+            currentPage = 1;
+            updateTable();
+            localStorage.setItem('rowsPerPage', val);
+        }
+
+        function searchInTable() {
+            const term = prompt('Введите текст для поиска:');
+            if (term && term.trim()) {
+                filteredData = currentData.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(term.toLowerCase())));
+                currentPage = 1;
+                updateTable();
+                showNotification(`Найдено ${filteredData.length} записей`, 'info');
+            } else if (term === '') {
+                filteredData = [...currentData];
+                updateTable();
+            }
+        }
 
         // ========== ДАШБОРДЫ ==========
         function initGridStack() {
             const el = document.getElementById('dashboardGrid');
+            if (!el) return;
             el.innerHTML = '';
-            grid = GridStack.init({ column: 12, cellHeight: 'auto', margin: 10, draggable: { handle: '.widget-header' }, resizable: { handles: 'e, se, s, sw, w' } }, el);
+            grid = GridStack.init({
+                column: 12,
+                cellHeight: 'auto',
+                margin: 10,
+                draggable: { handle: '.widget-header' },
+                resizable: { handles: 'e, se, s, sw, w' }
+            }, el);
             grid.on('change', () => { if(currentDashboardId) saveDashboardLayout(); });
         }
 
         async function loadDashboards() {
-            currentDashboards = await db.dashboards.toArray();
-            document.getElementById('dashboardCount').textContent = currentDashboards.length;
-            let wc = 0;
-            for(const d of currentDashboards) wc += (await db.widgets.where('dashboardId').equals(d.id).toArray()).length;
-            document.getElementById('widgetCount').textContent = wc;
+            try {
+                currentDashboards = await db.dashboards.toArray();
+                document.getElementById('dashboardCount').textContent = currentDashboards.length;
+                let wc = 0;
+                for(const d of currentDashboards) {
+                    const widgets = await db.widgets.where('dashboardId').equals(d.id).toArray();
+                    wc += widgets.length;
+                }
+                document.getElementById('widgetCount').textContent = wc;
+            } catch(e) { console.error(e); }
         }
 
         async function createNewDashboard() {
             const name = prompt('Название дашборда:', 'Мой дашборд');
             if(!name) return;
-            const id = await db.dashboards.add({ name, config: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+            const id = await db.dashboards.add({
+                name: name,
+                config: {},
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
             currentDashboardId = id;
             document.getElementById('currentDashboardName').innerText = name;
-            grid.removeAllWidgets();
+            if (grid) grid.removeAllWidgets();
             await loadDashboards();
             closeDashboardModal();
             showNotification('Дашборд создан', 'success');
@@ -923,49 +1284,94 @@
         }
 
         async function saveDashboardLayout() {
+            if (!grid || !currentDashboardId) return;
             const items = grid.getGridItems();
             for(const item of items) {
                 const wid = parseInt(item.getAttribute('data-widget-id'));
                 const cell = grid.getCellFromPixel(item);
-                if(wid && cell) await db.widgets.update(wid, { position: { x: cell.x, y: cell.y, width: cell.w, height: cell.h } });
+                if(wid && cell) {
+                    await db.widgets.update(wid, { position: { x: cell.x, y: cell.y, width: cell.w, height: cell.h } });
+                }
             }
         }
 
         function addWidget() {
             if(!currentData.length) { showNotification('Сначала загрузите данные', 'warning'); return; }
-            const xSel = document.getElementById('widgetXColumn');
-            const ySel = document.getElementById('widgetYColumn');
-            xSel.innerHTML = '<option value="">Выберите</option>';
-            ySel.innerHTML = '<option value="">Выберите</option>';
-            currentColumns.forEach(c => { xSel.innerHTML += `<option value="${c}">${c}</option>`; ySel.innerHTML += `<option value="${c}">${c}</option>`; });
+            const xSel = document.getElementById('widgetXColumnSelect');
+            const ySel = document.getElementById('widgetYColumnSelect');
+            if (xSel && ySel) {
+                xSel.innerHTML = '<option value="">Выберите</option>';
+                ySel.innerHTML = '<option value="">Выберите</option>';
+                currentColumns.forEach(c => {
+                    xSel.innerHTML += `<option value="${c}">${escapeHtml(c)}</option>`;
+                    ySel.innerHTML += `<option value="${c}">${escapeHtml(c)}</option>`;
+                });
+            }
+            document.getElementById('widgetTitleInput').value = 'Новый виджет';
             document.getElementById('widgetModal').classList.remove('hidden');
             document.getElementById('widgetModal').classList.add('flex');
         }
 
-        function addWidgetType(type) { document.getElementById('widgetType').value = type; addWidget(); }
-        function closeWidgetModal() { document.getElementById('widgetModal').classList.add('hidden'); document.getElementById('widgetModal').classList.remove('flex'); }
+        function addWidgetType(type) {
+            const typeSelect = document.getElementById('widgetTypeSelect');
+            if (typeSelect) typeSelect.value = type;
+            addWidget();
+        }
+
+        function closeWidgetModal() {
+            document.getElementById('widgetModal').classList.add('hidden');
+            document.getElementById('widgetModal').classList.remove('flex');
+        }
 
         async function createWidget() {
-            const type = document.getElementById('widgetType').value;
-            const title = document.getElementById('widgetTitle').value || 'Виджет';
-            const xCol = document.getElementById('widgetXColumn').value;
-            const yCol = document.getElementById('widgetYColumn').value;
-            const kpiType = document.getElementById('kpiType')?.value || 'sum';
+            const type = document.getElementById('widgetTypeSelect').value;
+            const title = document.getElementById('widgetTitleInput').value || 'Виджет';
+            const xCol = document.getElementById('widgetXColumnSelect').value;
+            const yCol = document.getElementById('widgetYColumnSelect').value;
+            const kpiType = document.getElementById('kpiTypeSelect')?.value || 'sum';
 
             if(!currentDashboardId) await createNewDashboard();
 
-            const widget = { dashboardId: currentDashboardId, type, title, config: { xColumn: xCol, yColumn: yCol, kpiType }, position: { x: 0, y: 0, width: 4, height: 3 } };
+            const widget = {
+                dashboardId: currentDashboardId,
+                type: type,
+                title: title,
+                config: { xColumn: xCol, yColumn: yCol, kpiType: kpiType },
+                position: { x: 0, y: 0, width: 4, height: 3 }
+            };
             const id = await db.widgets.add(widget);
             widget.id = id;
 
-            grid.addWidget({ x: 0, y: 0, w: 4, h: 3, content: createWidgetContent(widget), id: `widget-${id}` });
-            const gridItem = document.querySelector(`[gs-id="widget-${id}"]`);
-            if(gridItem) { gridItem.setAttribute('data-widget-id', id); renderWidgetContent(gridItem, widget); }
+            if (grid) {
+                grid.addWidget({ x: 0, y: 0, w: 4, h: 3, content: createWidgetContent(widget), id: `widget-${id}` });
+                const gridItem = document.querySelector(`[gs-id="widget-${id}"]`);
+                if(gridItem) {
+                    gridItem.setAttribute('data-widget-id', id);
+                    renderWidgetContent(gridItem, widget);
+                }
+            }
             closeWidgetModal();
             showNotification('Виджет добавлен', 'success');
         }
 
-        function createWidgetContent(w) { return `<div class="dashboard-widget"><div class="widget-header flex justify-between items-center"><h3 class="font-semibold">${escapeHtml(w.title)}</h3><div><button onclick="deleteWidget(${w.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></div></div><div class="widget-content" id="widget-content-${w.id}"><div class="loading-spinner mx-auto"></div></div></div>`; }
+        function createWidgetContent(w) {
+            return `<div class="dashboard-widget"><div class="widget-header flex justify-between items-center"><h3 class="font-semibold">${escapeHtml(w.title)}</h3><div><button onclick="deleteWidget(${w.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button><button onclick="editWidget(${w.id})" class="text-blue-500 hover:text-blue-700 ml-2"><i class="fas fa-edit"></i></button></div></div><div class="widget-content" id="widget-content-${w.id}"><div class="loading-spinner mx-auto"></div></div></div>`;
+        }
+
+        async function editWidget(id) {
+            const widget = await db.widgets.get(id);
+            if (!widget) return;
+            const newTitle = prompt('Введите новый заголовок:', widget.title);
+            if (newTitle) {
+                await db.widgets.update(id, { title: newTitle });
+                const gridItem = document.querySelector(`[data-widget-id="${id}"]`);
+                if (gridItem) {
+                    const header = gridItem.querySelector('.widget-header h3');
+                    if (header) header.textContent = newTitle;
+                }
+                showNotification('Виджет обновлен', 'success');
+            }
+        }
 
         async function renderWidgetContent(container, widget) {
             const contentDiv = container.querySelector(`#widget-content-${widget.id}`);
@@ -974,35 +1380,145 @@
             if(!data.length) { contentDiv.innerHTML = '<div class="text-center text-gray-400">Нет данных</div>'; return; }
 
             const cfg = widget.config;
+
             if(widget.type === 'kpi') {
-                const values = data.map(r => parseFloat(r[cfg.yColumn || cfg.column])).filter(v => !isNaN(v));
+                if (!cfg.yColumn && !cfg.column) {
+                    contentDiv.innerHTML = '<div class="text-center text-gray-400">Выберите колонку для KPI</div>';
+                    return;
+                }
+                const col = cfg.yColumn || cfg.column;
+                const values = data.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
                 let val = 0;
                 if(cfg.kpiType === 'sum') val = values.reduce((a,b)=>a+b,0);
-                else if(cfg.kpiType === 'avg') val = values.reduce((a,b)=>a+b,0)/values.length;
-                else val = values.length;
-                contentDiv.innerHTML = `<div class="flex flex-col items-center justify-center h-full"><div class="text-4xl font-bold text-blue-600">${val.toFixed(2)}</div><div class="text-sm text-gray-500">${cfg.kpiType}</div></div>`;
-            } else if(widget.type === 'bar' || widget.type === 'line') {
+                else if(cfg.kpiType === 'avg') val = values.length ? values.reduce((a,b)=>a+b,0)/values.length : 0;
+                else if(cfg.kpiType === 'count') val = values.length;
+                else if(cfg.kpiType === 'min') val = values.length ? Math.min(...values) : 0;
+                else if(cfg.kpiType === 'max') val = values.length ? Math.max(...values) : 0;
+                const separator = localStorage.getItem('thousandSeparator') || ',';
+                contentDiv.innerHTML = `<div class="flex flex-col items-center justify-center h-full"><div class="text-4xl font-bold text-blue-600">${formatNumber(val, separator)}</div><div class="text-sm text-gray-500 mt-2">${cfg.kpiType} ${col}</div><div class="text-xs text-gray-400">из ${data.length} записей</div></div>`;
+            }
+            else if(widget.type === 'bar' || widget.type === 'line') {
+                if (!cfg.xColumn || !cfg.yColumn) {
+                    contentDiv.innerHTML = '<div class="text-center text-gray-400">Выберите колонки для виджета</div>';
+                    return;
+                }
                 const agg = {};
-                data.forEach(row => { const x = row[cfg.xColumn]; const y = parseFloat(row[cfg.yColumn]); if(!isNaN(y)) agg[x] = (agg[x]||0) + y; });
-                const labels = Object.keys(agg).slice(0,20);
+                data.forEach(row => {
+                    const x = row[cfg.xColumn];
+                    const y = parseFloat(row[cfg.yColumn]);
+                    if(!isNaN(y)) agg[x] = (agg[x]||0) + y;
+                });
+                const labels = Object.keys(agg).slice(0, 20);
                 const values = labels.map(l => agg[l]);
-                const canvasId = `chart-${widget.id}`;
-                contentDiv.innerHTML = `<canvas id="${canvasId}"></canvas>`;
-                setTimeout(() => { const ctx = document.getElementById(canvasId); if(ctx) new Chart(ctx, { type: widget.type, data: { labels, datasets: [{ label: cfg.yColumn, data: values, backgroundColor: 'rgba(59,130,246,0.6)' }] }, options: { responsive: true, maintainAspectRatio: true } }); }, 50);
-            } else if(widget.type === 'pie') {
+                const canvasId = `chart-${widget.id}-${Date.now()}`;
+                contentDiv.innerHTML = `<canvas id="${canvasId}" style="width:100%; height:100%;"></canvas>`;
+                setTimeout(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if(canvas) new Chart(canvas, {
+                        type: widget.type,
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: cfg.yColumn,
+                                data: values,
+                                backgroundColor: 'rgba(59,130,246,0.6)',
+                                borderColor: 'rgba(59,130,246,1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }, 50);
+            }
+            else if(widget.type === 'pie') {
+                if (!cfg.xColumn || !cfg.yColumn) {
+                    contentDiv.innerHTML = '<div class="text-center text-gray-400">Выберите колонки для виджета</div>';
+                    return;
+                }
                 const agg = {};
-                data.forEach(row => { const x = row[cfg.xColumn]; const y = parseFloat(row[cfg.yColumn]); if(!isNaN(y)) agg[x] = (agg[x]||0) + y; });
-                const items = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,10);
-                const canvasId = `pie-${widget.id}`;
-                contentDiv.innerHTML = `<canvas id="${canvasId}"></canvas>`;
-                setTimeout(() => { const ctx = document.getElementById(canvasId); if(ctx) new Chart(ctx, { type: 'pie', data: { labels: items.map(i=>i[0]), datasets: [{ data: items.map(i=>i[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } }); }, 50);
-            } else if(widget.type === 'table') {
+                data.forEach(row => {
+                    const x = row[cfg.xColumn];
+                    const y = parseFloat(row[cfg.yColumn]);
+                    if(!isNaN(y)) agg[x] = (agg[x]||0) + y;
+                });
+                const items = Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0, 10);
+                const canvasId = `pie-${widget.id}-${Date.now()}`;
+                contentDiv.innerHTML = `<canvas id="${canvasId}" style="width:100%; height:100%;"></canvas>`;
+                setTimeout(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if(canvas) new Chart(canvas, {
+                        type: 'pie',
+                        data: {
+                            labels: items.map(i=>i[0]),
+                            datasets: [{
+                                data: items.map(i=>i[1]),
+                                backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16','#f97316','#6366f1']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { position: 'bottom' },
+                                tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.parsed} (${((ctx.parsed / items.reduce((a,b)=>a+b[1],0))*100).toFixed(1)}%)` } }
+                            }
+                        }
+                    });
+                }, 50);
+            }
+            else if(widget.type === 'table') {
                 let html = '<div class="overflow-x-auto"><table class="min-w-full text-sm"><thead><tr>';
-                currentColumns.slice(0,5).forEach(c => html += `<th class="p-2 bg-gray-50">${c}</th>`);
+                currentColumns.slice(0, 6).forEach(c => html += `<th class="p-2 bg-gray-50 font-semibold">${escapeHtml(c)}</th>`);
                 html += '</tr></thead><tbody>';
-                data.slice(0,20).forEach(row => { html += '<tr>'; currentColumns.slice(0,5).forEach(c => html += `<td class="p-2 border-t">${escapeHtml(String(row[c]||'').substring(0,50))}</td>`); html += '</tr>'; });
+                data.slice(0, 30).forEach(row => {
+                    html += '<tr>';
+                    currentColumns.slice(0, 6).forEach(c => html += `<td class="p-2 border-t">${escapeHtml(String(row[c]||'').substring(0, 50))}</td>`);
+                    html += '</tr>';
+                });
                 html += '</tbody></table></div>';
+                if(data.length > 30) html += `<div class="text-center text-gray-400 text-sm mt-2">Показаны первые 30 из ${data.length}</div>`;
                 contentDiv.innerHTML = html;
+            }
+            else if(widget.type === 'scatter') {
+                if (!cfg.xColumn || !cfg.yColumn) {
+                    contentDiv.innerHTML = '<div class="text-center text-gray-400">Выберите колонки для виджета</div>';
+                    return;
+                }
+                const scatterData = data.map(row => ({
+                    x: parseFloat(row[cfg.xColumn]),
+                    y: parseFloat(row[cfg.yColumn])
+                })).filter(point => !isNaN(point.x) && !isNaN(point.y)).slice(0, 500);
+                const canvasId = `scatter-${widget.id}-${Date.now()}`;
+                contentDiv.innerHTML = `<canvas id="${canvasId}" style="width:100%; height:100%;"></canvas>`;
+                setTimeout(() => {
+                    const canvas = document.getElementById(canvasId);
+                    if(canvas) new Chart(canvas, {
+                        type: 'scatter',
+                        data: {
+                            datasets: [{
+                                label: `${cfg.xColumn} vs ${cfg.yColumn}`,
+                                data: scatterData,
+                                backgroundColor: 'rgba(59,130,246,0.6)',
+                                borderColor: 'rgba(59,130,246,1)',
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                x: { title: { display: true, text: cfg.xColumn } },
+                                y: { title: { display: true, text: cfg.yColumn } }
+                            }
+                        }
+                    });
+                }, 50);
             }
         }
 
@@ -1010,23 +1526,66 @@
             if(!confirm('Удалить виджет?')) return;
             await db.widgets.delete(id);
             const item = document.querySelector(`[data-widget-id="${id}"]`);
-            if(item) grid.removeWidget(item);
+            if(item && grid) grid.removeWidget(item);
             showNotification('Виджет удален', 'success');
+            await loadDashboards();
         }
 
-        function openDashboardManager() { updateDashboardList(); document.getElementById('dashboardModal').classList.remove('hidden'); document.getElementById('dashboardModal').classList.add('flex'); }
-        function closeDashboardModal() { document.getElementById('dashboardModal').classList.add('hidden'); document.getElementById('dashboardModal').classList.remove('flex'); }
+        function openDashboardManager() {
+            updateDashboardList();
+            document.getElementById('dashboardModal').classList.remove('hidden');
+            document.getElementById('dashboardModal').classList.add('flex');
+        }
+
+        function closeDashboardModal() {
+            document.getElementById('dashboardModal').classList.add('hidden');
+            document.getElementById('dashboardModal').classList.remove('flex');
+        }
 
         async function updateDashboardList() {
             await loadDashboards();
             const container = document.getElementById('dashboardList');
-            if(!currentDashboards.length) { container.innerHTML = '<p class="text-gray-500 text-center">Нет дашбордов</p>'; return; }
-            container.innerHTML = currentDashboards.map(d => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded"><div><p class="font-semibold">${escapeHtml(d.name)}</p><p class="text-xs text-gray-500">${moment(d.updatedAt).format('DD.MM.YYYY')}</p></div><div><button onclick="loadDashboard(${d.id})" class="px-2 py-1 bg-blue-500 text-white rounded mr-1"><i class="fas fa-folder-open"></i></button><button onclick="deleteDashboard(${d.id})" class="px-2 py-1 bg-red-500 text-white rounded"><i class="fas fa-trash"></i></button></div></div>`).join('');
+            if(!currentDashboards.length) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Нет сохраненных дашбордов</p>';
+                return;
+            }
+            container.innerHTML = currentDashboards.map(d => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div class="flex-1">
+                        <p class="font-semibold">${escapeHtml(d.name)}</p>
+                        <p class="text-xs text-gray-500">Обновлен: ${moment(d.updatedAt).format('DD.MM.YYYY HH:mm')}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="loadDashboard(${d.id})" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <button onclick="renameDashboard(${d.id})" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteDashboardById(${d.id})" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function renameDashboard(id) {
+            const dashboard = await db.dashboards.get(id);
+            const newName = prompt('Введите новое название:', dashboard.name);
+            if (newName) {
+                await db.dashboards.update(id, { name: newName, updatedAt: new Date().toISOString() });
+                if (currentDashboardId === id) {
+                    document.getElementById('currentDashboardName').innerText = newName;
+                }
+                await updateDashboardList();
+                showNotification('Дашборд переименован', 'success');
+            }
         }
 
         async function loadDashboard(id) {
             const dashboard = await db.dashboards.get(id);
-            if(dashboard) {
+            if(dashboard && grid) {
                 currentDashboardId = id;
                 document.getElementById('currentDashboardName').innerText = dashboard.name;
                 grid.removeAllWidgets();
@@ -1041,29 +1600,94 @@
             }
         }
 
-        async function deleteDashboard(id) {
+        async function deleteDashboardById(id) {
             if(!confirm('Удалить дашборд?')) return;
             await db.widgets.where('dashboardId').equals(id).delete();
             await db.dashboards.delete(id);
-            if(currentDashboardId === id) { currentDashboardId = null; document.getElementById('currentDashboardName').innerText = 'Без названия'; grid.removeAllWidgets(); }
+            if(currentDashboardId === id) {
+                currentDashboardId = null;
+                document.getElementById('currentDashboardName').innerText = 'Без названия';
+                if(grid) grid.removeAllWidgets();
+            }
             await updateDashboardList();
             showNotification('Дашборд удален', 'success');
         }
 
         async function duplicateDashboard() {
-            if(!currentDashboardId) return;
+            if(!currentDashboardId) { showNotification('Нет активного дашборда', 'warning'); return; }
             const dash = await db.dashboards.get(currentDashboardId);
             const widgets = await db.widgets.where('dashboardId').equals(currentDashboardId).toArray();
-            const newId = await db.dashboards.add({ name: `${dash.name} (копия)`, config: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-            for(const w of widgets) await db.widgets.add({ ...w, id: undefined, dashboardId: newId });
+            const newId = await db.dashboards.add({
+                name: `${dash.name} (копия)`,
+                config: {},
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            });
+            for(const w of widgets) {
+                await db.widgets.add({
+                    dashboardId: newId,
+                    type: w.type,
+                    title: w.title,
+                    config: w.config,
+                    position: w.position
+                });
+            }
             await loadDashboards();
             showNotification('Дашборд скопирован', 'success');
         }
 
         // ========== АНАЛИТИКА ==========
         function updateAnalyticsSelectors() {
-            const cols = ['distColumn', 'groupByColumn', 'aggregateColumn', 'timeColumn', 'valueColumn'];
-            cols.forEach(id => { const sel = document.getElementById(id); if(sel) { sel.innerHTML = '<option value="">Выберите</option>'; currentColumns.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`); } });
+            const selectors = ['distColumn', 'groupByColumn', 'aggregateColumn', 'timeColumn', 'valueColumn'];
+            selectors.forEach(id => {
+                const sel = document.getElementById(id);
+                if(sel && currentColumns) {
+                    sel.innerHTML = '<option value="">Выберите колонку</option>';
+                    currentColumns.forEach(c => sel.innerHTML += `<option value="${c}">${escapeHtml(c)}</option>`);
+                }
+            });
+        }
+
+        function updateCorrelationMatrix() {
+            const container = document.getElementById('correlationMatrix');
+            const numericCols = currentColumns.filter(col => currentData.some(row => !isNaN(parseFloat(row[col]))));
+            if (numericCols.length < 2) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Недостаточно числовых колонок для корреляционного анализа</p>';
+                return;
+            }
+
+            const correlations = [];
+            for (let i = 0; i < Math.min(numericCols.length, 5); i++) {
+                for (let j = i+1; j < Math.min(numericCols.length, 5); j++) {
+                    const vals = currentData.map(row => ({
+                        x: parseFloat(row[numericCols[i]]),
+                        y: parseFloat(row[numericCols[j]])
+                    })).filter(v => !isNaN(v.x) && !isNaN(v.y));
+
+                    if (vals.length) {
+                        const n = vals.length;
+                        const sumX = vals.reduce((a,b)=>a+b.x,0);
+                        const sumY = vals.reduce((a,b)=>a+b.y,0);
+                        const sumXY = vals.reduce((a,b)=>a+b.x*b.y,0);
+                        const sumX2 = vals.reduce((a,b)=>a+b.x*b.x,0);
+                        const sumY2 = vals.reduce((a,b)=>a+b.y*b.y,0);
+                        const numerator = n * sumXY - sumX * sumY;
+                        const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+                        const corr = denominator === 0 ? 0 : numerator / denominator;
+                        correlations.push({ col1: numericCols[i], col2: numericCols[j], value: corr });
+                    }
+                }
+            }
+
+            let html = '<div class="space-y-2">';
+            correlations.forEach(c => {
+                const strength = Math.abs(c.value) > 0.7 ? 'Сильная' : Math.abs(c.value) > 0.3 ? 'Средняя' : 'Слабая';
+                const direction = c.value > 0 ? 'положительная' : 'отрицательная';
+                const color = c.value > 0 ? 'text-green-600' : 'text-red-600';
+                html += `<div class="flex justify-between items-center p-2 bg-gray-50 rounded"><span class="text-sm">${c.col1} ↔ ${c.col2}</span><span class="font-semibold ${color}">${c.value.toFixed(3)} (${strength}, ${direction})</span></div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         function updateDistribution() {
@@ -1071,24 +1695,92 @@
             if(!col || !currentData.length) return;
             const values = currentData.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
             if(!values.length) return;
-            const min = Math.min(...values), max = Math.max(...values), bins = 15, binSize = (max-min)/bins;
+
+            const min = Math.min(...values), max = Math.max(...values);
+            const bins = 15;
+            const binSize = (max-min)/bins;
             const hist = Array(bins).fill(0);
-            values.forEach(v => { const idx = Math.min(Math.floor((v-min)/binSize), bins-1); hist[idx]++; });
+            values.forEach(v => {
+                const idx = Math.min(Math.floor((v-min)/binSize), bins-1);
+                hist[idx]++;
+            });
             const labels = hist.map((_,i) => (min + i*binSize).toFixed(2));
+
             if(distributionChart) distributionChart.destroy();
-            distributionChart = new Chart(document.getElementById('distributionChart'), { type: 'bar', data: { labels, datasets: [{ label: col, data: hist, backgroundColor: 'rgba(16,185,129,0.6)' }] } });
+            const ctx = document.getElementById('distributionChart');
+            if(ctx) {
+                distributionChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: col,
+                            data: hist,
+                            backgroundColor: 'rgba(16,185,129,0.6)',
+                            borderColor: 'rgba(16,185,129,1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `Частота: ${ctx.parsed.y} (${((ctx.parsed.y / values.length) * 100).toFixed(1)}%)`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         function updateAggregation() {
             const groupBy = document.getElementById('groupByColumn').value;
             const aggCol = document.getElementById('aggregateColumn').value;
             const aggType = document.getElementById('aggregationType').value;
-            if(!groupBy || !aggCol) return;
+
+            if(!groupBy || !aggCol) {
+                document.getElementById('aggregationResults').innerHTML = '<p class="text-gray-500 text-sm">Выберите параметры для агрегации</p>';
+                return;
+            }
+
             const grouped = {};
-            currentData.forEach(row => { const key = row[groupBy]; const val = parseFloat(row[aggCol]); if(!isNaN(val)) { if(!grouped[key]) grouped[key] = []; grouped[key].push(val); } });
-            const results = Object.entries(grouped).map(([k,v]) => { let res = 0; if(aggType === 'sum') res = v.reduce((a,b)=>a+b,0); else if(aggType === 'avg') res = v.reduce((a,b)=>a+b,0)/v.length; else if(aggType === 'count') res = v.length; else if(aggType === 'min') res = Math.min(...v); else res = Math.max(...v); return { group: k, value: res }; }).sort((a,b)=>b.value-a.value).slice(0,20);
-            let html = '<table class="min-w-full text-sm"><thead><tr><th class="p-2">Группа</th><th class="p-2">Значение</th></tr></thead><tbody>';
-            results.forEach(r => html += `<tr><td class="p-2 border-t">${escapeHtml(r.group)}</td><td class="p-2 border-t">${r.value.toFixed(2)}</td></tr>`);
+            currentData.forEach(row => {
+                const key = row[groupBy];
+                const val = parseFloat(row[aggCol]);
+                if(!isNaN(val)) {
+                    if(!grouped[key]) grouped[key] = [];
+                    grouped[key].push(val);
+                }
+            });
+
+            const results = Object.entries(grouped).map(([k,v]) => {
+                let res = 0;
+                switch(aggType) {
+                    case 'sum': res = v.reduce((a,b)=>a+b,0); break;
+                    case 'avg': res = v.reduce((a,b)=>a+b,0)/v.length; break;
+                    case 'count': res = v.length; break;
+                    case 'min': res = Math.min(...v); break;
+                    case 'max': res = Math.max(...v); break;
+                }
+                return { group: k, value: res };
+            }).sort((a,b)=>b.value-a.value).slice(0, 20);
+
+            const separator = localStorage.getItem('thousandSeparator') || ',';
+            let html = '<table class="min-w-full text-sm"><thead><tr>';
+            html += `<th class="text-left p-2 bg-gray-50">${groupBy}</th>`;
+            html += `<th class="text-right p-2 bg-gray-50">${aggType.toUpperCase()} ${aggCol}</th>`;
+            html += '</thead><tbody>';
+
+            results.forEach(r => {
+                html += `<tr class="border-b">`;
+                html += `<td class="p-2">${escapeHtml(r.group)}</td>`;
+                html += `<td class="p-2 text-right font-semibold">${formatNumber(r.value, separator)}</td>`;
+                html += `</tr>`;
+            });
+
             html += '</tbody></table>';
             document.getElementById('aggregationResults').innerHTML = html;
         }
@@ -1096,126 +1788,388 @@
         function updateTrend() {
             const timeCol = document.getElementById('timeColumn').value;
             const valCol = document.getElementById('valueColumn').value;
+            const forecastPeriod = 5;
+
             if(!timeCol || !valCol) return;
-            const sorted = [...currentData].sort((a,b) => moment(a[timeCol]) - moment(b[timeCol]));
-            const labels = sorted.slice(0,30).map(r => moment(r[timeCol]).isValid() ? moment(r[timeCol]).format('DD.MM') : String(r[timeCol]).substring(0,10));
+
+            const sorted = [...currentData].sort((a,b) => {
+                const da = moment(a[timeCol]);
+                const db = moment(b[timeCol]);
+                return da.isValid() && db.isValid() ? da - db : 0;
+            });
+
+            const labels = sorted.slice(0,30).map(r => {
+                const date = moment(r[timeCol]);
+                return date.isValid() ? date.format('DD.MM') : String(r[timeCol]).substring(0,10);
+            });
             const values = sorted.slice(0,30).map(r => parseFloat(r[valCol])).filter(v => !isNaN(v));
+
             if(trendChart) trendChart.destroy();
-            trendChart = new Chart(document.getElementById('trendChart'), { type: 'line', data: { labels: labels.slice(0,values.length), datasets: [{ label: valCol, data: values, borderColor: '#ef4444', tension: 0.4 }] } });
+            const ctx = document.getElementById('trendChart');
+            if(ctx && values.length) {
+                trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels.slice(0,values.length),
+                        datasets: [{
+                            label: valCol,
+                            data: values,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239,68,68,0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `${valCol}: ${ctx.parsed.y.toFixed(2)}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         // ========== ФИЛЬТРЫ ==========
         function updateFilterSelectors() {
             const sel = document.getElementById('filterColumn');
-            sel.innerHTML = '<option value="">Выберите</option>';
-            currentColumns.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
+            if(sel && currentColumns) {
+                sel.innerHTML = '<option value="">Выберите колонку</option>';
+                currentColumns.forEach(c => sel.innerHTML += `<option value="${c}">${escapeHtml(c)}</option>`);
+            }
         }
 
         function addFilter() {
             const col = document.getElementById('filterColumn').value;
             const op = document.getElementById('filterOperator').value;
             const val = document.getElementById('filterValue').value;
-            if(!col || !val) { showNotification('Заполните поля', 'warning'); return; }
-            activeFilters.push({ column: col, operator: op, value: val });
+            const val2 = document.getElementById('filterValue2')?.value || '';
+
+            if(!col || !val) { showNotification('Заполните поля фильтра', 'warning'); return; }
+            if(op === 'between' && !val2) { showNotification('Введите второе значение для диапазона', 'warning'); return; }
+
+            activeFilters.push({ column: col, operator: op, value: val, value2: val2 });
             updateActiveFiltersDisplay();
             document.getElementById('filterValue').value = '';
+            if(document.getElementById('filterValue2')) document.getElementById('filterValue2').value = '';
             showNotification('Фильтр добавлен', 'success');
         }
 
         function updateActiveFiltersDisplay() {
-            const container = document.getElementById('activeFilters');
-            if(!activeFilters.length) { container.innerHTML = '<p class="text-gray-500 text-sm">Нет фильтров</p>'; return; }
-            container.innerHTML = activeFilters.map((f,i) => `<div class="filter-tag">${f.column} ${f.operator} ${f.value}<button onclick="removeFilter(${i})"><i class="fas fa-times"></i></button></div>`).join('');
+            const container = document.getElementById('activeFiltersList');
+            if(!activeFilters.length) {
+                container.innerHTML = '<p class="text-gray-500 text-sm">Нет активных фильтров</p>';
+                return;
+            }
+
+            container.innerHTML = activeFilters.map((f,i) => {
+                let displayValue = f.value;
+                if(f.operator === 'between') displayValue = `${f.value} - ${f.value2}`;
+                return `<div class="filter-tag">${f.column} ${f.operator} ${displayValue}<button onclick="removeFilter(${i})"><i class="fas fa-times"></i></button></div>`;
+            }).join('');
         }
 
-        function removeFilter(idx) { activeFilters.splice(idx,1); updateActiveFiltersDisplay(); }
+        function removeFilter(idx) {
+            activeFilters.splice(idx,1);
+            updateActiveFiltersDisplay();
+        }
 
         function applyFilters() {
             filteredData = [...currentData];
             for(const f of activeFilters) {
                 filteredData = filteredData.filter(row => {
                     const v = row[f.column];
-                    if(f.operator === 'equals') return String(v).toLowerCase() === String(f.value).toLowerCase();
-                    if(f.operator === 'contains') return String(v).toLowerCase().includes(String(f.value).toLowerCase());
-                    if(f.operator === 'greater') return parseFloat(v) > parseFloat(f.value);
-                    if(f.operator === 'less') return parseFloat(v) < parseFloat(f.value);
-                    return true;
+                    if(v === undefined) return false;
+
+                    switch(f.operator) {
+                        case 'equals': return String(v).toLowerCase() === String(f.value).toLowerCase();
+                        case 'contains': return String(v).toLowerCase().includes(String(f.value).toLowerCase());
+                        case 'greater': return parseFloat(v) > parseFloat(f.value);
+                        case 'less': return parseFloat(v) < parseFloat(f.value);
+                        case 'between': return parseFloat(v) >= parseFloat(f.value) && parseFloat(v) <= parseFloat(f.value2);
+                        default: return true;
+                    }
                 });
             }
             currentPage = 1;
             updateTable();
-            showNotification(`Отфильтровано: ${filteredData.length} из ${currentData.length}`, 'success');
+            updateFilteredPreview();
+            showNotification(`Отфильтровано: ${filteredData.length} из ${currentData.length} записей`, 'success');
         }
 
-        function clearAllFilters() { activeFilters = []; filteredData = [...currentData]; updateActiveFiltersDisplay(); updateTable(); showNotification('Фильтры сброшены', 'info'); }
+        function clearAllFilters() {
+            activeFilters = [];
+            filteredData = [...currentData];
+            updateActiveFiltersDisplay();
+            updateTable();
+            updateFilteredPreview();
+            showNotification('Все фильтры сброшены', 'info');
+        }
+
+        function updateFilteredPreview() {
+            const previewDiv = document.getElementById('filteredPreview');
+            const statsDiv = document.getElementById('filterStats');
+
+            if(!filteredData.length) {
+                previewDiv.innerHTML = '<p class="text-gray-500 text-sm">Нет данных после фильтрации</p>';
+                statsDiv.innerHTML = '';
+                return;
+            }
+
+            const preview = filteredData.slice(0, 10);
+            let html = '<table class="min-w-full text-sm"><thead><tr>';
+            currentColumns.slice(0, 5).forEach(c => html += `<th class="p-2 bg-gray-50">${escapeHtml(c)}</th>`);
+            html += '</tr></thead><tbody>';
+
+            preview.forEach(row => {
+                html += '<tr>';
+                currentColumns.slice(0, 5).forEach(c => html += `<td class="p-2 border-t">${escapeHtml(String(row[c]||'').substring(0, 30))}</td>`);
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            previewDiv.innerHTML = html;
+            statsDiv.innerHTML = `Показано ${Math.min(10, filteredData.length)} из ${filteredData.length} записей (${((filteredData.length/currentData.length)*100).toFixed(1)}% от исходных)`;
+        }
 
         // ========== НАСТРОЙКИ И УТИЛИТЫ ==========
-        function toggleTheme() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); }
-        function changeThousandSeparator() { localStorage.setItem('thousandSeparator', document.getElementById('thousandSeparator').value); updateQuickStats(); }
-        function showShortcuts() { showNotification('Горячие клавиши: Ctrl+S (сохранить), Ctrl+E (экспорт), Ctrl+F (поиск), Ctrl+D (новый дашборд)', 'info'); }
-        function checkOfflineStatus() { const icon = document.querySelector('.fa-wifi'); if(!navigator.onLine) icon.classList.add('text-red-500'); else icon.classList.remove('text-red-500'); }
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+            const toggle = document.getElementById('themeToggle');
+            if(toggle) {
+                if(isDark) {
+                    toggle.classList.add('bg-blue-500');
+                    toggle.classList.remove('bg-gray-200');
+                    const span = toggle.querySelector('span');
+                    if(span) span.style.transform = 'translateX(6px)';
+                } else {
+                    toggle.classList.remove('bg-blue-500');
+                    toggle.classList.add('bg-gray-200');
+                    const span = toggle.querySelector('span');
+                    if(span) span.style.transform = 'translateX(1px)';
+                }
+            }
+        }
+
+        function changeThousandSeparator() {
+            const separator = document.getElementById('thousandSeparator').value;
+            localStorage.setItem('thousandSeparator', separator);
+            updateQuickStats();
+            updateTable();
+        }
+
+        function showShortcuts() {
+            showNotification('Горячие клавиши: Ctrl+S (сохранить), Ctrl+E (экспорт), Ctrl+F (поиск), Ctrl+D (новый дашборд)', 'info');
+        }
+
+        function checkOfflineStatus() {
+            const icon = document.querySelector('.fa-wifi');
+            if(icon) {
+                if(!navigator.onLine) icon.classList.add('text-red-500');
+                else icon.classList.remove('text-red-500');
+            }
+            updateNetworkStatus();
+        }
 
         async function exportData() {
-            if(!currentData.length) return;
-            const ws = XLSX.utils.json_to_sheet(currentData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Data');
-            XLSX.writeFile(wb, `export_${Date.now()}.xlsx`);
+            if(!currentData.length) { showNotification('Нет данных для экспорта', 'warning'); return; }
+
+            const format = confirm('Экспортировать в Excel? (OK - Excel, Cancel - CSV)');
+            if (format) {
+                const ws = XLSX.utils.json_to_sheet(currentData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Data');
+                XLSX.writeFile(wb, `export_${Date.now()}.xlsx`);
+            } else {
+                const separator = ',';
+                const headers = currentColumns.join(separator);
+                const rows = currentData.map(row => {
+                    return currentColumns.map(col => {
+                        let value = row[col];
+                        if (value === undefined || value === null) value = '';
+                        if (typeof value === 'string' && (value.includes(separator) || value.includes('"'))) {
+                            value = `"${value.replace(/"/g, '""')}"`;
+                        }
+                        return value;
+                    }).join(separator);
+                }).join('\n');
+                const csv = headers ? `${headers}\n${rows}` : rows;
+                const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = `export_${Date.now()}.csv`;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
             showNotification('Экспорт завершен', 'success');
         }
 
-        async function exportDashboard() {
-            if(!currentDashboardId) { showNotification('Нет активного дашборда', 'warning'); return; }
-            const el = document.getElementById('dashboardGrid');
-            if(el) { const canvas = await html2canvas(el); const link = document.createElement('a'); link.download = `dashboard_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click(); showNotification('Скриншот сохранен', 'success'); }
+        async function backupData() {
+            try {
+                const datasets = await db.datasets.toArray();
+                const widgets = await db.widgets.toArray();
+                const dashboards = await db.dashboards.toArray();
+                const backup = { datasets, widgets, dashboards, timestamp: new Date().toISOString() };
+                const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `bi_backup_${Date.now()}.json`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+                showNotification('Резервная копия создана', 'success');
+            } catch (error) {
+                console.error('Ошибка создания бэкапа:', error);
+                showNotification('Ошибка создания резервной копии', 'error');
+            }
         }
 
-        async function backupData() {
-            const datasets = await db.datasets.toArray();
-            const widgets = await db.widgets.toArray();
-            const dashboards = await db.dashboards.toArray();
-            const backup = { datasets, widgets, dashboards };
-            const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `backup_${Date.now()}.json`;
-            link.click();
-            showNotification('Резервная копия создана', 'success');
+        async function restoreData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const backup = JSON.parse(event.target.result);
+
+                        if (backup.datasets) await db.datasets.bulkPut(backup.datasets);
+                        if (backup.widgets) await db.widgets.bulkPut(backup.widgets);
+                        if (backup.dashboards) await db.dashboards.bulkPut(backup.dashboards);
+
+                        await loadLastDataset();
+                        await loadDashboards();
+                        showNotification('Данные восстановлены', 'success');
+                    } catch (error) {
+                        console.error('Ошибка восстановления:', error);
+                        showNotification('Ошибка восстановления данных', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
         }
 
         async function clearAllData() {
-            if(!confirm('Удалить ВСЕ данные?')) return;
-            await db.delete();
-            location.reload();
+            if(!confirm('ВНИМАНИЕ! Это удалит ВСЕ данные, дашборды и виджеты. Продолжить?')) return;
+
+            try {
+                await db.delete();
+                localStorage.clear();
+                currentDatasetId = null;
+                currentData = [];
+                filteredData = [];
+                currentColumns = [];
+                currentDashboardId = null;
+                activeFilters = [];
+
+                location.reload();
+            } catch (error) {
+                console.error('Ошибка очистки:', error);
+                showNotification('Ошибка при очистке данных', 'error');
+            }
         }
 
         function showDataProfile() {
             const numeric = currentColumns.filter(c => currentData.some(r => !isNaN(parseFloat(r[c]))));
-            alert(`Профиль данных:\nСтрок: ${currentData.length}\nКолонок: ${currentColumns.length}\nЧисловых: ${numeric.length}\nКатегориальных: ${currentColumns.length-numeric.length}`);
+            const emptyValues = countEmptyValues();
+            alert(`📊 ПРОФИЛЬ ДАННЫХ\n\n` +
+                  `📈 Всего строк: ${currentData.length.toLocaleString()}\n` +
+                  `📋 Всего колонок: ${currentColumns.length}\n` +
+                  `🔢 Числовых колонок: ${numeric.length}\n` +
+                  `🏷️ Категориальных: ${currentColumns.length - numeric.length}\n` +
+                  `❌ Пустых значений: ${emptyValues.toLocaleString()}\n` +
+                  `💾 Размер: ${(JSON.stringify(currentData).length / 1024).toFixed(2)} KB\n\n` +
+                  `📋 Колонки: ${currentColumns.join(', ')}`);
         }
 
-        function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m; }); }
+        function countEmptyValues() {
+            let count = 0;
+            currentData.forEach(row => {
+                currentColumns.forEach(col => {
+                    if (!row[col] && row[col] !== 0) count++;
+                });
+            });
+            return count;
+        }
+
+        async function updateDBInfo() {
+            try {
+                const datasets = await db.datasets.toArray();
+                const tableData = await db.tableData.toArray();
+                const size = JSON.stringify(tableData).length;
+                document.getElementById('dbSize').textContent = (size / 1024).toFixed(2) + ' KB';
+            } catch(e) {
+                document.getElementById('dbSize').textContent = '0 KB';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m){
+                if(m === '&') return '&amp;';
+                if(m === '<') return '&lt;';
+                if(m === '>') return '&gt;';
+                return m;
+            });
+        }
 
         function showNotification(msg, type) {
             const toast = document.createElement('div');
-            toast.className = `toast px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`;
-            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} mr-2"></i>${msg}`;
+            toast.className = `toast px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}`;
+            toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'} mr-2"></i>${msg}`;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-button').forEach(el => { el.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600'); el.classList.add('text-gray-500'); });
-            if(tab === 'data') { document.getElementById('dataTab').classList.remove('hidden'); document.getElementById('tabData').classList.add('border-b-2', 'border-blue-500', 'text-blue-600'); updateTable(); }
-            else if(tab === 'dashboard') { document.getElementById('dashboardTab').classList.remove('hidden'); document.getElementById('tabDashboard').classList.add('border-b-2', 'border-blue-500', 'text-blue-600'); if(grid) setTimeout(() => grid.resizeAllItems(), 100); }
-            else if(tab === 'analytics') { document.getElementById('analyticsTab').classList.remove('hidden'); document.getElementById('tabAnalytics').classList.add('border-b-2', 'border-blue-500', 'text-blue-600'); updateDistribution(); updateAggregation(); updateTrend(); }
-            else if(tab === 'filters') { document.getElementById('filtersTab').classList.remove('hidden'); document.getElementById('tabFilters').classList.add('border-b-2', 'border-blue-500', 'text-blue-600'); updateFilterSelectors(); }
-            else if(tab === 'settings') { document.getElementById('settingsTab').classList.remove('hidden'); document.getElementById('tabSettings').classList.add('border-b-2', 'border-blue-500', 'text-blue-600'); }
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600');
+                el.classList.add('text-gray-500');
+            });
+
+            if(tab === 'data') {
+                document.getElementById('dataTab').classList.remove('hidden');
+                document.getElementById('tabData').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                updateTable();
+            } else if(tab === 'dashboard') {
+                document.getElementById('dashboardTab').classList.remove('hidden');
+                document.getElementById('tabDashboard').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                if(grid) setTimeout(() => grid.resizeAllItems(), 100);
+            } else if(tab === 'analytics') {
+                document.getElementById('analyticsTab').classList.remove('hidden');
+                document.getElementById('tabAnalytics').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                updateCorrelationMatrix();
+                updateDistribution();
+                updateAggregation();
+                updateTrend();
+            } else if(tab === 'filters') {
+                document.getElementById('filtersTab').classList.remove('hidden');
+                document.getElementById('tabFilters').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                updateFilterSelectors();
+                updateFilteredPreview();
+            } else if(tab === 'settings') {
+                document.getElementById('settingsTab').classList.remove('hidden');
+                document.getElementById('tabSettings').classList.add('border-b-2', 'border-blue-500', 'text-blue-600');
+                updateDBInfo();
+            }
         }
 
         document.addEventListener('keydown', (e) => {
-            if(e.ctrlKey || e.metaKey) {
+            if((e.ctrlKey || e.metaKey)) {
                 if(e.key === 's') { e.preventDefault(); saveCurrentDashboard(); }
                 if(e.key === 'e') { e.preventDefault(); exportData(); }
                 if(e.key === 'f') { e.preventDefault(); searchInTable(); }
@@ -1223,7 +2177,36 @@
             }
         });
 
-        function handleDrop(e) { e.preventDefault(); const file = e.dataTransfer.files[0]; if(file) loadFile(file); }
+        function handleDrop(e) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if(file) loadFile(file);
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+            const toggle = document.getElementById('themeToggle');
+            if(toggle) {
+                toggle.classList.add('bg-blue-500');
+                toggle.classList.remove('bg-gray-200');
+                const span = toggle.querySelector('span');
+                if(span) span.style.transform = 'translateX(6px)';
+            }
+        }
+
+        const savedSeparator = localStorage.getItem('thousandSeparator');
+        if (savedSeparator) {
+            const select = document.getElementById('thousandSeparator');
+            if (select) select.value = savedSeparator;
+        }
+
+        const savedRows = localStorage.getItem('rowsPerPage');
+        if (savedRows) {
+            rowsPerPage = parseInt(savedRows);
+            const select = document.getElementById('rowsPerPageSelect');
+            if (select) select.value = savedRows;
+        }
     </script>
 </body>
 </html>
