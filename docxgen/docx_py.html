@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Python DocxTpl + python-docx Интерпретатор с загрузкой шаблонов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            height: 100vh;
+            overflow: hidden;
+            color: #0f172a;
+        }
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        .header {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            border-bottom: 2px solid #3b82f6;
+        }
+        .title h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+        }
+        .title p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .status {
+            background: #0f172a;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            background: #ef4444;
+            box-shadow: 0 0 4px #ef4444;
+        }
+        .status-led.ready {
+            background: #10b981;
+            box-shadow: 0 0 6px #10b981;
+        }
+        .main-panel {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 1px;
+            background: #e2e8f0;
+        }
+        .editor-panel, .output-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        textarea {
+            flex: 1;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 1rem;
+            border: none;
+            resize: none;
+            outline: none;
+            background: #fefcf5;
+            color: #0a0e1a;
+        }
+        .output-area {
+            flex: 1;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 1rem;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .toolbar {
+            padding: 0.75rem 1rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: 500;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .clear-btn {
+            background: #475569;
+        }
+        .clear-btn:hover {
+            background: #334155;
+        }
+        .upload-btn {
+            background: #10b981;
+        }
+        .upload-btn:hover {
+            background: #059669;
+        }
+        .info-text {
+            font-size: 0.7rem;
+            color: #475569;
+            margin-left: auto;
+        }
+        .download-link {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        .download-link:hover {
+            background: #2563eb;
+        }
+        .template-info {
+            background: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #334155;
+            margin-top: 8px;
+        }
+        .file-input {
+            display: none;
+        }
+        @media (max-width: 700px) {
+            .main-panel {
+                flex-direction: column;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <div class="title">
+            <h1>🐍 Python MicroLab · docxtpl + python-docx</h1>
+            <p>Выполнение Python кода с загрузкой внешних шаблонов .docx</p>
+        </div>
+        <div class="status" id="statusBox">
+            <span class="status-led" id="statusLed"></span>
+            <span id="statusText">Загрузка Pyodide...</span>
+        </div>
+    </div>
+
+    <div class="main-panel">
+        <div class="editor-panel">
+            <div class="panel-header">
+                📝 PYTHON КОД
+                <div>
+                    <button id="uploadTemplateBtn" class="upload-btn" style="padding: 4px 12px; font-size: 0.7rem;">📁 Загрузить шаблон .docx</button>
+                    <input type="file" id="templateFileInput" accept=".docx" class="file-input">
+                </div>
+            </div>
+            <textarea id="codeEditor" spellcheck="false">import micropip
+import sys
+from io import BytesIO
+import base64
+import json
+
+# Установка библиотек
+await micropip.install('python-docx')
+await micropip.install('docxtpl')
+
+from docxtpl import DocxTemplate
+from docx import Document
+
+print("✅ Библиотеки успешно загружены!")
+
+# Получаем информацию о загруженном шаблоне через JavaScript функцию
+from js import getTemplateInfo
+
+template_info = getTemplateInfo()
+if template_info:
+    # Конвертируем JS объект в словарь Python
+    template_name = template_info.name
+    template_size = template_info.size
+    template_bytes = template_info.bytes.to_py()
+
+    print(f"📁 Используем загруженный шаблон: {template_name}")
+    print(f"   Размер: {template_size} байт")
+
+    # Загружаем шаблон из байтов
+    template_stream = BytesIO(bytes(template_bytes))
+    doc = DocxTemplate(template_stream)
+
+    # Подготавливаем данные для шаблона
+    context = {
+        'fio': 'Фамилия Имя Отчество',
+        'f_io': 'Фамилия И.О.',
+        'io_f': 'И.О. Фамилия',
+        'group': 'БПИ22-01',
+        'code': '09.03.04',
+        'speciality': 'Программная инженерия',
+        'profile': 'Разработка программно-информационных систем',
+        'name': 'Разработка автоматизированной системы лингвистического перевода игрового контента с использованием больших языковых моделей',
+        'actuality': 'Актуальность работы',
+        'plus': 'Плюсы работы',
+    }
+
+    # Рендерим шаблон
+    doc.render(context)
+
+    # Сохраняем результат
+    output_stream = BytesIO()
+    doc.save(output_stream)
+    output_stream.seek(0)
+    docx_bytes = output_stream.getvalue()
+
+    # Создаём ссылку для скачивания
+    b64 = base64.b64encode(docx_bytes).decode()
+    download_link = f'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}'
+
+    print(f"\n✅ Документ на основе вашего шаблона создан!")
+    print(f"   Размер: {len(docx_bytes)} байт")
+
+    # Выводим HTML ссылку
+    from js import document
+    link_html = f'&lt;br&gt;&lt;a href="{download_link}" download="generated_from_template.docx" class="download-link"&gt;📎 Скачать сгенерированный документ&lt;/a&gt;&lt;br&gt;'
+    output_div = document.getElementById("outputArea")
+    output_div.innerHTML += link_html
+
+else:
+    print("⚠️ Внешний шаблон не загружен. Создаём пример документа...")
+    print("💡 Чтобы использовать свой шаблон:")
+    print("   1. Нажмите кнопку 'Загрузить шаблон .docx'")
+    print("   2. Выберите файл шаблона с переменными в формате {{ variable }}")
+    print("   3. Снова выполните этот код")
+
+    # Создаём документ с нуля
+    doc = Document()
+    doc.add_heading('Пример документа', level=1)
+    doc.add_paragraph('Это документ, созданный с нуля.')
+    doc.add_paragraph('Загрузите свой шаблон, чтобы увидеть разницу!')
+
+    doc_bytes_io = BytesIO()
+    doc.save(doc_bytes_io)
+    doc_bytes = doc_bytes_io.getvalue()
+
+    b64 = base64.b64encode(doc_bytes).decode()
+    download_link = f'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,{b64}'
+
+    from js import document
+    link_html = f'&lt;br&gt;&lt;a href="{download_link}" download="sample.docx" class="download-link"&gt;📎 Скачать пример документа&lt;/a&gt;&lt;br&gt;'
+    output_div = document.getElementById("outputArea")
+    output_div.innerHTML += link_html
+
+print("\n✨ Готово! Документ сгенерирован и доступен для скачивания.")</textarea>
+            <div class="toolbar">
+                <button id="runBtn" disabled>▶ Выполнить код</button>
+                <button id="clearOutputBtn" class="clear-btn">🗑 Очистить вывод</button>
+                <span class="info-text">⚡ Поддерживает загрузку внешних шаблонов .docx</span>
+            </div>
+            <div id="templateInfo" class="template-info" style="display: none;">
+                📄 <strong>Загружен шаблон:</strong> <span id="templateName"></span>
+                <button id="clearTemplateBtn" style="margin-left: 10px; padding: 2px 8px; background: #ef4444;">✖ Удалить</button>
+            </div>
+        </div>
+        <div class="output-panel">
+            <div class="panel-header">📟 ВЫВОД / РЕЗУЛЬТАТ</div>
+            <div id="outputArea" class="output-area">⏳ Инициализация Python среды... Пожалуйста, подождите.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pyodide = null;
+    let pyodideReady = false;
+    let uploadedTemplateData = null; // { name: string, bytes: Uint8Array, size: number }
+
+    const statusLed = document.getElementById('statusLed');
+    const statusTextSpan = document.getElementById('statusText');
+    const runButton = document.getElementById('runBtn');
+    const clearOutputBtn = document.getElementById('clearOutputBtn');
+    const clearTemplateBtn = document.getElementById('clearTemplateBtn');
+    const codeEditor = document.getElementById('codeEditor');
+    const outputArea = document.getElementById('outputArea');
+    const uploadTemplateBtn = document.getElementById('uploadTemplateBtn');
+    const templateFileInput = document.getElementById('templateFileInput');
+    const templateInfo = document.getElementById('templateInfo');
+    const templateNameSpan = document.getElementById('templateName');
+
+    // Функция добавления текста в вывод
+    function appendToOutput(text, isHtml = false) {
+        if (isHtml) {
+            outputArea.innerHTML += text;
+        } else {
+            const div = document.createElement('div');
+            div.style.whiteSpace = 'pre-wrap';
+            div.style.fontFamily = 'monospace';
+            div.style.color = '#e2e8f0';
+            div.style.marginBottom = '2px';
+            div.textContent = text;
+            outputArea.appendChild(div);
+        }
+        outputArea.scrollTop = outputArea.scrollHeight;
+    }
+
+    // Очистка вывода
+    function clearOutput() {
+        outputArea.innerHTML = '';
+        appendToOutput('✨ Вывод очищен. Готов к выполнению кода.');
+    }
+
+    // Загрузка шаблона
+    function uploadTemplate(file) {
+        if (!file || !file.name.endsWith('.docx')) {
+            appendToOutput('❌ Пожалуйста, выберите файл с расширением .docx');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const arrayBuffer = e.target.result;
+            const bytes = new Uint8Array(arrayBuffer);
+            uploadedTemplateData = {
+                name: file.name,
+                bytes: bytes,
+                size: bytes.length
+            };
+
+            templateNameSpan.textContent = `${file.name} (${(bytes.length / 1024).toFixed(2)} KB)`;
+            templateInfo.style.display = 'block';
+            appendToOutput(`✅ Загружен шаблон: ${file.name} (${(bytes.length / 1024).toFixed(2)} KB)`);
+            appendToOutput(`💡 Теперь выполните Python код для использования этого шаблона`);
+        };
+        reader.onerror = function() {
+            appendToOutput('❌ Ошибка при чтении файла');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // Очистка шаблона
+    function clearTemplate() {
+        uploadedTemplateData = null;
+        templateInfo.style.display = 'none';
+        templateNameSpan.textContent = '';
+        appendToOutput('🗑 Загруженный шаблон удалён');
+    }
+
+    // Получение информации о шаблоне для Python (возвращает простой JS объект)
+    window.getTemplateInfo = function() {
+        if (uploadedTemplateData) {
+            // Создаём простой объект, который будет корректно преобразован в Python
+            return {
+                name: uploadedTemplateData.name,
+                size: uploadedTemplateData.size,
+                bytes: uploadedTemplateData.bytes
+            };
+        }
+        return null;
+    };
+
+    // Настройка перехвата stdout/stderr
+    function setupPythonOutputCapture() {
+        if (!pyodide) return;
+
+        pyodide.runPython(`
+import sys
+from js import appendToOutput
+
+class OutputCapture:
+    def write(self, text):
+        if text and text.strip():
+            appendToOutput(text, False)
+        elif text == '\\n':
+            pass
+    def flush(self):
+        pass
+
+sys.stdout = OutputCapture()
+sys.stderr = OutputCapture()
+        `);
+    }
+
+    // Загрузка Pyodide и пакетов
+    async function initializePyodide() {
+        try {
+            statusTextSpan.innerText = 'Загрузка Pyodide...';
+            appendToOutput('⏳ Загрузка Python интерпретатора...');
+
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/",
+            });
+
+            appendToOutput('✅ Pyodide загружен');
+            statusTextSpan.innerText = 'Установка пакетов...';
+
+            // Загружаем micropip
+            await pyodide.loadPackage("micropip");
+            appendToOutput('📦 Установка python-docx и docxtpl...');
+
+            const micropip = pyodide.pyimport("micropip");
+
+            // Устанавливаем пакеты
+            await micropip.install("python-docx");
+            appendToOutput('✅ python-docx установлен');
+
+            await micropip.install("docxtpl");
+            appendToOutput('✅ docxtpl установлен');
+
+            await micropip.install("jinja2");
+
+            // Настраиваем вывод
+            setupPythonOutputCapture();
+
+            pyodideReady = true;
+            statusLed.className = 'status-led ready';
+            statusTextSpan.innerText = 'Готов (docxtpl + docx)';
+            runButton.disabled = false;
+
+            appendToOutput('🎉 Среда готова! Библиотеки docxtpl и python-docx доступны.');
+            appendToOutput('📁 Можете загрузить свой шаблон .docx и выполнить код.');
+
+        } catch (err) {
+            console.error(err);
+            statusTextSpan.innerText = 'Ошибка';
+            appendToOutput(`❌ Ошибка инициализации: ${err.message}`);
+            runButton.disabled = true;
+        }
+    }
+
+    // Выполнение Python кода
+    async function executePythonCode() {
+        if (!pyodideReady || !pyodide) {
+            appendToOutput('⚠️ Python ещё не загружен. Подождите...');
+            return;
+        }
+
+        const code = codeEditor.value;
+        if (!code.trim()) {
+            appendToOutput('⚠️ Введите код для выполнения');
+            return;
+        }
+
+        appendToOutput('\n--- Выполнение кода ---');
+
+        try {
+            // Выполняем код
+            await pyodide.runPythonAsync(code);
+
+            appendToOutput('✅ Выполнение завершено');
+        } catch (err) {
+            console.error(err);
+            appendToOutput(`❌ Ошибка: ${err.message || err}`);
+        } finally {
+            appendToOutput('--- Конец выполнения ---\n');
+        }
+    }
+
+    // Инициализация событий
+    function bindEvents() {
+        runButton.addEventListener('click', () => {
+            executePythonCode();
+        });
+
+        clearOutputBtn.addEventListener('click', () => {
+            clearOutput();
+        });
+
+        uploadTemplateBtn.addEventListener('click', () => {
+            templateFileInput.click();
+        });
+
+        templateFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                uploadTemplate(e.target.files[0]);
+            }
+            templateFileInput.value = ''; // Сбрасываем для возможности повторной загрузки того же файла
+        });
+
+        clearTemplateBtn.addEventListener('click', () => {
+            clearTemplate();
+        });
+    }
+
+    // Делаем функции доступными для JavaScript из Python
+    window.appendToOutput = appendToOutput;
+
+    // Запуск
+    bindEvents();
+    initializePyodide();
+</script>
+</body>
+</html>
