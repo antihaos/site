@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI LMS Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { lms: { primary: '#4F46E5', attention: '#F59E0B', important: '#EF4444', surface: '#F8FAFC', border: '#E2E8F0' } } } } }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    #app { height: 100vh; display: flex; flex-direction: column; }
+
+    .flip-card { perspective: 1000px; cursor: pointer; }
+    .flip-card-inner {
+      position: relative; transition: transform 0.6s; transform-style: preserve-3d;
+      min-height: 140px;
+    }
+    .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card-front, .flip-card-back {
+      position: absolute; inset: 0; backface-visibility: hidden;
+      display: flex; flex-direction: column;
+      padding: 1.25rem; border-radius: 0.75rem; border: 2px solid #E2E8F0;
+      overflow-y: auto;
+    }
+    .flip-card-front { background: #EEF2FF; color: #1E293B; }
+    .flip-card-back { background: #4F46E5; color: white; transform: rotateY(180deg); }
+
+    .accordion-content {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.3s ease; opacity: 0;
+    }
+    .accordion-item.active .accordion-content {
+      max-height: 600px; opacity: 1;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .h-accordion { display: flex; overflow: hidden; border-radius: 0.75rem; border: 1px solid #E2E8F0; background: white; }
+    .h-accordion-item { display: flex; flex: 0 0 48px; transition: flex 0.45s cubic-bezier(0.4,0,0.2,1); overflow: hidden; min-width: 0; }
+    .h-accordion-item.active { flex: 1; }
+    .h-accordion-header {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 48px; cursor: pointer; background: #F8FAFC; border-right: 1px solid #E2E8F0;
+      gap: 0.25rem; font-size: 0.65rem; font-weight: 600; color: #64748B;
+      writing-mode: vertical-rl; text-orientation: mixed; user-select: none; transition: background 0.2s;
+    }
+    .h-accordion-header:hover { background: #F1F5F9; }
+    .h-accordion-item.active .h-accordion-header { background: #EEF2FF; color: #4F46E5; }
+    .h-accordion-content { padding: 1.25rem; overflow-y: auto; min-width: 180px; }
+
+    .img-area-marker {
+      position: absolute; cursor: pointer; border: 2px dashed rgba(79,70,229,0.5);
+      background: rgba(79,70,229,0.08); border-radius: 4px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .img-area-marker:hover { background: rgba(79,70,229,0.2); border-color: rgba(79,70,229,0.8); }
+    .img-area-marker.active { background: rgba(79,70,229,0.3); border-color: #4F46E5; border-style: solid; }
+    .img-area-tooltip {
+      position: absolute; z-index: 20; background: #1E293B; color: white;
+      padding: 0.625rem 0.875rem; border-radius: 0.5rem; font-size: 0.8125rem;
+      max-width: 220px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); pointer-events: none; line-height: 1.4;
+    }
+
+    .slider { position: relative; overflow: hidden; border-radius: 0.75rem; border: 1px solid #E2E8F0; background: white; }
+    .slider-track { display: flex; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .slider-slide { flex: 0 0 100%; min-width: 0; padding: 1.5rem; box-sizing: border-box; overflow-y: auto; display: flex; flex-direction: column; }
+    .slider-slide-inner { flex: 1; min-height: 0; }
+    .slider-vertical { height: var(--sh, 300px); }
+    .slider-vertical .slider-track { flex-direction: column; height: 100%; }
+    .slider-vertical .slider-slide { height: 100%; }
+    .slider-btn {
+      position: absolute; z-index: 10; cursor: pointer; border: none;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; color: #475569;
+    }
+    .slider-h-btn {
+      top: 50%; transform: translateY(-50%); width: 36px; height: 36px;
+      border-radius: 50%; background: rgba(255,255,255,0.9);
+      font-size: 1.25rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .slider-h-btn:hover { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: #1E293B; }
+    .slider-prev { left: 0.75rem; }
+    .slider-next { right: 0.75rem; }
+    .slider-v-btn {
+      left: 50%; transform: translateX(-50%); width: 32px; height: 28px;
+      border-radius: 6px; background: rgba(255,255,255,0.9);
+      font-size: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .slider-v-btn:hover { background: white; }
+    .slider-vertical .slider-prev { top: 0.5rem; }
+    .slider-vertical .slider-next { bottom: 0.5rem; }
+    .slider-dots {
+      display: flex; justify-content: center; gap: 0.5rem; padding: 0.75rem 0;
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+      background: linear-gradient(transparent, rgba(255,255,255,0.8));
+    }
+    .slider-dot {
+      width: 8px; height: 8px; border-radius: 50%; border: none;
+      background: #CBD5E1; cursor: pointer; transition: all 0.25s; padding: 0;
+    }
+    .slider-dot.active { background: #4F46E5; width: 24px; border-radius: 4px; }
+    .slider-vertical .slider-dots {
+      flex-direction: column; right: 0.5rem; top: 50%; bottom: auto;
+      transform: translateY(-50%); background: none; left: auto;
+      gap: 0.375rem;
+    }
+    .slider-vertical .slider-dot.active { width: 8px; height: 24px; border-radius: 4px; }
+
+    textarea { resize: none; outline: none; }
+    textarea:focus { box-shadow: inset 0 0 0 2px #4F46E5; }
+
+    .preview a { color: #4F46E5; text-decoration: underline; }
+    .preview a:hover { color: #4338CA; }
+    .preview h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.75rem; }
+    .preview h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.25; margin-bottom: 0.5rem; }
+    .preview h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .preview p { margin-bottom: 0.75rem; line-height: 1.7; }
+    .preview ul, .preview ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+    .preview li { margin-bottom: 0.25rem; line-height: 1.6; }
+    .preview img { max-width: 100%; height: auto; border-radius: 0.5rem; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.5rem 0; }
+
+    .preset-btn {
+      padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.8125rem;
+      transition: all 0.15s; border: 1px solid #E2E8F0; background: white; cursor: pointer;
+      white-space: nowrap; color: #475569;
+    }
+    .preset-btn:hover { background: #F1F5F9; border-color: #4F46E5; color: #4F46E5; }
+
+    .toolbar-btn {
+      padding: 0.375rem 0.625rem; border-radius: 0.375rem; font-size: 0.8125rem;
+      border: 1px solid #E2E8F0; background: white; cursor: pointer; color: #475569;
+      display: flex; align-items: center; gap: 0.25rem; transition: all 0.15s;
+    }
+    .toolbar-btn:hover { background: #F1F5F9; border-color: #94A3B8; }
+
+    @media (max-width: 768px) {
+      .split-view { flex-direction: column !important; }
+      .split-view > * { width: 100% !important; }
+      .timeline-line, .timeline-dot { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header class="bg-white border-b border-lms-border px-4 py-2 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-3">
+      <span class="text-lg font-bold text-indigo-600">🎓 AI LMS Builder</span>
+      <span class="text-xs text-slate-400 hidden sm:inline">компоновщик блоков</span>
+    </div>
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button class="preset-btn" data-preset="demo">📦 Все блоки</button>
+      <button class="preset-btn" data-preset="lesson">📖 Простой урок</button>
+      <button class="preset-btn" data-preset="interactive">🎯 Интерактив</button>
+      <button class="preset-btn" data-preset="history">📅 История</button>
+      <span class="w-px h-5 bg-slate-200 mx-1"></span>
+      <button class="toolbar-btn" id="undoBtn" title="Отменить (Ctrl+Z)">↩</button>
+      <button class="toolbar-btn" id="redoBtn" title="Повторить (Ctrl+Shift+Z)">↪</button>
+      <span class="w-px h-5 bg-slate-200 mx-1"></span>
+      <button class="toolbar-btn" id="aiBtn" title="Сгенерировать через AI">🤖 AI</button>
+      <button class="toolbar-btn" id="formatBtn">⊲ Формат</button>
+      <button class="toolbar-btn" id="copyBtn">📋 Копировать</button>
+      <button class="toolbar-btn" id="importBtn">📂 Загрузить</button>
+      <button class="toolbar-btn" id="exportBtn">⬇ HTML</button>
+      <button class="toolbar-btn" id="clearBtn" title="Очистить">✕</button>
+    </div>
+  </header>
+
+  <input type="file" id="fileInput" accept=".json,application/json" style="display:none">
+  <div class="flex-1 flex split-view overflow-hidden">
+    <div class="w-1/2 flex flex-col border-r border-lms-border bg-slate-50">
+      <div class="flex items-center justify-between px-3 py-1.5 bg-slate-100 border-b border-lms-border shrink-0">
+        <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">JSON редактор</span>
+        <span id="status" class="text-xs text-slate-400">✓ валидно</span>
+      </div>
+      <textarea id="editor" class="flex-1 w-full p-4 font-mono text-sm leading-relaxed bg-slate-50 border-0" spellcheck="false"></textarea>
+    </div>
+    <div class="w-1/2 flex flex-col bg-white">
+      <div class="flex items-center justify-between px-3 py-1.5 bg-white border-b border-lms-border shrink-0">
+        <span class="text-xs font-medium text-slate-500 uppercase tracking-wider">Предпросмотр</span>
+        <span id="blockCount" class="text-xs text-slate-400"></span>
+      </div>
+      <div id="preview" class="flex-1 overflow-y-auto p-6 preview"></div>
+    </div>
+  </div>
+
+  <footer class="bg-slate-50 border-t border-lms-border px-4 py-1 text-xs text-slate-400 shrink-0 flex items-center justify-between">
+    <span>AI LMS Builder — конструктор блоков для интерактивных курсов</span>
+    <span>⚡ блоки можно вкладывать друг в друга через <code class="text-indigo-500">grid</code></span>
+  </footer>
+
+  <div id="aiModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center hidden" style="backdrop-filter:blur(2px)">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl max-h-[85vh] overflow-y-auto mx-4" onclick="event.stopPropagation()">
+      <div class="p-5">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-slate-800">🤖 Генерация контента</h2>
+          <button id="aiCloseBtn" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+        </div>
+
+        <details class="mb-4 border border-slate-200 rounded-lg">
+          <summary class="px-3 py-2 text-sm font-medium text-slate-600 cursor-pointer hover:bg-slate-50 rounded-lg select-none">⚙️ Настройки API</summary>
+          <div class="p-3 space-y-3 border-t border-slate-200">
+            <div>
+              <label class="text-xs font-medium text-slate-500 mb-0.5 block">Тип подключения</label>
+              <select id="aiConnType" class="w-full border border-slate-300 rounded px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                <option value="remote">Удалённый API (OpenAI и совместимые)</option>
+                <option value="ollama">Локально (Ollama)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 mb-0.5 block">API Endpoint</label>
+              <input type="text" id="aiEndpoint" class="w-full border border-slate-300 rounded px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 mb-0.5 block">API Key</label>
+              <input type="password" id="aiKey" class="w-full border border-slate-300 rounded px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" placeholder="sk-...">
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 mb-0.5 block">Модель</label>
+              <div class="flex gap-1">
+                <input type="text" id="aiModel" class="flex-1 border border-slate-300 rounded px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" list="aiModelList" placeholder="gpt-4o-mini">
+                <button id="aiFetchModelsBtn" class="px-2 border border-slate-300 rounded hover:bg-slate-100 text-sm shrink-0" title="Получить список моделей с сервера">🔄</button>
+              </div>
+              <datalist id="aiModelList"></datalist>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-slate-500 mb-0.5 block">Доп. заголовки (Key: Value, по одному на строку)</label>
+              <textarea id="aiHeaders" class="w-full border border-slate-300 rounded px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none" rows="2" placeholder="OpenAI-Project: proj_xxx"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <div class="mb-3">
+          <label class="text-xs font-medium text-slate-500 mb-1 block">Опишите, какой контент создать</label>
+          <textarea id="aiPrompt" rows="5" class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none resize-none" placeholder="Например: Создай урок по основам JavaScript с заголовками, списками, флипкартами для терминов и блоком важной информации."></textarea>
+        </div>
+
+        <div id="aiStatus" class="text-xs mb-3 hidden"></div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">Будет использован API из настроек</span>
+          <div class="flex gap-2">
+            <button id="aiCancelBtn" class="px-3 py-1.5 text-sm border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">Отмена</button>
+            <button id="aiGenerateBtn" class="px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5">
+              <span id="aiGenText">Сгенерировать</span>
+              <span id="aiSpinner" class="hidden">
+                <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const presets = {
+  demo: {
+    blocks: [
+      { type: 'text', content: '<h1>Все типы блоков</h1><p>Демонстрация всех доступных блоков <strong>AI LMS Builder</strong>. Каждый блок настраивается через JSON-структуру и поддерживает вложенность.</p>' },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          { type: 'text', content: '<p>📝 <strong>Текстовый блок</strong> — базовый элемент. Поддерживает <strong>HTML</strong>, <em>курсив</em>, <a href="#">ссылки</a> и прочее.</p>' },
+          {
+            type: 'flipcards', columns: 1,
+            items: [
+              { front: '👆 Нажми меня', back: 'Флипкарточки помогают запоминать информацию через активное взаимодействие!' }
+            ]
+          }
+        ]
+      },
+      { type: 'attention', content: '<strong>Обрати внимание:</strong> все блоки могут быть вложены в <code>grid</code> для создания сложных макетов.' },
+      { type: 'important', content: 'Блок <strong>"Важно"</strong> используется для критических замечаний. Не пропускайте такие блоки.' },
+      { type: 'video', src: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: '🎬 Пример видео', caption: 'YouTube видео с лекцией' },
+      {
+        type: 'accordion', direction: 'vertical',
+        items: [
+          {
+            title: '🎯 Что такое аккордеон?',
+            content: '<p>Вертикальный аккордеон скрывает/показывает контент. Полезно для FAQ.</p>',
+            bgColor: '#F8FAFC'
+          },
+          {
+            title: '⚙️ Вложенные блоки',
+            content: [
+              { type: 'text', content: '<p><code>content</code> может быть массивом блоков для сложной вложенности:</p>' },
+              {
+                type: 'grid', columns: 2,
+                children: [
+                  { type: 'text', content: '<p class="text-sm">Левая колонка с текстом внутри аккордеона.</p>' },
+                  { type: 'attention', content: 'Блоки можно комбинировать как угодно!' }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: 'accordion', direction: 'horizontal',
+        items: [
+          { title: '📖 Теория', content: '<p>Горизонтальный аккордеон раскрывает секции вширь.</p>' },
+          { title: '🔬 Практика', content: [ { type: 'list', style: 'bullet', items: ['Шаг 1', 'Шаг 2', 'Шаг 3'] }, { type: 'image', src: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&h=200&fit=crop', alt: 'practice' } ] },
+          { title: '✅ Тест', bgColor: '#FFFBEB', content: '<p>Проверка знаний и дополнительные материалы. Фон этого блока задан через <code>bgColor</code> у item.</p>' }
+        ]
+      },
+      {
+        type: 'tabs',
+        items: [
+          { title: 'Вкладка 1', bgColor: '#EFF6FF', content: '<p>Вкладки переключают контент кликом по заголовку. Фон через <code>bgColor</code> у item.</p>' },
+          {
+            title: 'Вкладка с grid',
+            content: [
+              { type: 'text', content: '<p>Внутри вкладки — полноценный grid с блоками:</p>' },
+              { type: 'grid', columns: 2, children: [
+                { type: 'important', content: 'Важный блок слева' },
+                { type: 'attention', content: 'Блок внимания справа' }
+              ]}
+            ]
+          },
+          { title: 'Вкладка 3', content: '<p>Третья вкладка с дополнительной информацией.</p>' }
+        ]
+      },
+      { type: 'list', style: 'bullet', items: ['Маркированный список для перечисления', 'Второй пункт с описанием', 'Третий пункт'] },
+      { type: 'list', style: 'numbered', items: ['Шаг первый: изучите теорию', 'Шаг второй: выполните практику', 'Шаг третий: пройдите тест'] },
+      {
+        type: 'slider', direction: 'horizontal', autoplay: true, interval: 5000,
+        items: [
+          { content: [ { type: 'attention', content: '👋 <strong>Слайдер</strong> — листайте блоки с контентом. Навигация через стрелки и точки.' } ] },
+          { content: [ { type: 'important', content: 'Внутри слайда могут быть любые блоки, включая grid и изображения.' } ] },
+          { content: [ { type: 'text', content: '<p class="text-center text-lg">📸 <strong>Слайд 3</strong><br><span class="text-sm text-slate-500">Каждый слайд — это полноценный блок с поддержкой вложенности.</span></p>' } ] },
+          { content: '<p class="text-center"><strong>Слайд 4</strong> — строка тоже работает.</p>' }
+        ]
+      },
+      {
+        type: 'slider', direction: 'vertical', height: 360,
+        items: [
+          { content: '<p class="text-center"><strong>Вертикальный слайдер</strong><br><span class="text-sm text-slate-500">Листается сверху вниз.</span></p>' },
+          { content: [ { type: 'flipcards', columns: 1, items: [ { front: '👆 Нажми', back: 'Внутри слайда можно размещать любые блоки!' } ] } ] }
+        ]
+      },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'text', height: 240,
+            content: '<h3>📏 Фиксированная высота</h3><p>Этот блок имеет <code>height: 240</code>. Если контент выходит за границы — появляется скролл.</p><p>Строка 1</p><p>Строка 2</p><p>Строка 3</p><p>Строка 4</p><p>Строка 5</p><p>Строка 6 — контент за пределами видимой области.</p>'
+          },
+          {
+            type: 'text',
+            content: '<h3>📏 Авто-высота</h3><p>Этот блок без <code>height</code> — подстраивается под контент автоматически.</p><p>Достаточно написать текст — высота сама увеличится.</p>'
+          }
+        ]
+      },
+      {
+        type: 'dates', title: 'История развития LMS',
+        items: [
+          { year: '1960', title: 'Первые компьютерные обучения', description: 'Появление PLATO — первой системы компьютерного обучения.' },
+          { year: '1990', title: 'Эпоха WWW', description: 'С появлением веба LMS системы выходят в онлайн.' },
+          { year: '2005', title: 'Moodle', description: 'Запуск самой популярной open-source LMS платформы.' },
+          { year: '2020', title: 'AI в образовании', description: 'Интеграция искусственного интеллекта в процессы обучения.' }
+        ]
+      },
+      { type: 'image', src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=400&fit=crop', alt: 'Студенты за работой', caption: 'Современное образование невозможно без качественных цифровых инструментов.' },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          { type: 'download', url: '#', title: 'Материалы урока', description: 'Презентация и конспект', ext: 'PDF', size: '2.4 MB', icon: '📕' },
+          { type: 'download', url: '#', title: 'Исходный код', description: 'Примеры из урока', ext: 'ZIP', size: '1.1 MB', icon: '💻' }
+        ]
+      },
+      { type: 'audio', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', title: 'Лекция: Введение в тему', caption: 'Аудиоверсия урока для прослушивания в дороге' },
+      {
+        type: 'interactive-image',
+        src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=500&fit=crop',
+        alt: 'Рабочее место разработчика',
+        title: '🖱 Интерактивное изображение',
+        caption: 'Нажмите на области изображения, чтобы узнать больше',
+        areas: [
+          { coords: [3, 3, 62, 52], title: '💻 Ноутбук', description: 'Основной инструмент разработчика' },
+          { coords: [3, 55, 38, 96], title: '⌨️ Клавиатура', description: 'Механическая клавиатура для комфортной работы' },
+          { coords: [65, 5, 97, 42], title: '☕ Кофе', description: 'Важный элемент рабочего процесса' }
+        ]
+      },
+      {
+        type: 'grid', columns: 3,
+        children: [
+          { type: 'text', content: '<p class="text-center"><span class="text-2xl">📚</span><br><strong>Теория</strong><br><span class="text-sm text-slate-500">Изучайте материалы</span></p>' },
+          { type: 'text', content: '<p class="text-center"><span class="text-2xl">💻</span><br><strong>Практика</strong><br><span class="text-sm text-slate-500">Выполняйте задания</span></p>' },
+          { type: 'text', content: '<p class="text-center"><span class="text-2xl">🏆</span><br><strong>Результат</strong><br><span class="text-sm text-slate-500">Получайте навыки</span></p>' }
+        ]
+      },
+      {
+        type: 'flipcards', columns: 2, height: 220,
+        items: [
+          {
+            front: [
+              { type: 'text', content: '<p class="text-center"><strong>🎯 С grid внутри</strong></p>' },
+              { type: 'text', content: '<p class="text-center text-sm">Нажми, чтобы увидеть обратную сторону</p>' }
+            ],
+            back: [
+              { type: 'text', content: '<p class="font-semibold text-center">Вложенный grid:</p>' },
+              { type: 'grid', columns: 2, children: [
+                { type: 'attention', content: 'Блок 1' },
+                { type: 'important', content: 'Блок 2' }
+              ]}
+            ]
+          },
+          {
+            front: [
+              { type: 'text', content: '<p class="text-center"><strong>📦 Ещё карточка</strong></p>' }
+            ],
+            back: [
+              { type: 'text', content: '<p class="font-semibold">Список внутри флипкарты:</p>' },
+              { type: 'list', style: 'bullet', items: ['Пункт A', 'Пункт B', 'Пункт C'] }
+            ]
+          }
+        ]
+      },
+      {
+        type: 'flipcards', columns: 2, height: 300,
+        items: [
+          {
+            front: '<p class="text-center font-semibold">🎠 Слайдер внутри флипкарты</p>',
+            back: [
+              { type: 'slider', direction: 'horizontal', items: [
+                { content: '<p class="text-center">Слайд 1 внутри флипкарты</p>' },
+                { content: '<p class="text-center">Слайд 2 — кнопки не переворачивают карточку</p>' },
+                { content: [ { type: 'attention', content: 'Слайд 3 с блоком внимания' } ] }
+              ]}
+            ]
+          },
+          {
+            front: '<p class="text-center font-semibold">🔄 Ещё карточка</p>',
+            back: [ { type: 'list', style: 'bullet', items: ['Слайдер работает', 'Флипкарта не мешает'] } ]
+          }
+        ]
+      },
+      {
+        type: 'slider', direction: 'horizontal',
+        items: [
+          {
+            content: [
+              { type: 'text', content: '<p class="text-center font-semibold">Сетка из двух слайдеров</p><p class="text-center text-sm text-slate-500">Листайте — внутри каждого слайда свой слайдер</p>' }
+            ]
+          },
+          {
+            content: [
+              {
+                type: 'grid', columns: 2,
+                children: [
+                  {
+                    type: 'slider', direction: 'vertical', height: 250,
+                    items: [
+                      { content: '<p class="text-center text-sm">Верт. слайдер 1<br>Слайд A</p>' },
+                      { content: '<p class="text-center text-sm">Верт. слайдер 1<br>Слайд B</p>' }
+                    ]
+                  },
+                  {
+                    type: 'slider', direction: 'vertical', height: 250,
+                    items: [
+                      { content: '<p class="text-center text-sm">Верт. слайдер 2<br>Слайд A</p>' },
+                      { content: '<p class="text-center text-sm">Верт. слайдер 2<br>Слайд B</p>' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        type: 'text', bgColor: '#F0FDF4', height: 140,
+        content: '<p class="text-center font-semibold text-green-800">📗 Блок с <code>bgColor: "#F0FDF4"</code></p><p class="text-center text-sm text-green-700">Фоновый цвет задаётся для любого блока.</p>'
+      },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'attention', bgColor: '#FEF2F2',
+            content: '<strong>bgColor</strong> работает с любым типом блока — текст, внимание, важно, grid и т.д.'
+          },
+          {
+            type: 'text', bgColor: '#EFF6FF',
+            content: '<p class="text-center">🔵 Синий фон через <code>bgColor</code></p>'
+          }
+        ]
+      },
+      {
+        type: 'text', bgImage: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&auto=format&fit=crop', height: 200,
+        content: '<p class="text-center font-bold text-white drop-shadow-lg" style="text-shadow:0 2px 4px rgba(0,0,0,0.5)">🖼 Блок с фоновым изображением</p><p class="text-center text-sm text-white drop-shadow" style="text-shadow:0 1px 3px rgba(0,0,0,0.5)"><code>bgImage</code> + <code>height</code></p>'
+      },
+      {
+        type: 'katex',
+        formula: '\\sum_{k=1}^{n} \\frac{1}{k^2} = \\frac{\\pi^2}{6}',
+        caption: 'Формула Эйлера для суммы обратных квадратов'
+      },
+      {
+        type: 'mermaid',
+        code: 'graph TD\n  A[Теория] --> B[Практика]\n  B --> C{Тест}\n  C -->|Пройден| D[Следующий модуль]\n  C -->|Не пройден| A',
+        caption: 'Блок-схема учебного процесса'
+      },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'katex',
+            formula: 'e^{i\\pi} + 1 = 0',
+            display: false,
+            caption: 'Тождество Эйлера'
+          },
+          {
+            type: 'mermaid',
+            code: 'sequenceDiagram\n  participant S as Студент\n  participant P as Платформа\n  S->>P: Запрос урока\n  P->>S: Материалы\n  S->>P: Ответы\n  P->>S: Результат',
+            caption: 'Диаграмма последовательности'
+          }
+        ]
+      },
+      {
+        type: 'section', title: '📚 Демо-раздел с оглавлением', toc: true,
+        children: [
+          { type: 'text', content: '<p>Этот раздел использует <code>toc: true</code> — оглавление собрано автоматически из заголовков h1-h3 внутри <code>children</code>.</p>' },
+          { type: 'text', content: '<h2>Введение</h2><p>Раздел группирует связанные блоки и может генерировать оглавление по заголовкам.</p>' },
+          { type: 'text', content: '<h3>Что такое раздел</h3><p>Блок <strong>section</strong> — контейнер с заголовком и вложенными блоками.</p><h3>Как работает оглавление</h3><p>При <code>toc: true</code> все h1-h3 внутри children получают ID и собираются в список в начале раздела.</p>' },
+          { type: 'attention', content: 'Клик по пункту оглавления плавно скроллит к заголовку.' },
+          { type: 'text', content: '<h2>Примеры использования</h2><p>Разделы удобны для структурирования уроков, глав, модулей.</p>' },
+          { type: 'text', content: '<h3>Вложенные блоки</h3><p>Внутри <code>children</code> могут быть любые блоки, включая grid и слайдеры.</p><h3>Автономное оглавление</h3><p>Блок <strong>toc</strong> позволяет разместить оглавление отдельно от раздела.</p>' }
+        ]
+      },
+      {
+        type: 'toc', title: '📑 Общее оглавление страницы'
+      }
+    ]
+  },
+  lesson: {
+    blocks: [
+      { type: 'text', content: '<h1>Введение в веб-разработку</h1><p>В этом уроке мы познакомимся с основами создания веб-страниц. Вы узнаете, как работают <strong>HTML</strong>, <strong>CSS</strong> и <strong>JavaScript</strong>.</p>' },
+      { type: 'attention', content: 'Перед началом убедитесь, что у вас установлен современный браузер (Chrome, Firefox, Edge). Все примеры можно выполнять прямо в браузере.' },
+      { type: 'text', content: '<h2>Что такое HTML?</h2><p>HTML (HyperText Markup Language) — это язык разметки, который определяет структуру веб-страницы. Он состоит из тегов, которые описывают различные элементы: заголовки, абзацы, изображения, ссылки и многое другое.</p>' },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'text', content: '<h3>Основные теги</h3><ul><li><code>&lt;h1&gt;</code> — заголовок</li><li><code>&lt;p&gt;</code> — абзац</li><li><code>&lt;a&gt;</code> — ссылка</li><li><code>&lt;img&gt;</code> — изображение</li><li><code>&lt;ul&gt;</code> — список</li></ul>'
+          },
+          {
+            type: 'text', content: '<h3>Пример кода</h3><pre class="bg-slate-100 p-3 rounded text-sm overflow-x-auto">&lt;h1&gt;Привет, мир!&lt;/h1&gt;\n&lt;p&gt;Это мой первый сайт.&lt;/p&gt;</pre>'
+          }
+        ]
+      },
+      { type: 'important', content: 'Каждый HTML-документ должен начинаться с декларации <code>&lt;!DOCTYPE html&gt;</code> и содержать корневой элемент <code>&lt;html&gt;</code>.' },
+      { type: 'list', style: 'numbered', items: ['Создайте файл index.html', 'Напишите базовую структуру документа', 'Добавьте заголовок и абзац', 'Откройте файл в браузере'] },
+      { type: 'image', src: 'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=400&fit=crop', alt: 'Веб разработка', caption: 'Веб-разработка открывает безграничные возможности для творчества.' },
+      {
+        type: 'accordion', direction: 'vertical',
+        items: [
+          { title: '❓ Зачем учить HTML?', content: '<p>HTML — это фундамент веба. Даже если вы используете фреймворки, понимание HTML необходимо для эффективной разработки.</p>' },
+          { title: '🔗 Дополнительные ресурсы', content: '<ul><li><a href="#">MDN Web Docs</a></li><li><a href="#">HTML Academy</a></li><li><a href="#">freeCodeCamp</a></li></ul>' },
+          { title: '📝 Проверка знаний', content: '<p>Попробуйте создать страницу с заголовком, тремя абзацами и списком из пяти пунктов.</p>' }
+        ]
+      }
+    ]
+  },
+  interactive: {
+    blocks: [
+      { type: 'text', content: '<h1>🎯 Интерактивный модуль</h1><p>Этот урок использует интерактивные элементы для лучшего усвоения материала. Переворачивайте карточки и открывайте аккордеоны!</p>' },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'flipcards', columns: 1,
+            items: [
+              { front: '❓ Что такое CSS?', back: 'CSS (Cascading Style Sheets) — язык таблиц стилей, отвечающий за внешний вид веб-страниц.' }
+            ]
+          },
+          {
+            type: 'flipcards', columns: 1,
+            items: [
+              { front: '❓ Что такое JavaScript?', back: 'JavaScript — язык программирования, который делает веб-страницы интерактивными и динамическими.' }
+            ]
+          }
+        ]
+      },
+      {
+        type: 'flipcards', columns: 3,
+        items: [
+          {
+            front: '🎨 Дизайн',
+            back: [
+              { type: 'text', content: '<p><strong>UI/UX</strong> проектирование интерфейсов</p>' },
+              { type: 'list', style: 'bullet', items: ['Figma', 'Adobe XD', 'Sketch'] }
+            ]
+          },
+          { front: '⚡ Фронтенд', back: 'HTML, CSS, JavaScript, React' },
+          { front: '🔧 Бэкенд', back: 'Серверная логика, базы данных, API' }
+        ]
+      },
+      { type: 'attention', content: '💡 <strong>Совет:</strong> Переворачивайте карточки, чтобы проверить свои знания. Попробуйте сначала ответить самостоятельно!' },
+      {
+        type: 'accordion', direction: 'horizontal',
+        items: [
+          { title: '📖 Теория', content: '<p>Изучите теоретический материал перед выполнением практических заданий. Теория даёт базу для понимания.</p>' },
+          { title: '🔬 Примеры', content: '<p>Изучите примеры кода, чтобы увидеть, как концепции применяются на практике.</p>' },
+          { title: '✅ Задания', content: '<p>Выполните практические задания для закрепления материала.</p>' }
+        ]
+      },
+      {
+        type: 'accordion', direction: 'vertical',
+        items: [
+          { title: '📌 Критерии оценки', content: '<ul><li>Корректность выполнения задания</li><li>Чистота и читаемость кода</li><li>Оптимизация и производительность</li><li>Документация и комментарии</li></ul>' },
+          { title: '⏱ Время выполнения', content: '<p>Рекомендуемое время: <strong>45 минут</strong>. Не торопитесь — качество важнее скорости.</p>' }
+        ]
+      },
+      { type: 'list', style: 'bullet', items: ['Изучите теорию', 'Посмотрите примеры', 'Выполните задания', 'Проверьте себя с помощью карточек', 'Переходите к следующему модулю'] }
+    ]
+  },
+  history: {
+    blocks: [
+      { type: 'text', content: '<h1>📅 История вычислительной техники</h1><p>Погрузитесь в увлекательное путешествие по истории развития компьютеров — от механических вычислителей до современных AI-систем.</p>' },
+      { type: 'image', src: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=350&fit=crop', alt: 'История технологий', caption: 'Эволюция вычислительной техники насчитывает более 200 лет.' },
+      {
+        type: 'dates', title: 'Ключевые вехи',
+        items: [
+          { year: '1822', title: 'Разностная машина Чарльза Бэббиджа', description: 'Первый шаг к созданию программируемого компьютера. Бэббидж разработал концепцию механического вычислителя.' },
+          { year: '1936', title: 'Машина Тьюринга', description: 'Алан Тьюринг предложил теоретическую модель компьютера, ставшую основой современной информатики.' },
+          { year: '1945', title: 'ENIAC', description: 'Первый электронный цифровой компьютер общего назначения. Занимал целое здание и весил 30 тонн.' },
+          { year: '1971', title: 'Первый микропроцессор', description: 'Intel 4004 — первый коммерческий микропроцессор, положивший начало эре персональных компьютеров.' },
+          { year: '1991', title: 'Всемирная паутина', description: 'Тим Бернерс-Ли представил World Wide Web, изменив способ обмена информацией в мире.' },
+          { year: '2007', title: 'Эра смартфонов', description: 'Первый iPhone положил начало эпохе мобильных вычислений и повсеместного доступа к информации.' },
+          { year: '2022', title: 'ChatGPT и генеративный AI', description: 'Прорыв в области искусственного интеллекта, сделавший AI-технологии доступными миллионам людей.' }
+        ]
+      },
+      {
+        type: 'grid', columns: 2,
+        children: [
+          {
+            type: 'text', content: '<h3>💡 Знали ли вы?</h3><p>Первый компьютерный <strong>"баг"</strong> был обнаружен в 1947 году. Это была настоящая моль, застрявшая в реле марки II. Грейс Хоппер вклеила её в журнал с пометкой "first actual case of bug being found".</p>'
+          },
+          {
+            type: 'important', content: '<strong>Важно понимать:</strong> История технологий — это не просто хронология изобретений, а история людей, которые меняли мир своими идеями и упорным трудом.'
+          }
+        ]
+      },
+      {
+        type: 'accordion', direction: 'vertical',
+        items: [
+          { title: '🔍 Больше о первых компьютерах', content: '<p>До ENIAC существовали и другие вычислительные машины: Z3 Конрада Цузе (1941), Colossus (1943), Марк I (1944). Каждая внесла свой вклад в развитие технологий.</p>' },
+          { title: '🌍 Влияние на общество', content: '<p>Компьютерная революция изменила все аспекты жизни: работу, общение, образование, медицину и развлечения. Сегодня сложно представить мир без цифровых технологий.</p>' }
+        ]
+      }
+    ]
+  }
+};
+
+const STORAGE_KEY = 'ai-lms-builder-json';
+const EMPTY_JSON = JSON.stringify({ blocks: [{ type: 'text', content: '<h2>Начните редактировать</h2><p>Введите JSON слева или выберите пресет сверху.</p>' }] }, null, 2);
+
+const history = { stack: [], pos: -1, max: 50, timer: null };
+
+function pushHistory() {
+  const val = editor.value;
+  if (history.stack[history.pos] === val) return;
+  if (history.pos < history.stack.length - 1) {
+    history.stack = history.stack.slice(0, history.pos + 1);
+  }
+  history.stack.push(val);
+  if (history.stack.length > history.max) history.stack.shift();
+  history.pos = history.stack.length - 1;
+}
+
+function undo() {
+  if (history.pos > 0) {
+    history.pos--;
+    editor.value = history.stack[history.pos];
+    localStorage.setItem(STORAGE_KEY, editor.value);
+    updatePreview();
+  }
+}
+
+function redo() {
+  if (history.pos < history.stack.length - 1) {
+    history.pos++;
+    editor.value = history.stack[history.pos];
+    localStorage.setItem(STORAGE_KEY, editor.value);
+    updatePreview();
+  }
+}
+
+const AI_SYSTEM_PROMPT = `Ты — генератор контента для конструктора лендингов курсов AI LMS Builder. Твоя задача — генерировать валидный JSON с блоками для страницы курса.
+
+ОТВЕЧАЙ ТОЛЬКО JSON БЕЗ КАКИХ-ЛИБО ПОЯСНЕНИЙ.
+
+Структура JSON:
+{ "blocks": [ { "type": "...", /* свойства */ } ] }
+
+ОБЩИЕ СВОЙСТВА (доступны для любого блока):
+- height (number, px) — фиксированная высота с прокруткой
+- bgColor (string, CSS-цвет) — фоновый цвет блока
+- bgImage (string, URL) — фоновое изображение (cover)
+
+ТИПЫ БЛОКОВ:
+
+1. type: "text" — текстовый блок с HTML-контентом
+   - content (string, HTML) — содержимое
+
+2. type: "attention" — блок "Обрати внимание" (жёлтый, с 💡)
+   - content (string, HTML) — содержимое
+   - title (string, опц., по умолч. "Обрати внимание")
+
+3. type: "important" — блок "Важно" (красный, с ❗)
+   - content (string, HTML) — содержимое
+   - title (string, опц., по умолч. "Важно")
+
+4. type: "flipcards" — карточки с переворотом по клику
+   - items (array) — [{ front: string|block[], back: string|block[] }]
+   - columns (number, опц., по умолч. 2)
+   - height (number, опц.)
+
+5. type: "accordion" — аккордеон
+   - direction (string, "vertical" | "horizontal", опц., по умолч. "vertical")
+   - items (array) — [{ title: string, content: string|block[], bgColor?: string }]
+
+6. type: "tabs" — вкладки
+   - items (array) — [{ title: string, content: string|block[], bgColor?: string }]
+
+7. type: "list" — маркированный или нумерованный список
+   - style (string, "bullet" | "numbered", опц., по умолч. "bullet")
+   - items (array of strings) — пункты списка
+   - title (string, опц.)
+
+8. type: "dates" — вертикальный таймлайн
+   - title (string, опц.)
+   - items (array) — [{ year: string, title: string, description: string|block[] }]
+
+9. type: "image" — изображение с подписью
+   - src (string, URL) — ссылка на изображение
+   - alt (string, опц.)
+   - caption (string, опц.)
+
+10. type: "video" — видео (YouTube/Vimeo/HTML5)
+    - src (string, URL)
+    - title (string, опц.)
+    - caption (string, опц.)
+
+11. type: "download" — карточка скачивания файла
+    - url (string) — ссылка
+    - title (string, опц.)
+    - description (string, опц.)
+    - ext (string, опц.) — расширение файла
+    - size (string, опц.) — размер файла
+    - icon (string, опц.) — эмодзи-иконка
+
+12. type: "audio" — аудиоплеер
+    - src (string, URL) — ссылка на аудиофайл
+    - title (string, опц.)
+    - caption (string, опц.)
+
+13. type: "interactive-image" — изображение с кликабельными областями
+    - src (string, URL) — изображение
+    - title (string, опц.)
+    - caption (string, опц.)
+    - areas (array) — [{ coords: [L%, T%, R%, B%], title: string, description: string }]
+
+14. type: "slider" — карусель
+    - direction (string, "horizontal" | "vertical", опц.)
+    - height (number, опц.)
+    - autoplay (boolean, опц.)
+    - interval (number, опц., ms)
+    - items (array) — [{ content: string|block[] }]
+
+15. type: "mermaid" — диаграмма Mermaid
+    - code (string) — текст диаграммы
+    - caption (string, опц.)
+
+16. type: "katex" — формула KaTeX
+    - formula (string) — LaTeX-формула
+    - display (boolean, опц., по умолч. true — блочный/display режим; false — инлайн)
+    - caption (string, опц.)
+
+17. type: "grid" — сетка с вложенными блоками
+    - columns (number, опц., по умолч. 2)
+    - gap (number, опц.)
+    - children (array of blocks) — вложенные блоки
+
+18. type: "section" — раздел с заголовком и опциональным оглавлением
+    - title (string, опц.) — заголовок раздела
+    - children (array of blocks) — вложенные блоки
+    - toc (boolean, опц.) — если true, автоматически собирает заголовки h1-h3 из children в оглавление в начале раздела
+    - tocTitle (string, опц.) — заголовок оглавления (по умолч. "Содержание")
+
+19. type: "toc" — автономное оглавление (собирает заголовки из разделов на странице)
+    - title (string, опц.) — заголовок блока
+    - source (string, опц.) — если указать, оглавление только для конкретного раздела (data-sid)
+
+ПРАВИЛА ВЛОЖЕННОСТИ:
+- Поля content, front, back, description, items[].content могут быть как строкой (HTML), так и массивом блоков
+- В grid.children и section.children — только массив блоков
+
+ВАЖНО:
+- Контент должен быть на русском языке, содержательный, не заглушки
+- Используй реалистичные примеры, факты, даты, имена
+- Все математические формулы оформляй ТОЛЬКО через блок katex, не используй HTML/Unicode для формул. Для display-формул (отдельный блок) ставь display: true, для инлайн-формул (внутри текста) ставь display: false
+- Для изображений используй https://images.unsplash.com/photo-...?w=800&h=400&fit=crop (реальные фото)
+- Создавай 3-30 блоков в зависимости от сложности темы
+- Не повторяй одинаковые блоки подряд без необходимости
+- Проверяй полученный json на корректность
+- Если у тебя заканчивается контекст, сократи контент, но сохрани структуру`;
+
+const AI_SETTINGS_KEY = 'ai-lms-builder-settings';
+const OLLAMA_DEFAULTS = { endpoint: 'http://localhost:11434/v1/chat/completions', key: '', model: 'llama3.2' };
+const REMOTE_DEFAULTS = { endpoint: 'https://api.openai.com/v1/chat/completions', key: '', model: 'gpt-4o-mini' };
+const DEFAULT_AI_SETTINGS = { type: 'remote', endpoint: REMOTE_DEFAULTS.endpoint, key: '', model: REMOTE_DEFAULTS.model, headers: '' };
+
+function loadAISettings() {
+  try { return Object.assign({}, DEFAULT_AI_SETTINGS, JSON.parse(localStorage.getItem(AI_SETTINGS_KEY) || '{}')); }
+  catch { return { ...DEFAULT_AI_SETTINGS }; }
+}
+
+function saveAISettings(settings) {
+  localStorage.setItem(AI_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function showAIStatus(msg, ok) {
+  const el = document.getElementById('aiStatus');
+  el.textContent = msg;
+  el.className = 'text-xs mb-3 ' + (ok ? 'text-emerald-600' : 'text-red-500');
+  el.classList.remove('hidden');
+}
+
+async function fetchModels() {
+  const connType = document.getElementById('aiConnType').value;
+  const endpoint = document.getElementById('aiEndpoint').value.trim();
+  const key = document.getElementById('aiKey').value.trim();
+  const headersRaw = document.getElementById('aiHeaders').value.trim();
+  const isLocal = connType === 'ollama';
+  const btn = document.getElementById('aiFetchModelsBtn');
+
+  let url;
+  const headers = {};
+  if (isLocal) {
+    url = endpoint.replace(/\/v1\/chat\/completions\/?$/, '') + '/api/tags';
+  } else {
+    url = endpoint.replace(/\/chat\/completions\/?$/, '/models');
+    const hasCustomAuth = headersRaw && headersRaw.split('\n').some(l => /^\s*authorization\s*:/i.test(l));
+    if (key && !hasCustomAuth) headers['Authorization'] = 'Bearer ' + key;
+    if (headersRaw) {
+      headersRaw.split('\n').forEach(line => {
+        const idx = line.indexOf(':');
+        if (idx > 0) {
+          const k = line.slice(0, idx).trim();
+          const v = line.slice(idx + 1).trim();
+          if (k && v) headers[k] = v;
+        }
+      });
+    }
+  }
+
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  document.getElementById('aiStatus').classList.add('hidden');
+
+  try {
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    let models = [];
+    if (data.data && Array.isArray(data.data)) {
+      models = data.data.map(m => m.id).filter(Boolean);
+    } else if (data.models && Array.isArray(data.models)) {
+      models = data.models.map(m => m.name || m.model).filter(Boolean);
+    }
+
+    if (!models.length) throw new Error('Нет доступных моделей');
+
+    const list = document.getElementById('aiModelList');
+    list.innerHTML = models.map(m => '<option value="' + m.replace(/"/g, '&quot;') + '">').join('');
+
+    document.getElementById('aiModel').placeholder = 'Загружено ' + models.length + ' моделей';
+    setTimeout(() => { document.getElementById('aiModel').placeholder = ''; }, 3000);
+  } catch (e) {
+    let msg = e.message;
+    if (msg.includes('Failed to fetch')) {
+      if (isLocal) {
+        if (window.location.protocol === 'file:') {
+          msg = 'CORS-ошибка. Запустите HTTP-сервер: python3 -m http.server 8080, откройте http://localhost:8080. Или настройте Ollama: OLLAMA_ORIGINS=* ollama serve';
+        } else {
+          msg = 'Не удалось подключиться к Ollama';
+        }
+      } else {
+        msg = 'Сервер отклонил запрос. Возможно, API не поддерживает CORS (preflight 401). Используйте CORS-прокси или проверьте документацию API.';
+      }
+    }
+    showAIStatus('Ошибка загрузки моделей: ' + msg, false);
+  } finally {
+    btn.textContent = '🔄';
+    btn.disabled = false;
+  }
+}
+
+function applyAIConnType() {
+  const t = document.getElementById('aiConnType').value;
+  const defaults = t === 'ollama' ? OLLAMA_DEFAULTS : REMOTE_DEFAULTS;
+  document.getElementById('aiEndpoint').value = defaults.endpoint;
+  document.getElementById('aiKey').value = defaults.key;
+  document.getElementById('aiKey').disabled = t === 'ollama';
+  document.getElementById('aiModel').value = defaults.model;
+}
+
+function openAIModal() {
+  const settings = loadAISettings();
+  document.getElementById('aiConnType').value = settings.type || 'remote';
+  applyAIConnType();
+  if (settings.type === document.getElementById('aiConnType').value) {
+    document.getElementById('aiEndpoint').value = settings.endpoint || '';
+    document.getElementById('aiModel').value = settings.model || '';
+    document.getElementById('aiHeaders').value = settings.headers || '';
+    if (settings.key) document.getElementById('aiKey').value = settings.key;
+  }
+  document.getElementById('aiPrompt').value = '';
+  document.getElementById('aiStatus').classList.add('hidden');
+
+  if (window.location.protocol === 'file:' && document.getElementById('aiConnType').value === 'ollama') {
+    showAIStatus('⚠️ Страница открыта через file://. Для работы с Ollama запустите HTTP-сервер: python3 -m http.server 8080, затем откройте http://localhost:8080. Или настройте Ollama: OLLAMA_ORIGINS=* ollama serve', true);
+  }
+  document.getElementById('aiGenerateBtn').disabled = false;
+  document.getElementById('aiGenText').textContent = 'Сгенерировать';
+  document.getElementById('aiSpinner').classList.add('hidden');
+  document.getElementById('aiModal').classList.remove('hidden');
+}
+
+function closeAIModal() {
+  document.getElementById('aiModal').classList.add('hidden');
+}
+
+async function generateWithAI() {
+  const settings = loadAISettings();
+  const connType = document.getElementById('aiConnType').value;
+  const endpoint = document.getElementById('aiEndpoint').value.trim();
+  const key = document.getElementById('aiKey').value.trim();
+  const model = document.getElementById('aiModel').value.trim();
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  const isLocal = connType === 'ollama';
+  const headersRaw = document.getElementById('aiHeaders').value.trim();
+
+  saveAISettings({ type: connType, endpoint, key, model, headers: headersRaw });
+
+  const hasCustomAuth = !isLocal && headersRaw && headersRaw.split('\n').some(l => /^\s*authorization\s*:/i.test(l));
+  if (!isLocal && !key && !hasCustomAuth) { showAIStatus('Укажите API Key в настройках или добавьте Authorization в заголовки', false); return; }
+  if (!prompt) { showAIStatus('Введите описание контента', false); return; }
+
+  const btn = document.getElementById('aiGenerateBtn');
+  btn.disabled = true;
+  document.getElementById('aiGenText').textContent = 'Генерация...';
+  document.getElementById('aiSpinner').classList.remove('hidden');
+  showAIStatus('', true);
+
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (!isLocal) {
+      if (key && !hasCustomAuth) headers['Authorization'] = 'Bearer ' + key;
+      if (headersRaw) {
+        headersRaw.split('\n').forEach(line => {
+          const idx = line.indexOf(':');
+          if (idx > 0) {
+            const k = line.slice(0, idx).trim();
+            const v = line.slice(idx + 1).trim();
+            if (k && v) headers[k] = v;
+          }
+        });
+      }
+    }
+    const body = {
+      model,
+      messages: [
+        { role: 'system', content: AI_SYSTEM_PROMPT },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 4096,
+      stream: false
+    };
+    if (!isLocal) body.response_format = { type: 'json_object' };
+    const res = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      throw new Error('HTTP ' + res.status + (errText ? ': ' + errText.slice(0, 200) : ''));
+    }
+
+    const data = await res.json();
+    let content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Пустой ответ от API');
+
+    content = content.replace(/^```(?:json)?\s*([\s\S]*?)```$/m, '$1').trim();
+    const parsed = JSON.parse(content);
+    if (!parsed.blocks || !Array.isArray(parsed.blocks)) {
+      if (Array.isArray(parsed)) {
+        pushHistory();
+        editor.value = JSON.stringify({ blocks: parsed }, null, 2);
+      } else {
+        throw new Error('Ответ не содержит blocks[]');
+      }
+    } else {
+      pushHistory();
+      editor.value = JSON.stringify(parsed, null, 2);
+    }
+    localStorage.setItem(STORAGE_KEY, editor.value);
+    updatePreview();
+    closeAIModal();
+  } catch (e) {
+    let msg = e.message;
+    if (e instanceof TypeError && msg === 'Failed to fetch') {
+      if (isLocal) {
+        if (window.location.protocol === 'file:') {
+          msg = 'CORS-ошибка. Запустите HTTP-сервер: python3 -m http.server 8080, откройте http://localhost:8080. Или настройте Ollama: OLLAMA_ORIGINS=* ollama serve';
+        } else {
+          msg = 'Не удалось подключиться к Ollama. Убедитесь, что Ollama запущена (ollama serve) и модель загружена.';
+        }
+      } else {
+        msg = 'Сервер отклонил запрос (preflight 401). API не поддерживает CORS — используйте CORS-прокси или проверьте документацию API.';
+      }
+    }
+    showAIStatus('Ошибка: ' + msg, false);
+    btn.disabled = false;
+    document.getElementById('aiGenText').textContent = 'Сгенерировать';
+    document.getElementById('aiSpinner').classList.add('hidden');
+  }
+}
+
+function addHeaderIds(html, prefix) {
+  let c = {1:0,2:0,3:0};
+  return html.replace(/<(h[1-3])(\s[^>]*)?>/gi, (m, tag, attrs) => {
+    if (/id\s*=/.test(m)) return m;
+    const l = parseInt(tag[1]); c[l]++;
+    return `<${tag} id="${prefix}-h${l}-${c[l]}"${attrs||''}>`;
+  });
+}
+
+function extractHeaders(html) {
+  const r = []; const re = /<h([1-3])(?:\s[^>]*)?\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/gi; let m;
+  while ((m = re.exec(html)) !== null) r.push({ level: +m[1], id: m[2], text: m[3].replace(/<[^>]*>/g,'') });
+  return r;
+}
+
+const renderers = {
+  text(b) {
+    return `<div class="mb-4">${b.content || ''}</div>`;
+  },
+
+  attention(b) {
+    return `<div class="mb-4 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-amber-500 text-lg shrink-0 mt-0.5">💡</span>
+        <div>
+          <div class="font-semibold text-amber-800 mb-0.5">${b.title || 'Обрати внимание'}</div>
+          <div class="text-amber-900 text-sm leading-relaxed">${b.content || ''}</div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  important(b) {
+    return `<div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-red-500 text-lg shrink-0 mt-0.5">❗</span>
+        <div>
+          <div class="font-semibold text-red-800 mb-0.5">${b.title || 'Важно'}</div>
+          <div class="text-red-900 text-sm leading-relaxed">${b.content || ''}</div>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  flipcards(b, renderOne) {
+    const cols = b.columns || 2;
+    const items = b.items || [];
+    if (!items.length) return '';
+    return `<div class="mb-4">
+      <div style="display: grid; grid-template-columns: repeat(${cols}, minmax(0, 1fr)); gap: 1rem;">
+        ${items.map((item, i) => `
+          <div class="flip-card" data-flip="${i}">
+            <div class="flip-card-inner" style="min-height: ${b.height || 140}px;">
+              <div class="flip-card-front">${renderContent(item.front, renderOne, item)}</div>
+              <div class="flip-card-back">${renderContent(item.back, renderOne, item)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <p class="text-xs text-slate-400 mt-1.5 text-center">👆 Нажмите на карточку, чтобы перевернуть</p>
+    </div>`;
+  },
+
+  accordion(b, renderOne) {
+    const dir = b.direction || 'vertical';
+    const items = b.items || [];
+    if (!items.length) return '';
+    if (dir === 'horizontal') return renderers['h-accordion'](b, renderOne);
+    return `<div class="mb-4 border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200 bg-white">
+      ${items.map((item, i) => `
+        <div class="accordion-item">
+          <button class="accordion-header w-full flex items-center justify-between px-4 py-3 text-left font-medium text-slate-800 hover:bg-slate-50 transition-colors" data-action="accordion-toggle">
+            <span>${item.title || ''}</span>
+            <svg class="accordion-arrow w-4 h-4 text-slate-400 transition-transform duration-300 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+            <div class="accordion-content">
+            <div class="px-4 py-3 text-sm text-slate-600 border-t border-slate-100">${renderContent(item.content, renderOne, item)}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  },
+
+  'h-accordion'(b, renderOne) {
+    const items = b.items || []; const height = b.height || 280;
+    if (!items.length) return '';
+    return `<div class="mb-4 h-accordion" style="height:${height}px">
+      ${items.map((item, i) => `
+        <div class="h-accordion-item${i === 0 ? ' active' : ''}" data-haccordion="${i}">
+          <div class="h-accordion-header" data-action="haccordion-toggle">${item.title || ''}</div>
+          <div class="h-accordion-content text-sm text-slate-600">${renderContent(item.content, renderOne, item)}</div>
+        </div>
+      `).join('')}
+    </div>`;
+  },
+
+  tabs(b, renderOne) {
+    const items = b.items || [];
+    if (!items.length) return '';
+    return `<div class="mb-4">
+      <div class="flex border-b border-slate-200 overflow-x-auto" role="tablist">
+        ${items.map((item, i) => `
+          <button class="tab-btn px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${i === 0 ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}" data-tab="${i}" data-action="tab-toggle">${item.title || ''}</button>
+        `).join('')}
+      </div>
+      <div class="p-4 bg-white border border-t-0 border-slate-200 rounded-b-lg">
+        ${items.map((item, i) => `
+          <div class="tab-content text-sm text-slate-600 ${i === 0 ? 'active' : ''}" data-tab-content="${i}">${renderContent(item.content, renderOne, item)}</div>
+        `).join('')}
+      </div>
+    </div>`;
+  },
+
+  list(b) {
+    const items = b.items || [];
+    if (!items.length) return '';
+    const isOrdered = b.style === 'numbered' || b.style === 'ordered';
+    const tag = isOrdered ? 'ol' : 'ul';
+    const cls = isOrdered ? 'list-decimal' : 'list-disc';
+    const cls2 = b.className || 'pl-5 text-slate-700 space-y-1';
+    return `<div class="mb-4">${b.title ? `<h3 class="font-semibold text-slate-800 mb-2">${b.title}</h3>` : ''}<${tag} class="${cls} ${cls2}">${items.map(item => `<li class="leading-relaxed">${item}</li>`).join('')}</${tag}></div>`;
+  },
+
+  dates(b, renderOne) {
+    const items = b.items || [];
+    if (!items.length) return '';
+    return `<div class="mb-6">
+      ${b.title ? `<h2 class="text-xl font-bold text-slate-800 mb-6 text-center">${b.title}</h2>` : ''}
+      <div class="relative pl-8">
+        <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-indigo-200"></div>
+        <div class="space-y-6">
+          ${items.map((item, i) => `
+            <div class="relative">
+              <div class="absolute -left-5 top-1.5 w-4 h-4 rounded-full bg-indigo-500 border-2 border-indigo-100 shadow-sm"></div>
+              <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <span class="inline-block bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-0.5 rounded-full mb-1.5">${item.year}</span>
+                <h3 class="font-semibold text-slate-800 text-sm mb-1">${item.title || ''}</h3>
+                <div class="text-xs text-slate-500 leading-relaxed">${renderContent(item.description, renderOne, item)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>`;
+  },
+
+  image(b) {
+    return `<div class="mb-4">
+      <figure>
+        <img src="${b.src || ''}" alt="${b.alt || ''}" class="w-full rounded-xl shadow-sm"${b.style ? ` style="${b.style}"` : ''} loading="lazy">
+        ${b.caption ? `<figcaption class="text-xs text-slate-500 mt-1.5 text-center italic">${b.caption}</figcaption>` : ''}
+      </figure>
+    </div>`;
+  },
+
+  video(b) {
+    const src = b.src || ''; const title = b.title || ''; const caption = b.caption || '';
+    let embed = '';
+    if (src.includes('youtube.com') || src.includes('youtu.be')) {
+      let vid = '';
+      try {
+        if (src.includes('v=')) vid = new URL(src).searchParams.get('v') || '';
+        else if (src.includes('youtu.be/')) vid = src.split('youtu.be/')[1]?.split('?')[0] || '';
+        else if (src.includes('/embed/')) vid = src.split('/embed/')[1]?.split('?')[0] || '';
+      } catch(e) { vid = ''; }
+      if (vid) embed = `<iframe class="w-full rounded-xl" style="aspect-ratio:16/9" src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
+    } else if (src.includes('vimeo.com')) {
+      const vid = src.split('vimeo.com/')[1]?.split('?')[0] || '';
+      if (vid) embed = `<iframe class="w-full rounded-xl" style="aspect-ratio:16/9" src="https://player.vimeo.com/video/${vid}" frameborder="0" allowfullscreen></iframe>`;
+    } else {
+      embed = `<video class="w-full rounded-xl" controls style="max-height:400px"><source src="${src}"></video>`;
+    }
+    if (!embed) embed = `<div class="p-4 bg-red-50 text-red-600 rounded-xl">⚠ Не удалось распознать видео: ${src}</div>`;
+    return `<div class="mb-4">${title ? `<h3 class="font-semibold text-slate-800 mb-2">${title}</h3>` : ''}${embed}${caption ? `<p class="text-xs text-slate-500 mt-1.5 text-center italic">${caption}</p>` : ''}</div>`;
+  },
+
+  download(b) {
+    return `<div class="mb-4">
+      <a href="${b.url || '#'}" target="_blank" class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-300 hover:shadow-sm transition-all no-underline !text-inherit group">
+        <span class="text-2xl shrink-0">${b.icon || '📄'}</span>
+        <div class="flex-1 min-w-0">
+          <div class="font-medium text-slate-800 group-hover:text-indigo-600 transition-colors truncate">${b.title || 'Скачать файл'}</div>
+          ${b.description ? `<div class="text-xs text-slate-500 truncate">${b.description}</div>` : ''}
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          ${b.size ? `<span class="text-xs text-slate-400">${b.size}</span>` : ''}
+          <span class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">${b.ext || 'Файл'}</span>
+          <span class="text-slate-400 group-hover:text-indigo-500 transition-colors">⬇</span>
+        </div>
+      </a>
+    </div>`;
+  },
+
+  audio(b) {
+    return `<div class="mb-4">
+      ${b.title ? `<h3 class="font-semibold text-slate-800 mb-2 flex items-center gap-2"><span class="text-lg">🎧</span>${b.title}</h3>` : ''}
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <audio class="w-full" controls src="${b.src || ''}"></audio>
+      </div>
+      ${b.caption ? `<p class="text-xs text-slate-500 mt-1.5 text-center italic">${b.caption}</p>` : ''}
+    </div>`;
+  },
+
+  'interactive-image'(b) {
+    const areas = b.areas || [];
+    if (!b.src) return '';
+    return `<div class="mb-4 interactive-img-wrap">
+      ${b.title ? `<h3 class="font-semibold text-slate-800 mb-2">${b.title}</h3>` : ''}
+      <div class="relative inline-block max-w-full">
+        <img src="${b.src}" alt="${b.alt || ''}" class="w-full rounded-xl" style="display:block">
+        ${areas.map((area, i) => {
+          const c = area.coords || [0,0,20,20];
+          return `<div class="img-area-marker" data-area="${i}" style="left:${c[0]}%;top:${c[1]}%;width:${c[2]-c[0]}%;height:${c[3]-c[1]}%" data-title="${(area.title||'').replace(/"/g,'&quot;')}" data-desc="${(area.description||'').replace(/"/g,'&quot;')}"></div>`;
+        }).join('')}
+      </div>
+      ${b.caption ? `<p class="text-xs text-slate-500 mt-1.5 text-center italic">${b.caption}</p>` : ''}
+    </div>`;
+  },
+
+  slider(b, renderOne) {
+    const items = b.items || [];
+    if (!items.length) return '';
+    const dir = b.direction === 'vertical' ? 'vertical' : 'horizontal';
+    const h = b.height || 300;
+    const hasNav = items.length > 1;
+    const padStyle = hasNav ? (dir === 'vertical' ? `padding:2.75rem 0;--sh:${h}px` : `padding:0 3.5rem`) : (dir === 'vertical' ? `--sh:${h}px` : '');
+    return `<div class="mb-4 slider ${dir === 'vertical' ? 'slider-vertical' : ''}" style="${padStyle}" data-current="0"${b.autoplay ? ` data-autoplay="${b.interval || 4000}"` : ''}>
+      <div class="slider-track">
+        ${items.map((item, i) => `
+          <div class="slider-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
+            <div class="slider-slide-inner">${renderContent(item.content, renderOne, item)}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${items.length > 1 ? `
+        <button class="slider-btn ${dir === 'vertical' ? 'slider-v-btn' : 'slider-h-btn'} slider-prev" data-action="slider-prev">${dir === 'vertical' ? '↑' : '‹'}</button>
+        <button class="slider-btn ${dir === 'vertical' ? 'slider-v-btn' : 'slider-h-btn'} slider-next" data-action="slider-next">${dir === 'vertical' ? '↓' : '›'}</button>
+        <div class="slider-dots">
+          ${items.map((_, i) => `<button class="slider-dot ${i === 0 ? 'active' : ''}" data-action="slider-dot" data-index="${i}"></button>`).join('')}
+        </div>
+      ` : ''}
+    </div>`;
+  },
+
+  mermaid(b) {
+    const code = b.code || '';
+    if (!code) return '';
+    const caption = b.caption ? `<p class="text-xs text-slate-500 mt-1.5 text-center italic">${b.caption}</p>` : '';
+    if (typeof mermaid === 'undefined') {
+      if (!document.querySelector('[data-lib="mermaid"]')) {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+        s.dataset.lib = 'mermaid';
+        s.onload = () => updatePreview();
+        document.head.appendChild(s);
+      }
+      return `<div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-500 text-center">⏳ Загрузка Mermaid...</div>`;
+    }
+    return `<div class="mb-4">${caption}<div class="mermaid">${code.replace(/</g, '&lt;')}</div></div>`;
+  },
+
+  katex(b) {
+    const formula = b.formula || '';
+    if (!formula) return '';
+    const caption = b.caption ? `<p class="text-xs text-slate-500 mt-1.5 text-center italic">${b.caption}</p>` : '';
+    if (typeof katex === 'undefined') {
+      if (!document.querySelector('[data-lib="katex-css"]')) {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = 'https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css';
+        l.dataset.lib = 'katex-css';
+        document.head.appendChild(l);
+      }
+      if (!document.querySelector('[data-lib="katex"]')) {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js';
+        s.dataset.lib = 'katex';
+        s.onload = () => updatePreview();
+        document.head.appendChild(s);
+      }
+      return `<div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-500 text-center">⏳ Загрузка KaTeX...</div>`;
+    }
+    try {
+      const html = katex.renderToString(formula, { displayMode: b.display !== false, throwOnError: false });
+      return `<div class="mb-4">${html}${caption}</div>`;
+    } catch (e) {
+      return `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">⚠ Ошибка KaTeX: ${e.message}</div>`;
+    }
+  },
+
+  grid(b, renderOne) {
+    const children = b.children || [];
+    if (!children.length) return '';
+    const cols = b.columns || 2;
+    const gap = b.gap || 4;
+    return `<div class="mb-4" style="display: grid; grid-template-columns: repeat(${cols}, minmax(0, 1fr)); gap: ${gap * 0.25}rem;">
+      ${children.map(child => `<div>${renderOne(child)}</div>`).join('')}
+    </div>`;
+  },
+
+  section(b, renderOne) {
+    const children = b.children || [];
+    if (!children.length) return '';
+    const sid = 's-' + Math.random().toString(36).substr(2, 6);
+    let html = children.map(c => renderOne(c)).join('');
+    html = addHeaderIds(html, sid);
+    let tocHtml = '';
+    if (b.toc) {
+      const hdrs = extractHeaders(html);
+      if (hdrs.length) {
+        tocHtml = `<div class="mb-5 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="font-semibold text-slate-700 mb-2">📑 ${b.tocTitle || 'Содержание'}</div>
+          <ul class="space-y-1">
+            ${hdrs.map(h => `<li style="margin-left:${(h.level-1)*16}px"><a href="#${h.id}" class="text-indigo-600 hover:text-indigo-800 no-underline text-sm toc-link">${h.text}</a></li>`).join('')}
+          </ul>
+        </div>`;
+      }
+    }
+    const titleHtml = b.title ? `<h2 class="text-xl font-bold text-slate-800 mb-4">${b.title}</h2>` : '';
+    return `<div class="mb-6" data-sid="${sid}">${titleHtml}${tocHtml}<div class="space-y-4">${html}</div></div>`;
+  },
+
+  toc(b, renderOne) {
+    return `<div class="mb-4 toc-block" data-toc="${b.source || ''}">
+      ${b.title ? `<h3 class="font-semibold text-slate-700 mb-2">📑 ${b.title}</h3>` : ''}
+      <ul class="space-y-1 toc-list"><li class="text-xs text-slate-400 italic">(загрузка...)</li></ul>
+    </div>`;
+  }
+};
+
+function renderContent(content, r, extra) {
+  let html;
+  if (Array.isArray(content)) {
+    html = content.map(b => r(b)).join('');
+  } else {
+    html = content || '';
+  }
+  if (extra && (extra.bgColor || extra.bgImage)) {
+    const s = [];
+    if (extra.bgColor) s.push(`background-color:${extra.bgColor}`);
+    if (extra.bgImage) s.push(`background-image:url(${extra.bgImage});background-size:cover;background-position:center`);
+    s.push('padding:1rem;border-radius:inherit');
+    html = `<div style="${s.join(';')}">${html}</div>`;
+  }
+  return html;
+}
+
+function renderBlock(block) {
+  const renderer = renderers[block.type];
+  if (!renderer) {
+    return `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">⚠ Неизвестный тип блока: <code>${block.type}</code></div>`;
+  }
+  try {
+    let html = renderer(block, renderBlock);
+    const wrapStyles = [];
+    if (block.height) {
+      const h = typeof block.height === 'number' ? block.height + 'px' : block.height;
+      wrapStyles.push(`height:${h};overflow-y:auto`);
+    }
+    if (block.bgColor || block.bgImage) {
+      if (block.bgColor) wrapStyles.push(`background-color:${block.bgColor}`);
+      if (block.bgImage) wrapStyles.push(`background-image:url(${block.bgImage});background-size:cover;background-position:center`);
+      if (!block.height) wrapStyles.push('padding:1rem');
+      wrapStyles.push('border-radius:inherit');
+    }
+    if (wrapStyles.length) {
+      wrapStyles.push('margin-bottom:1rem');
+      html = `<div style="${wrapStyles.join(';')}">${html}</div>`;
+    }
+    return html;
+  } catch (e) {
+    return `<div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">⚠ Ошибка рендеринга блока <code>${block.type}</code>: ${e.message}</div>`;
+  }
+}
+
+function renderBlocks(blocks) {
+  if (!Array.isArray(blocks)) return '<div class="p-4 bg-red-50 text-red-700 rounded">⚠ Ошибка: blocks должен быть массивом</div>';
+  return blocks.map(renderBlock).join('<hr class="my-4 border-slate-100">');
+}
+
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+const status = document.getElementById('status');
+const blockCount = document.getElementById('blockCount');
+
+let renderTimeout = null;
+
+function countBlocks(blocks) {
+  let count = 0;
+  if (!Array.isArray(blocks)) return 0;
+  for (const b of blocks) {
+    count++;
+    if (b.children && Array.isArray(b.children)) count += countBlocks(b.children);
+    if (b.items && Array.isArray(b.items)) {
+      for (const item of b.items) {
+        if (item.content && item.content.includes('<')) count++;
+      }
+    }
+  }
+  return count;
+}
+
+function updatePreview() {
+  const raw = editor.value;
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.blocks)) {
+      throw new Error('Требуется поле "blocks" с массивом блоков');
+    }
+    const html = renderBlocks(data.blocks);
+    preview.innerHTML = html;
+    status.textContent = `✓ валидно • ${data.blocks.length} блоков`;
+    status.className = 'text-xs text-emerald-600';
+    const total = countBlocks(data.blocks);
+    blockCount.textContent = `${total} блок${total !== 1 ? 'ов' : ''} • ${Math.round(raw.length / 1024)}KB`;
+    attachPreviewHandlers();
+  } catch (e) {
+    status.textContent = `✕ ${e.message}`;
+    status.className = 'text-xs text-red-500';
+    blockCount.textContent = '—';
+  }
+}
+
+function goToSlide(slider, index) {
+  const track = slider.querySelector('.slider-track');
+  const slides = slider.querySelectorAll('.slider-slide');
+  if (!track || !slides.length) return;
+  const i = Math.max(0, Math.min(index, slides.length - 1));
+  const isV = slider.classList.contains('slider-vertical');
+  track.style.transform = isV ? `translateY(-${i * 100}%)` : `translateX(-${i * 100}%)`;
+  slides.forEach((s, n) => s.classList.toggle('active', n === i));
+  slider.querySelectorAll('.slider-dot').forEach((d, n) => d.classList.toggle('active', n === i));
+  slider.dataset.current = i;
+}
+
+function slideSlider(slider, dir) {
+  const slides = slider.querySelectorAll('.slider-slide');
+  if (!slides.length) return;
+  const cur = parseInt(slider.dataset.current) || 0;
+  goToSlide(slider, (cur + dir + slides.length) % slides.length);
+}
+
+function attachPreviewHandlers() {
+  preview.querySelectorAll('.slider').forEach(s => {
+    if (s._auto) { clearInterval(s._auto); s._auto = null; }
+  });
+  preview.querySelectorAll('.slider[data-autoplay]').forEach(s => {
+    const ms = parseInt(s.dataset.autoplay) || 4000;
+    s._auto = setInterval(() => slideSlider(s, 1), ms);
+    s.onmouseenter = () => { if (s._auto) { clearInterval(s._auto); s._auto = null; } };
+    s.onmouseleave = () => {
+      if (!s._auto) s._auto = setInterval(() => slideSlider(s, 1), parseInt(s.dataset.autoplay) || 4000);
+    };
+  });
+
+  preview.querySelectorAll('.toc-block').forEach(tb => {
+    const src = tb.dataset.toc;
+    let headers = [];
+    if (src) {
+      const sec = preview.querySelector(`[data-sid="${src}"]`);
+      if (sec) headers = sec.querySelectorAll('h1[id],h2[id],h3[id]');
+    } else {
+      headers = preview.querySelectorAll('[data-sid] h1[id],[data-sid] h2[id],[data-sid] h3[id]');
+    }
+    const list = tb.querySelector('.toc-list');
+    if (list && headers.length) {
+      list.innerHTML = Array.from(headers).map(h => {
+        const lvl = parseInt(h.tagName[1]);
+        return `<li style="margin-left:${(lvl-1)*16}px"><a href="#${h.id}" class="text-indigo-600 hover:text-indigo-800 no-underline text-sm toc-link">${h.textContent}</a></li>`;
+      }).join('');
+    }
+  });
+
+  preview.onclick = (e) => {
+    const target = e.target;
+
+    const tocLink = target.closest('.toc-link');
+    if (tocLink) { e.preventDefault(); e.stopPropagation(); const el = preview.querySelector(tocLink.getAttribute('href')); if (el) el.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+
+    const accHeader = target.closest('[data-action="accordion-toggle"]');
+    if (accHeader) {
+      e.stopPropagation();
+      const item = accHeader.closest('.accordion-item');
+      if (item) {
+        item.classList.toggle('active');
+        const arrow = accHeader.querySelector('.accordion-arrow');
+        if (arrow) arrow.style.transform = item.classList.contains('active') ? 'rotate(180deg)' : '';
+      }
+      return;
+    }
+
+    const haccHeader = target.closest('[data-action="haccordion-toggle"]');
+    if (haccHeader) {
+      e.stopPropagation();
+      const container = haccHeader.closest('.h-accordion');
+      const item = haccHeader.closest('.h-accordion-item');
+      if (item && container) {
+        container.querySelectorAll('.h-accordion-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      }
+      return;
+    }
+
+    const tabBtn = target.closest('[data-action="tab-toggle"]');
+    if (tabBtn) {
+      e.stopPropagation();
+      const parent = tabBtn.closest('[role="tablist"]');
+      if (!parent) return;
+      parent.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = b.className.replace(/border-indigo-600 text-indigo-600/g, 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300');
+      });
+      tabBtn.className = 'tab-btn px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 transition-colors';
+      const idx = tabBtn.dataset.tab;
+      const container = parent.nextElementSibling;
+      if (container) {
+        container.querySelectorAll('[data-tab-content]').forEach(tc => tc.classList.remove('active'));
+        const content = container.querySelector(`[data-tab-content="${idx}"]`);
+        if (content) content.classList.add('active');
+      }
+      return;
+    }
+
+    const sliderPrev = target.closest('[data-action="slider-prev"]');
+    if (sliderPrev) { e.stopPropagation(); slideSlider(sliderPrev.closest('.slider'), -1); return; }
+    const sliderNext = target.closest('[data-action="slider-next"]');
+    if (sliderNext) { e.stopPropagation(); slideSlider(sliderNext.closest('.slider'), 1); return; }
+    const sliderDot = target.closest('[data-action="slider-dot"]');
+    if (sliderDot) { e.stopPropagation(); goToSlide(sliderDot.closest('.slider'), parseInt(sliderDot.dataset.index)); return; }
+
+    const flipCard = target.closest('.flip-card');
+    if (flipCard) {
+      if (target.closest('a') || target.closest('[data-action]')) return;
+      flipCard.classList.toggle('flipped');
+      return;
+    }
+
+    const imgArea = target.closest('.img-area-marker');
+    if (imgArea) {
+      e.stopPropagation();
+      const wrap = imgArea.closest('.interactive-img-wrap');
+      if (!wrap) return;
+      if (imgArea.classList.contains('active')) {
+        imgArea.classList.remove('active');
+        wrap.querySelectorAll('.img-area-tooltip').forEach(t => t.remove());
+        return;
+      }
+      wrap.querySelectorAll('.img-area-marker').forEach(a => a.classList.remove('active'));
+      wrap.querySelectorAll('.img-area-tooltip').forEach(t => t.remove());
+      imgArea.classList.add('active');
+      const title = imgArea.dataset.title || '';
+      const desc = imgArea.dataset.desc || '';
+      if (title || desc) {
+        const tip = document.createElement('div');
+        tip.className = 'img-area-tooltip';
+        tip.innerHTML = (title ? `<strong style="display:block;margin-bottom:4px">${title}</strong>` : '') + (desc ? `<div>${desc}</div>` : '');
+        const cont = wrap.querySelector('.relative');
+        cont.appendChild(tip);
+        const cRect = cont.getBoundingClientRect();
+        const aRect = imgArea.getBoundingClientRect();
+        const left = aRect.left - cRect.left + aRect.width / 2;
+        const top = aRect.top - cRect.top - 8;
+        tip.style.left = Math.round(left) + 'px';
+        tip.style.top = Math.round(top) + 'px';
+        tip.style.transform = 'translate(-50%, -100%)';
+      }
+      return;
+    }
+
+    if (!target.closest('.img-area-tooltip')) {
+      document.querySelectorAll('.img-area-tooltip').forEach(t => t.remove());
+      document.querySelectorAll('.img-area-marker.active').forEach(a => a.classList.remove('active'));
+    }
+  };
+
+  if (typeof mermaid !== 'undefined') {
+    preview.querySelectorAll('.mermaid:not([data-processed])').forEach(async el => {
+      try {
+        const id = 'm-' + Math.random().toString(36).substr(2, 8);
+        const { svg } = await mermaid.render(id, el.textContent);
+        el.innerHTML = svg;
+        el.dataset.processed = '1';
+      } catch (e) {
+        el.innerHTML = `<div class="p-3 bg-red-50 text-red-700 rounded text-sm">⚠ Ошибка Mermaid: ${e.message}</div>`;
+      }
+    });
+  }
+}
+
+function exportHTML() {
+  const content = preview.innerHTML;
+  const styleEl = document.querySelector('style');
+  const customCSS = styleEl ? styleEl.innerHTML : '';
+  const hasKatexCSS = !!document.querySelector('[data-lib="katex-css"]');
+  const hasMermaid = typeof mermaid !== 'undefined';
+  const katexLink = hasKatexCSS ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css">' : '';
+  const mermaidScript = hasMermaid ? '<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"><\/script>' : '';
+
+  const interJS = `
+function goToSlide(s,i){var t=s.querySelector('.slider-track'),e=s.querySelectorAll('.slider-slide');if(t&&e.length){var n=Math.max(0,Math.min(i,e.length-1)),r=s.classList.contains('slider-vertical');t.style.transform=r?'translateY(-'+(n*100)+'%)':'translateX(-'+(n*100)+'%)';e.forEach(function(s,l){s.classList.toggle('active',l===n)});s.querySelectorAll('.slider-dot').forEach(function(s,l){s.classList.toggle('active',l===n)});s.dataset.current=n}}
+function slideSlider(s,d){var e=s.querySelectorAll('.slider-slide');if(e.length){var n=parseInt(s.dataset.current)||0;goToSlide(s,(n+d+e.length)%e.length)}}
+document.addEventListener('click',function(e){var t=e.target;
+var ah=t.closest('[data-action="accordion-toggle"]');if(ah){e.stopPropagation();var ai=ah.closest('.accordion-item');if(ai){ai.classList.toggle('active');var ar=ah.querySelector('.accordion-arrow');if(ar)ar.style.transform=ai.classList.contains('active')?'rotate(180deg)':''}return}
+var ha=t.closest('[data-action="haccordion-toggle"]');if(ha){e.stopPropagation();var hc=ha.closest('.h-accordion');var hi=ha.closest('.h-accordion-item');if(hi&&hc){hc.querySelectorAll('.h-accordion-item').forEach(function(i){i.classList.remove('active')});hi.classList.add('active')}return}
+var tb=t.closest('[data-action="tab-toggle"]');if(tb){e.stopPropagation();var tp=tb.closest('[role="tablist"]');if(!tp)return;tp.querySelectorAll('.tab-btn').forEach(function(b){b.className=b.className.replace(/border-indigo-600 text-indigo-600/g,'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300')});tb.className='tab-btn px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 border-indigo-600 text-indigo-600 transition-colors';var ti=tb.dataset.tab;var tc=tp.nextElementSibling;if(tc){tc.querySelectorAll('[data-tab-content]').forEach(function(c){c.classList.remove('active')});var ct=tc.querySelector('[data-tab-content="'+ti+'"]');if(ct)ct.classList.add('active')}return}
+var sp=t.closest('[data-action="slider-prev"]');if(sp){e.stopPropagation();slideSlider(sp.closest('.slider'),-1);return}
+var sn=t.closest('[data-action="slider-next"]');if(sn){e.stopPropagation();slideSlider(sn.closest('.slider'),1);return}
+var sd=t.closest('[data-action="slider-dot"]');if(sd){e.stopPropagation();goToSlide(sd.closest('.slider'),parseInt(sd.dataset.index));return}
+var fc=t.closest('.flip-card');if(fc){if(t.closest('a')||t.closest('[data-action]'))return;fc.classList.toggle('flipped');return}
+var ia=t.closest('.img-area-marker');if(ia){e.stopPropagation();var iw=ia.closest('.interactive-img-wrap');if(iw){if(ia.classList.contains('active')){ia.classList.remove('active');iw.querySelectorAll('.img-area-tooltip').forEach(function(x){x.remove()});return}iw.querySelectorAll('.img-area-marker').forEach(function(x){x.classList.remove('active')});iw.querySelectorAll('.img-area-tooltip').forEach(function(x){x.remove()});ia.classList.add('active');var it=ia.dataset.title||'',id=ia.dataset.desc||'';if(it||id){var tip=document.createElement('div');tip.className='img-area-tooltip';tip.innerHTML=(it?'<strong style=\"display:block;margin-bottom:4px\">'+it+'</strong>':'')+(id?'<div>'+id+'</div>':'');var ic=iw.querySelector('.relative');ic.appendChild(tip);var cR=ic.getBoundingClientRect(),aR=ia.getBoundingClientRect();tip.style.left=Math.round(aR.left-cR.left+aR.width/2)+'px';tip.style.top=Math.round(aR.top-cR.top-8)+'px';tip.style.transform='translate(-50%, -100%)'}}return}
+if(!t.closest('.img-area-tooltip')){document.querySelectorAll('.img-area-tooltip').forEach(function(x){x.remove()});document.querySelectorAll('.img-area-marker.active').forEach(function(x){x.classList.remove('active')})}});
+document.querySelectorAll('.slider').forEach(function(s){if(s.dataset.autoplay){var ms=parseInt(s.dataset.autoplay)||4000;s._auto=setInterval(function(){slideSlider(s,1)},ms);s.onmouseenter=function(){if(s._auto){clearInterval(s._auto);s._auto=null}};s.onmouseleave=function(){if(!s._auto)s._auto=setInterval(function(){slideSlider(s,1)},parseInt(s.dataset.autoplay)||4000)}}});
+if(typeof mermaid!=='undefined'){mermaid.initialize({startOnLoad:true})}
+`;
+  const doc = '<!DOCTYPE html>\n<html lang="ru">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1.0">\n<title>AI LMS — экспортированный урок</title>\n<script src="https://cdn.tailwindcss.com"><\/script>\n' + katexLink + '\n' + mermaidScript + '\n<style>' + customCSS + '\n.preview{max-width:960px;margin:0 auto;padding:2rem 1.5rem}\nbody{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;background:#fff;color:#1e293b}\n<\/style>\n</head>\n<body>\n<div class="preview">\n' + content + '\n</div>\n<script>' + interJS + '<\/script>\n</body>\n</html>';
+
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'exported-lesson.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  const btn = document.getElementById('exportBtn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✅ Готово';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+function formatJSON() {
+  try {
+    pushHistory();
+    const parsed = JSON.parse(editor.value);
+    editor.value = JSON.stringify(parsed, null, 2);
+    updatePreview();
+  } catch (e) {
+    status.textContent = `✕ Не могу отформатировать: ${e.message}`;
+    status.className = 'text-xs text-red-500';
+  }
+}
+
+function copyJSON() {
+  navigator.clipboard.writeText(editor.value).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Скопировано';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  }).catch(() => {
+    status.textContent = '✕ Не удалось скопировать';
+    status.className = 'text-xs text-red-500';
+  });
+}
+
+function clearEditor() {
+  if (confirm('Очистить редактор?')) {
+    pushHistory();
+    editor.value = '{\n  "blocks": []\n}';
+    localStorage.removeItem(STORAGE_KEY);
+    updatePreview();
+  }
+}
+
+function loadPreset(name) {
+  const data = presets[name];
+  if (!data) return;
+  pushHistory();
+  editor.value = JSON.stringify(data, null, 2);
+  localStorage.setItem(STORAGE_KEY, editor.value);
+  updatePreview();
+}
+
+function importJSON() {
+  document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const text = ev.target.result;
+      JSON.parse(text);
+      pushHistory();
+      editor.value = text;
+      localStorage.setItem(STORAGE_KEY, text);
+      updatePreview();
+      status.textContent = `✓ загружен ${file.name}`;
+      status.className = 'text-xs text-emerald-600';
+    } catch (err) {
+      status.textContent = `✕ Ошибка в файле: ${err.message}`;
+      status.className = 'text-xs text-red-500';
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      JSON.parse(saved);
+      editor.value = saved;
+    } catch (e) {
+      editor.value = EMPTY_JSON;
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } else {
+    editor.value = EMPTY_JSON;
+  }
+  pushHistory();
+  updatePreview();
+
+  editor.addEventListener('input', () => {
+    clearTimeout(renderTimeout);
+    clearTimeout(history.timer);
+    history.timer = setTimeout(pushHistory, 2000);
+    renderTimeout = setTimeout(() => {
+      updatePreview();
+      localStorage.setItem(STORAGE_KEY, editor.value);
+    }, 200);
+  });
+
+  document.getElementById('formatBtn').addEventListener('click', formatJSON);
+  document.getElementById('copyBtn').addEventListener('click', copyJSON);
+  document.getElementById('importBtn').addEventListener('click', importJSON);
+  document.getElementById('clearBtn').addEventListener('click', clearEditor);
+  document.getElementById('exportBtn').addEventListener('click', exportHTML);
+  document.getElementById('undoBtn').addEventListener('click', undo);
+  document.getElementById('redoBtn').addEventListener('click', redo);
+  document.getElementById('aiBtn').addEventListener('click', openAIModal);
+  document.getElementById('aiCloseBtn').addEventListener('click', closeAIModal);
+  document.getElementById('aiCancelBtn').addEventListener('click', closeAIModal);
+  document.getElementById('aiGenerateBtn').addEventListener('click', generateWithAI);
+  document.getElementById('aiModal').addEventListener('click', closeAIModal);
+  document.getElementById('aiConnType').addEventListener('change', applyAIConnType);
+  document.getElementById('aiFetchModelsBtn').addEventListener('click', fetchModels);
+
+  document.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      formatJSON();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      e.preventDefault();
+      redo();
+    }
+  });
+});
+</script>
+</body>
+</html>
